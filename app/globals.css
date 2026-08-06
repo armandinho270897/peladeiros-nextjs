@@ -1,0 +1,83 @@
+:root {
+  --ink: #0A0A0A;
+  --card-bg: #141814;
+  --neon: #A6FF00;
+  --neon-dim: #7FCC00;
+  --paper: #F3F3EE;
+  --paper-dim: #B7B7AC;
+  --tag-red: #E8362B;
+  --gold: #FFC53D;
+  --font-display: 'Anton', 'Archivo Black', sans-serif;
+  --font-tag: 'Permanent Marker', cursive;
+  --font-body: 'Work Sans', 'Inter', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-body);
+}
+
+.pl-header {
+  padding: 26px 20px 34px;
+  border-bottom: 3px solid var(--neon);
+}
+.pl-brand { display: flex; align-items: center; gap: 12px; }
+.pl-brand-text { font-family: var(--font-display); font-size: 30px; text-transform: uppercase; }
+.pl-brand-text span { color: var(--neon); }
+.pl-tagline { font-family: var(--font-tag); color: var(--neon); font-size: 15px; }
+
+.pl-newbtn {
+  margin-top: 18px;
+  background: var(--neon);
+  color: var(--ink);
+  border: none;
+  font-family: var(--font-display);
+  font-size: 17px;
+  text-transform: uppercase;
+  padding: 11px 22px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.pl-list { padding: 14px 16px 0; max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+
+.pl-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(166,255,0,0.18);
+  border-left: 4px solid var(--neon);
+  border-radius: 3px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 14px;
+  position: relative;
+}
+
+.pl-date { background: rgba(0,0,0,0.4); border-radius: 3px; padding: 8px 4px; text-align: center; font-family: var(--font-display); }
+.pl-date .dow { font-size: 11px; color: var(--paper-dim); }
+.pl-date .dom { font-size: 24px; color: var(--neon); }
+
+.pl-info h3 { font-family: var(--font-display); font-size: 22px; margin: 0 0 2px; text-transform: uppercase; }
+.pl-info .meta { font-size: 13px; color: var(--paper-dim); margin: 2px 0; }
+.pl-bairro-tag { font-family: var(--font-tag); font-size: 13px; color: var(--ink); background: var(--neon); padding: 1px 8px; border-radius: 2px; }
+
+.pl-flip { font-family: var(--font-display); font-size: 28px; background: var(--ink); color: var(--neon); min-width: 44px; text-align: center; padding: 3px 6px; border-radius: 3px; border: 1.5px solid var(--neon); }
+.pl-flip.lotado { color: var(--tag-red); border-color: var(--tag-red); }
+
+.pl-confirm-btn { margin-top: 8px; background: transparent; border: 1.5px solid var(--neon); color: var(--neon); padding: 6px 10px; border-radius: 3px; cursor: pointer; text-transform: uppercase; font-size: 12px; }
+.pl-share-btn { display: block; margin-top: 6px; background: none; border: none; color: var(--paper-dim); font-size: 11px; text-decoration: underline; cursor: pointer; }
+
+.pl-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 50; }
+.pl-modal { background: var(--card-bg); border: 2px solid var(--neon); border-radius: 8px; padding: 22px; width: 100%; max-width: 440px; max-height: 88vh; overflow-y: auto; }
+.pl-modal h3 { font-family: var(--font-display); color: var(--neon); text-transform: uppercase; }
+.pl-field { margin-bottom: 12px; }
+.pl-field label { display: block; font-size: 11px; text-transform: uppercase; color: var(--paper-dim); margin-bottom: 5px; }
+.pl-field input { width: 100%; background: var(--ink); border: 1px solid rgba(166,255,0,0.25); color: var(--paper); padding: 10px; border-radius: 3px; font-size: 15px; }
+.pl-btn-primary { background: var(--neon); color: var(--ink); border: none; font-family: var(--font-display); text-transform: uppercase; padding: 11px; border-radius: 3px; cursor: pointer; flex: 1; }
+.pl-btn-secondary { background: transparent; color: var(--paper-dim); border: 1px solid rgba(243,243,238,0.2); font-family: var(--font-display); text-transform: uppercase; padding: 11px; border-radius: 3px; cursor: pointer; flex: 1; }
+.pl-modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+.pl-error { color: var(--tag-red); font-size: 12px; }
