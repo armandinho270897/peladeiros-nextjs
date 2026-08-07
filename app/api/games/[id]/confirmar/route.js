@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
+import { normalizeWhatsapp } from '@/lib/gameUtils';
 
 export async function POST(request, { params }) {
   const { id } = params;
@@ -16,6 +17,18 @@ export async function POST(request, { params }) {
     .single();
 
   if (gameError || !game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
+
+  const waNorm = normalizeWhatsapp(whatsapp);
+  const { data: existentes } = await supabase
+    .from('confirmacoes')
+    .select('whatsapp')
+    .eq('game_id', id)
+    .in('status', ['confirmado', 'espera']);
+
+  const jaConfirmado = (existentes || []).some((c) => normalizeWhatsapp(c.whatsapp) === waNorm);
+  if (jaConfirmado) {
+    return NextResponse.json({ error: 'Você já confirmou presença nessa pelada.' }, { status: 409 });
+  }
 
   const { count } = await supabase
     .from('confirmacoes')

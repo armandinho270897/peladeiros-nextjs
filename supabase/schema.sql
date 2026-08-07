@@ -13,6 +13,8 @@ create table if not exists games (
   vagas_totais int not null check (vagas_totais > 0),
   capitao text not null,
   codigo text not null, -- PIN de 4 dígitos (Fase 1). Será substituído por auth.uid() na Fase 2, sem quebrar o resto do schema.
+  latitude numeric,
+  longitude numeric,
   created_at timestamptz not null default now()
 );
 

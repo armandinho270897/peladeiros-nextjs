@@ -17,7 +17,7 @@ export async function GET() {
 
 export async function POST(request) {
   const body = await request.json();
-  const { local, bairro, data, horario, vagasTotais, capitao, codigo } = body;
+  const { local, bairro, data, horario, vagasTotais, capitao, codigo, latitude, longitude } = body;
 
   if (!local || !bairro || !data || !horario || !vagasTotais || !capitao || !/^\d{4}$/.test(codigo || '')) {
     return NextResponse.json({ error: 'Dados inválidos. Confere se preencheu tudo e o código tem 4 números.' }, { status: 400 });
@@ -25,7 +25,11 @@ export async function POST(request) {
 
   const { data: game, error } = await supabase
     .from('games')
-    .insert({ local, bairro, data, horario, vagas_totais: vagasTotais, capitao, codigo })
+    .insert({
+      local, bairro, data, horario, vagas_totais: vagasTotais, capitao, codigo,
+      latitude: latitude ?? null,
+      longitude: longitude ?? null,
+    })
     .select()
     .single();
 

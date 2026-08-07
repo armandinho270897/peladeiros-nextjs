@@ -6,6 +6,20 @@ async function checkCodigo(id, codigo) {
   return game && game.codigo === codigo;
 }
 
+export async function GET(request, { params }) {
+  const { id } = params;
+  const { data: game, error } = await supabase
+    .from('games')
+    .select('*, confirmacoes(*)')
+    .eq('id', id)
+    .single();
+
+  if (error || !game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
+
+  const { codigo, ...safe } = game;
+  return NextResponse.json(safe);
+}
+
 export async function PATCH(request, { params }) {
   const { id } = params;
   const body = await request.json();
