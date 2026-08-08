@@ -1,6 +1,8 @@
 import './globals.css';
+import SplashScreen from './components/SplashScreen';
 
 export const metadata = {
+  metadataBase: new URL('https://peladeiros-nextjs.vercel.app'),
   title: 'Peladeiros',
   description: 'Achou o campo, chamou o povo, bateu bola.',
   manifest: '/manifest.json',
@@ -10,7 +12,6 @@ export const metadata = {
     title: 'Peladeiros',
   },
   icons: {
-    icon: '/favicon.ico',
     apple: '/icons/apple-touch-icon.png',
   },
 };
@@ -31,7 +32,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <SplashScreen />
+        {children}
+      </body>
     </html>
   );
 }

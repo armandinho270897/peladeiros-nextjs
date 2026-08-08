@@ -1,8 +1,13 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { normalizeWhatsapp } from '@/lib/gameUtils';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request, { params }) {
+  if (!checkRateLimit(`confirmar:${getClientIp(request)}`)) {
+    return NextResponse.json({ error: 'Muitas confirmações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
+  }
+
   const { id } = params;
   const { nome, whatsapp } = await request.json();
 

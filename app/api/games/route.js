@@ -1,5 +1,6 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function GET() {
   const { data: games, error } = await supabase
@@ -16,6 +17,10 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  if (!checkRateLimit(`games:create:${getClientIp(request)}`)) {
+    return NextResponse.json({ error: 'Muitas peladas criadas em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
+  }
+
   const body = await request.json();
   const { local, bairro, data, horario, vagasTotais, capitao, codigo, latitude, longitude } = body;
 

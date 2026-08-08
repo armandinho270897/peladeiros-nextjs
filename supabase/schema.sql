@@ -33,20 +33,15 @@ create index if not exists idx_confirmacoes_game_id on confirmacoes(game_id);
 create index if not exists idx_games_data on games(data);
 create index if not exists idx_games_bairro on games(bairro);
 
--- Segurança básica (Fase 1: leitura/escrita liberada, porque ainda não temos login).
--- Quando entrar auth de verdade (Fase 2), essas políticas trocam pra checar auth.uid() em vez de liberar geral.
+-- Segurança (Fase 1.5): leitura pública liberada, escrita SÓ pelas rotas /api
+-- (que usam a service role key, não a anon key, e validam o PIN de 4 dígitos no código).
+-- A anon key (a que o navegador usa) não tem permissão de insert/update/delete no banco.
+-- Quando entrar auth de verdade (Fase 2), isso muda pra políticas que checam auth.uid().
 alter table games enable row level security;
 alter table confirmacoes enable row level security;
 
 create policy "games são públicas para leitura" on games for select using (true);
-create policy "qualquer um pode criar pelada (Fase 1)" on games for insert with check (true);
-create policy "qualquer um pode editar pelada (Fase 1 - validado no código pelo PIN)" on games for update using (true);
-create policy "qualquer um pode cancelar pelada (Fase 1 - validado no código pelo PIN)" on games for delete using (true);
-
 create policy "confirmações são públicas para leitura" on confirmacoes for select using (true);
-create policy "qualquer um pode confirmar presença" on confirmacoes for insert with check (true);
-create policy "qualquer um pode remover confirmação (Fase 1 - validado no código pelo PIN)" on confirmacoes for delete using (true);
-create policy "qualquer um pode atualizar confirmação (promoção de fila)" on confirmacoes for update using (true);
 
 -- ⚠️ Nota de segurança honesta: como ainda não existe login (Fase 1), a validação do
 -- código de 4 dígitos acontece no backend (nas rotas /api), não no banco. Isso é aceitável
