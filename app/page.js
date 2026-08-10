@@ -2,10 +2,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useGames } from '@/lib/useGames';
+import { useArenas } from '@/lib/useArenas';
 import { todayISO, confirmadosDe, normalizeWhatsapp, shareUrl } from '@/lib/gameUtils';
 import { saveCaptainCode } from '@/lib/captainCodes';
 import GameCard from './components/GameCard';
 import NewGameModal from './components/NewGameModal';
+import NewArenaModal from './components/NewArenaModal';
 import ConfirmModal from './components/ConfirmModal';
 import ManageModal from './components/ManageModal';
 
@@ -13,7 +15,8 @@ const MapViewPins = dynamic(() => import('./components/MapViewPins'), { ssr: fal
 
 export default function Home() {
   const { games, loading, loadGames } = useGames();
-  const [modal, setModal] = useState(null); // 'new' | {type:'confirm', game} | {type:'manage', game}
+  const { arenas, loadArenas } = useArenas();
+  const [modal, setModal] = useState(null); // 'new' | 'new-arena' | {type:'confirm', game} | {type:'manage', game}
   const [perfil, setPerfil] = useState(null);
   const [viewMode, setViewMode] = useState('lista'); // 'lista' | 'mapa'
   const [bairroFiltro, setBairroFiltro] = useState('');
@@ -36,6 +39,11 @@ export default function Home() {
     saveCaptainCode(newGame.id, codigo);
     setModal(null);
     loadGames();
+  }
+
+  function handleArenaCreated() {
+    setModal(null);
+    loadArenas();
   }
 
   function handleConfirmed({ nome, whatsapp }) {
@@ -87,7 +95,10 @@ export default function Home() {
       <div className="pl-header">
         <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
         <p className="pl-tagline">achou o campo, chamou o povo, bateu bola</p>
-        <button className="pl-newbtn" onClick={() => setModal('new')}>+ Criar pelada</button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="pl-newbtn" onClick={() => setModal('new')}>+ Criar pelada</button>
+          <button className="pl-newbtn pl-newbtn-secondary" onClick={() => setModal('new-arena')}>+ Cadastrar arena</button>
+        </div>
       </div>
 
       <div className="pl-tabs">
@@ -111,6 +122,8 @@ export default function Home() {
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--paper-dim)' }}>
           <p>Confirme presença em alguma pelada primeiro pra ela aparecer aqui.</p>
         </div>
+      ) : viewMode === 'mapa' ? (
+        <MapViewPins games={filtradas} arenas={arenas} onConfirm={(game) => setModal({ type: 'confirm', game })} />
       ) : filtradas.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--paper-dim)' }}>
           <div style={{ fontSize: 40 }}>⚽</div>
@@ -119,8 +132,6 @@ export default function Home() {
           </h3>
           <p>{tab === 'minhas' ? 'Confirme presença numa pelada pra ela aparecer aqui.' : 'Seja o primeiro a chamar o povo pro campo essa semana.'}</p>
         </div>
-      ) : viewMode === 'mapa' ? (
-        <MapViewPins games={filtradas} onConfirm={(game) => setModal({ type: 'confirm', game })} />
       ) : (
         <>
           {hoje.length > 0 && <>
@@ -136,6 +147,10 @@ export default function Home() {
 
       {modal === 'new' && (
         <NewGameModal onCancel={() => setModal(null)} onCreated={handleCreated} />
+      )}
+
+      {modal === 'new-arena' && (
+        <NewArenaModal onCancel={() => setModal(null)} onCreated={handleArenaCreated} />
       )}
 
       {modal?.type === 'confirm' && (

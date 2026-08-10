@@ -42,6 +42,11 @@ body {
   border-radius: 2px;
   cursor: pointer;
 }
+.pl-newbtn-secondary {
+  background: transparent;
+  color: var(--gold);
+  border: 1.5px solid var(--gold);
+}
 
 .pl-splash {
   position: fixed; inset: 0; z-index: 9999;

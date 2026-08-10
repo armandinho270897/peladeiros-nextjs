@@ -1,19 +1,34 @@
 'use client';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useArenas } from '@/lib/useArenas';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 
 export default function NewGameModal({ onCancel, onCreated }) {
+  const { arenas } = useArenas();
   const [error, setError] = useState('');
   const [coords, setCoords] = useState({ lat: null, lng: null });
+  const [arenaId, setArenaId] = useState('');
+  const [local, setLocal] = useState('');
+  const [bairro, setBairro] = useState('');
+
+  function handleArenaChange(id) {
+    setArenaId(id);
+    if (!id) return;
+    const arena = arenas.find((a) => a.id === id);
+    if (!arena) return;
+    setLocal(arena.nome);
+    setBairro(arena.bairro);
+    setCoords({ lat: arena.latitude != null ? Number(arena.latitude) : null, lng: arena.longitude != null ? Number(arena.longitude) : null });
+  }
 
   async function handleCreate(e) {
     e.preventDefault();
     const f = e.target;
     const body = {
-      local: f.local.value.trim(),
-      bairro: f.bairro.value.trim(),
+      local: local.trim(),
+      bairro: bairro.trim(),
       data: f.data.value,
       horario: f.horario.value,
       vagasTotais: parseInt(f.vagas.value, 10),
@@ -21,6 +36,7 @@ export default function NewGameModal({ onCancel, onCreated }) {
       codigo: f.codigo.value.trim(),
       latitude: coords.lat,
       longitude: coords.lng,
+      arenaId: arenaId || null,
     };
     const res = await fetch('/api/games', { method: 'POST', body: JSON.stringify(body) });
     const result = await res.json();
@@ -34,8 +50,17 @@ export default function NewGameModal({ onCancel, onCreated }) {
       <div className="pl-modal">
         <h3>Nova pelada</h3>
         <form onSubmit={handleCreate}>
-          <div className="pl-field"><label>Local</label><input name="local" placeholder="Ex: Quadra do Zé" /></div>
-          <div className="pl-field"><label>Bairro</label><input name="bairro" placeholder="Ex: Centro" /></div>
+          {arenas.length > 0 && (
+            <div className="pl-field">
+              <label>Vincular a uma arena existente (opcional)</label>
+              <select className="pl-select" style={{ width: '100%' }} value={arenaId} onChange={(e) => handleArenaChange(e.target.value)}>
+                <option value="">Nenhuma — local livre</option>
+                {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome} ({a.bairro})</option>)}
+              </select>
+            </div>
+          )}
+          <div className="pl-field"><label>Local</label><input name="local" placeholder="Ex: Quadra do Zé" value={local} onChange={(e) => setLocal(e.target.value)} /></div>
+          <div className="pl-field"><label>Bairro</label><input name="bairro" placeholder="Ex: Centro" value={bairro} onChange={(e) => setBairro(e.target.value)} /></div>
           <div className="pl-field"><label>Data</label><input type="date" name="data" /></div>
           <div className="pl-field"><label>Horário</label><input type="time" name="horario" /></div>
           <div className="pl-field"><label>Vagas totais</label><input type="number" name="vagas" min="1" max="30" /></div>
