@@ -10,17 +10,34 @@ export async function GET(request) {
 
   const supabase = createClient();
   let sessionOk = false;
+  let lastError = null;
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     sessionOk = !error;
+    lastError = error;
   } else if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash, type });
     sessionOk = !error;
+    lastError = error;
   }
 
   if (!sessionOk) {
-    return NextResponse.redirect(`${origin}/login`);
+    if (!code && !token_hash) {
+      // A Supabase pode devolver a sessão no fragmento da URL (#access_token=...)
+      // em vez de ?code=. Fragmento nunca chega no servidor — só o navegador
+      // consegue ler, então manda pra uma página cliente terminar o login.
+      // O redirect abaixo não define fragmento próprio, então o navegador
+      // preserva o #access_token=... original automaticamente.
+      return NextResponse.redirect(`${origin}/auth/callback/complete?next=${encodeURIComponent(next)}`);
+    }
+
+    // Loga o erro real do servidor (visível em `vercel logs` / logs de runtime)
+    // em vez de falhar em silêncio — foi exatamente essa falta de sinal que
+    // escondeu a causa do bug anterior.
+    console.error('[auth/callback] falha ao trocar código/token por sessão:', lastError?.message || lastError);
+    const reason = lastError?.message ? encodeURIComponent(lastError.message) : 'unknown';
+    return NextResponse.redirect(`${origin}/login?authError=${reason}`);
   }
 
   const { data: { user } } = await supabase.auth.getUser();

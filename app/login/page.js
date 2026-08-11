@@ -8,9 +8,10 @@ import TicketButton from '../components/TicketButton';
 function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '/';
+  const authError = searchParams.get('authError');
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(authError ? 'O link expirou ou já foi usado. Pede um novo abaixo.' : '');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
