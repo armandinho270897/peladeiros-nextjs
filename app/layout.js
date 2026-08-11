@@ -1,5 +1,6 @@
 import './globals.css';
 import SplashScreen from './components/SplashScreen';
+import InAppBrowserBanner from './components/InAppBrowserBanner';
 import { AuthProvider } from './components/AuthProvider';
 import { ToastProvider } from './components/ToastProvider';
 
@@ -35,6 +36,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <InAppBrowserBanner />
         <SplashScreen />
         <ToastProvider>
           <AuthProvider>{children}</AuthProvider>

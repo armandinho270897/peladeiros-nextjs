@@ -283,3 +283,19 @@ body {
 .pl-avatar-row { display: flex; align-items: center; gap: -6px; }
 .pl-avatar-row > * { margin-left: -8px; }
 .pl-avatar-row > *:first-child { margin-left: 0; }
+
+/* Aviso de navegador embutido (Instagram/Facebook/TikTok...) */
+.pl-inapp-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--concrete); color: var(--paper);
+  font-size: 12px; line-height: 1.4;
+  padding: 8px 14px;
+}
+.pl-inapp-banner span { flex: 1; }
+.pl-inapp-banner b { color: var(--gold); }
+.pl-inapp-banner button {
+  background: none; border: none; color: var(--paper);
+  font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px;
+  opacity: 0.75;
+}
+.pl-inapp-banner button:hover { opacity: 1; }
