@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { attachNotaMedia } from '@/lib/ratings';
 
 export async function GET() {
   const { data: games, error } = await supabase
@@ -12,8 +13,9 @@ export async function GET() {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  const comNotas = await attachNotaMedia(games);
   // não devolve o código (PIN) pro front — só é usado server-side pra validar edição
-  const safe = games.map(({ codigo, ...g }) => g);
+  const safe = comNotas.map(({ codigo, ...g }) => g);
   return NextResponse.json(safe);
 }
 

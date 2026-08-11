@@ -1,10 +1,12 @@
 'use client';
 import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { useGames } from '@/lib/useGames';
 import { useArenas } from '@/lib/useArenas';
 import { todayISO, confirmadosDe, shareUrl } from '@/lib/gameUtils';
 import { useAuth } from './components/AuthProvider';
+import { useToast } from './components/ToastProvider';
 import GameCard from './components/GameCard';
 import NewGameModal from './components/NewGameModal';
 import NewArenaModal from './components/NewArenaModal';
@@ -15,6 +17,7 @@ const MapViewPins = dynamic(() => import('./components/MapViewPins'), { ssr: fal
 
 export default function Home() {
   const { user, profile, signOut } = useAuth();
+  const { showToast } = useToast();
   const { games, loading, loadGames } = useGames();
   const { arenas, loadArenas } = useArenas();
   const [modal, setModal] = useState(null); // 'new' | 'new-arena' | {type:'confirm', game} | {type:'manage', game}
@@ -33,16 +36,19 @@ export default function Home() {
   function handleCreated() {
     setModal(null);
     loadGames();
+    showToast('Pelada criada!');
   }
 
   function handleArenaCreated() {
     setModal(null);
     loadArenas();
+    showToast('Arena cadastrada!');
   }
 
   function handleConfirmed() {
     setModal(null);
     loadGames();
+    showToast('Presença confirmada!');
   }
 
   const today = todayISO();
@@ -88,7 +94,9 @@ export default function Home() {
           <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
           {profile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--paper-dim)' }}>
-              <span>{profile.nome}</span>
+              <Link href="/perfil" style={{ color: 'var(--paper-dim)', textDecoration: 'none' }}>
+                <span style={{ textDecoration: 'underline', textUnderlineOffset: 2 }}>{profile.nome}</span>
+              </Link>
               <button className="pl-share-btn" onClick={signOut}>Sair</button>
             </div>
           )}
@@ -116,7 +124,11 @@ export default function Home() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: 'var(--paper-dim)' }}>Carregando peladas...</div>
+        <div className="pl-list">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="pl-skeleton" style={{ height: 96 }} />
+          ))}
+        </div>
       ) : viewMode === 'mapa' ? (
         <MapViewPins games={filtradas} arenas={arenas} onConfirm={(game) => setModal({ type: 'confirm', game })} />
       ) : filtradas.length === 0 ? (

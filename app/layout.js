@@ -1,6 +1,7 @@
 import './globals.css';
 import SplashScreen from './components/SplashScreen';
 import { AuthProvider } from './components/AuthProvider';
+import { ToastProvider } from './components/ToastProvider';
 
 export const metadata = {
   metadataBase: new URL('https://peladeiros-nextjs.vercel.app'),
@@ -35,7 +36,9 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <SplashScreen />
-        <AuthProvider>{children}</AuthProvider>
+        <ToastProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

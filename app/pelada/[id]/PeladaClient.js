@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { confirmadosDe, shareUrl } from '@/lib/gameUtils';
 import { useAuth } from '../../components/AuthProvider';
+import { useToast } from '../../components/ToastProvider';
 import GameCard from '../../components/GameCard';
 import ConfirmModal from '../../components/ConfirmModal';
 import ManageModal from '../../components/ManageModal';
@@ -11,6 +12,7 @@ import ManageModal from '../../components/ManageModal';
 export default function PeladaClient({ id }) {
   const router = useRouter();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -45,7 +47,11 @@ export default function PeladaClient({ id }) {
   }
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: 60, color: 'var(--paper-dim)' }}>Carregando pelada...</div>;
+    return (
+      <div className="pl-list" style={{ paddingTop: 24 }}>
+        <div className="pl-skeleton" style={{ height: 96 }} />
+      </div>
+    );
   }
 
   if (notFound) {
@@ -77,7 +83,7 @@ export default function PeladaClient({ id }) {
       </div>
 
       {modal?.type === 'confirm' && (
-        <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={() => { setModal(null); loadGame(); }} />
+        <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={() => { setModal(null); loadGame(); showToast('Presença confirmada!'); }} />
       )}
 
       {modal?.type === 'manage' && (

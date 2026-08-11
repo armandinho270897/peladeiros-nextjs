@@ -59,13 +59,26 @@ create table if not exists profiles (
   created_at timestamptz not null default now()
 );
 
--- Segurança: leitura pública liberada em games/confirmacoes/arenas, escrita SÓ
--- pelas rotas /api (service role key, não a anon key). Em profiles, a própria
--- pessoa grava/edita seu perfil via RLS (auth.uid() = id).
+-- Avaliações pós-jogo entre jogadores confirmados na mesma pelada
+create table if not exists avaliacoes (
+  id uuid primary key default gen_random_uuid(),
+  game_id uuid not null references games(id) on delete cascade,
+  avaliador_id uuid not null references auth.users(id),
+  avaliado_id uuid not null references auth.users(id),
+  nota smallint not null check (nota between 1 and 5),
+  tag text,
+  created_at timestamptz not null default now(),
+  unique (game_id, avaliador_id, avaliado_id)
+);
+
+-- Segurança: leitura pública liberada em games/confirmacoes/arenas/avaliacoes,
+-- escrita SÓ pelas rotas /api (service role key, não a anon key). Em profiles,
+-- a própria pessoa grava/edita seu perfil via RLS (auth.uid() = id).
 alter table games enable row level security;
 alter table confirmacoes enable row level security;
 alter table arenas enable row level security;
 alter table profiles enable row level security;
+alter table avaliacoes enable row level security;
 
 create policy "games são públicas para leitura" on games for select using (true);
 create policy "confirmações são públicas para leitura" on confirmacoes for select using (true);
@@ -73,3 +86,4 @@ create policy "arenas são públicas para leitura" on arenas for select using (t
 create policy "perfis são públicos para leitura" on profiles for select using (true);
 create policy "cada um só edita o próprio perfil" on profiles for update using (auth.uid() = id);
 create policy "cada um só cria o próprio perfil" on profiles for insert with check (auth.uid() = id);
+create policy "avaliações são públicas para leitura" on avaliacoes for select using (true);

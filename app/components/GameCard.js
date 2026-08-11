@@ -1,5 +1,28 @@
 'use client';
+import { useEffect, useRef, useState } from 'react';
 import { fmtDate, confirmadosDe, esperaDe } from '@/lib/gameUtils';
+import Avatar from './Avatar';
+
+function ConfirmadoAvatar({ nome, notaMedia }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <Avatar nome={nome} size={26} />
+      {notaMedia != null && (
+        <div
+          style={{
+            position: 'absolute', bottom: -4, right: -4,
+            background: 'var(--gold)', color: 'var(--ink)',
+            fontSize: 9, fontWeight: 700, borderRadius: 8,
+            padding: '1px 4px', lineHeight: 1.3,
+            border: '1.5px solid var(--card-bg)',
+          }}
+        >
+          ★{notaMedia.toFixed(1)}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare }) {
   const g = game;
@@ -9,6 +32,17 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
   const restantes = Math.max(0, g.vagas_totais - confirmados.length);
   const lotado = restantes === 0;
   const podeEditar = !g.owner_id || g.owner_id === currentUserId;
+
+  const [pulse, setPulse] = useState(false);
+  const prevRestantes = useRef(restantes);
+  useEffect(() => {
+    if (prevRestantes.current !== restantes) {
+      setPulse(true);
+      const t = setTimeout(() => setPulse(false), 350);
+      prevRestantes.current = restantes;
+      return () => clearTimeout(t);
+    }
+  }, [restantes]);
 
   return (
     <div className="pl-card">
@@ -27,9 +61,19 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         <span className="pl-bairro-tag">{g.bairro}</span>
         <p className="meta">👑 Capitão: <b>{g.capitao}</b></p>
         {espera.length > 0 && <p style={{ color: 'var(--gold)', fontSize: 11 }}>{espera.length} na fila de espera</p>}
+        {confirmados.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+            {confirmados.slice(0, 6).map((c) => (
+              <ConfirmadoAvatar key={c.id} nome={c.nome} notaMedia={c.nota_media} />
+            ))}
+            {confirmados.length > 6 && (
+              <div style={{ fontSize: 11, color: 'var(--paper-dim)', alignSelf: 'center' }}>+{confirmados.length - 6}</div>
+            )}
+          </div>
+        )}
       </div>
       <div style={{ textAlign: 'center' }}>
-        <div className={`pl-flip ${lotado ? 'lotado' : ''}`}>{lotado ? 'X' : restantes}</div>
+        <div className={`pl-flip ${lotado ? 'lotado' : ''} ${pulse ? 'pl-flip-pulse' : ''}`}>{lotado ? 'X' : restantes}</div>
         <div style={{ fontSize: 10, color: 'var(--paper-dim)' }}>{lotado ? 'lotado' : 'vagas'}</div>
         <button className="pl-confirm-btn" onClick={() => onConfirm(g)}>
           {lotado ? 'Entrar na fila' : 'Confirmar'}

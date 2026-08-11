@@ -1,0 +1,117 @@
+'use client';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import Avatar from '../components/Avatar';
+import EditProfileModal from '../components/EditProfileModal';
+import AvaliarModal from '../components/AvaliarModal';
+import { fmtDate } from '@/lib/gameUtils';
+import { useToast } from '../components/ToastProvider';
+
+export default function PerfilPage() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editOpen, setEditOpen] = useState(false);
+  const [avaliarGame, setAvaliarGame] = useState(null);
+  const { showToast } = useToast();
+
+  async function load() {
+    setLoading(true);
+    const res = await fetch('/api/perfil');
+    const json = await res.json();
+    setData(json);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, []);
+
+  if (loading || !data) {
+    return (
+      <div>
+        <div className="pl-header">
+          <Link href="/" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link>
+        </div>
+        <div className="pl-perfil-header">
+          <div className="pl-skeleton" style={{ width: 80, height: 80, borderRadius: '50%' }} />
+          <div style={{ flex: 1 }}>
+            <div className="pl-skeleton" style={{ width: '60%', height: 22, marginBottom: 8 }} />
+            <div className="pl-skeleton" style={{ width: '40%', height: 14 }} />
+          </div>
+        </div>
+        <div className="pl-perfil-stats">
+          {[1, 2, 3].map((i) => <div key={i} className="pl-skeleton" style={{ flex: 1, height: 64, minWidth: 96 }} />)}
+        </div>
+      </div>
+    );
+  }
+
+  const { profile, stats, historico } = data;
+
+  return (
+    <div>
+      <div className="pl-header">
+        <Link href="/" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link>
+      </div>
+
+      <div className="pl-perfil-header">
+        <Avatar nome={profile.nome} size={80} ring />
+        <div className="pl-perfil-info">
+          <h2>{profile.nome}</h2>
+          <p>{profile.bairro || 'Bairro não informado'}</p>
+          <button className="pl-share-btn" style={{ marginTop: 6 }} onClick={() => setEditOpen(true)}>Editar perfil</button>
+        </div>
+      </div>
+
+      <div className="pl-perfil-stats">
+        <div className="pl-stat">
+          <div className="num">{stats.peladasConfirmadas}</div>
+          <div className="label">Confirmadas</div>
+        </div>
+        <div className="pl-stat">
+          <div className="num">{stats.peladasComoCapitao}</div>
+          <div className="label">Como capitão</div>
+        </div>
+        <div className="pl-stat">
+          <div className="num">{stats.notaMedia != null ? stats.notaMedia.toFixed(1) : '—'}</div>
+          <div className="label">{stats.notaMedia != null ? `Nota média (${stats.totalAvaliacoes})` : 'Ainda sem avaliações'}</div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Histórico de peladas</div>
+
+      {historico.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 60, color: 'var(--paper-dim)' }}>
+          <div style={{ fontSize: 40 }}>⚽</div>
+          <p>Nenhuma pelada passada ainda. Confirma presença em alguma pra ela aparecer aqui depois.</p>
+        </div>
+      ) : (
+        <div className="pl-list" style={{ paddingBottom: 24 }}>
+          {historico.map((g) => {
+            const d = fmtDate(g.data);
+            return (
+              <div key={g.id} className="pl-card">
+                <div className="pl-date"><div className="dow">{d.dow}</div><div className="dom">{d.dom}</div></div>
+                <div className="pl-info">
+                  <h3>{g.local}</h3>
+                  <p className="meta">{g.horario}</p>
+                  <span className="pl-bairro-tag">{g.bairro}</span>
+                  <p className="meta">👑 Capitão: <b>{g.capitao}</b></p>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <button className="pl-confirm-btn" onClick={() => setAvaliarGame(g)}>Avaliar jogadores</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {editOpen && (
+        <EditProfileModal onClose={() => setEditOpen(false)} onSaved={() => { setEditOpen(false); showToast('Perfil atualizado!'); load(); }} />
+      )}
+
+      {avaliarGame && (
+        <AvaliarModal game={avaliarGame} onClose={() => setAvaliarGame(null)} onSaved={() => { setAvaliarGame(null); showToast('Avaliação enviada!'); }} />
+      )}
+    </div>
+  );
+}

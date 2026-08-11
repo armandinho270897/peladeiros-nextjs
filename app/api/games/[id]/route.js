@@ -1,6 +1,7 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
+import { attachNotaMedia } from '@/lib/ratings';
 
 // Peladas com owner_id (criadas com login) só são editáveis por quem é dono da sessão.
 // Peladas antigas (owner_id nulo) continuam caindo no fallback do PIN de 4 dígitos.
@@ -31,7 +32,8 @@ export async function GET(request, { params }) {
 
   if (error || !game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
 
-  const { codigo, ...safe } = game;
+  const [comNotas] = await attachNotaMedia([game]);
+  const { codigo, ...safe } = comNotas;
   return NextResponse.json(safe);
 }
 

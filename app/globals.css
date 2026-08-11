@@ -111,3 +111,60 @@ body {
 .pl-authcard .pl-tagline { text-align: center; margin-bottom: 22px; }
 .pl-authcard h3 { font-family: var(--font-display); color: var(--neon); text-transform: uppercase; margin-top: 0; }
 .pl-authcard p.pl-hint { font-size: 13px; color: var(--paper-dim); margin-bottom: 18px; }
+
+/* Microinterações: feedback de toque em botões */
+.pl-btn-primary, .pl-btn-secondary, .pl-newbtn, .pl-newbtn-secondary,
+.pl-confirm-btn, .pl-toggle-map, .pl-tab {
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease, border-color 150ms ease, opacity 150ms ease;
+}
+.pl-btn-primary:active, .pl-btn-secondary:active, .pl-newbtn:active, .pl-newbtn-secondary:active,
+.pl-confirm-btn:active, .pl-toggle-map:active, .pl-tab:active {
+  transform: scale(0.96);
+}
+.pl-btn-primary:disabled, .pl-btn-secondary:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+/* Hover nos cards de pelada */
+.pl-card { transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
+.pl-card:hover { transform: translateY(-2px); border-color: var(--neon); box-shadow: 0 6px 24px rgba(166,255,0,0.14); }
+
+/* Pulso no contador de vagas ao confirmar */
+@keyframes pl-pulse { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.pl-flip-pulse { animation: pl-pulse 350ms ease; }
+
+/* Toasts */
+.pl-toast-container {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 200;
+  width: 100%; max-width: 360px; padding: 0 16px; pointer-events: none;
+}
+.pl-toast {
+  background: var(--card-bg); border: 1.5px solid var(--neon); color: var(--paper);
+  padding: 12px 16px; border-radius: 6px; font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 220ms ease, transform 220ms ease;
+  pointer-events: auto;
+}
+.pl-toast-show { opacity: 1; transform: translateY(0); }
+.pl-toast-error { border-color: var(--tag-red); }
+
+/* Skeleton shimmer */
+.pl-skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 37%, rgba(255,255,255,0.04) 63%);
+  background-size: 400% 100%;
+  animation: pl-shimmer 1.4s ease infinite;
+  border-radius: 4px;
+}
+@keyframes pl-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+/* Página de perfil */
+.pl-perfil-header { max-width: 640px; margin: 0 auto; padding: 26px 16px 16px; display: flex; gap: 16px; align-items: center; }
+.pl-perfil-info h2 { font-family: var(--font-display); font-size: 24px; margin: 0 0 2px; text-transform: uppercase; }
+.pl-perfil-info p { margin: 0; font-size: 13px; color: var(--paper-dim); }
+.pl-perfil-stats { display: flex; gap: 10px; max-width: 640px; margin: 0 auto; padding: 0 16px 18px; flex-wrap: wrap; }
+.pl-stat { background: var(--card-bg); border: 1px solid rgba(166,255,0,0.18); border-radius: 6px; padding: 12px 14px; flex: 1; min-width: 96px; text-align: center; }
+.pl-stat .num { font-family: var(--font-display); font-size: 22px; color: var(--neon); }
+.pl-stat .label { font-size: 10px; color: var(--paper-dim); text-transform: uppercase; }
+.pl-avatar-row { display: flex; align-items: center; gap: -6px; }
+.pl-avatar-row > * { margin-left: -8px; }
+.pl-avatar-row > *:first-child { margin-left: 0; }
