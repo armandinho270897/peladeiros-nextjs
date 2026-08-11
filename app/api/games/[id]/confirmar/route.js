@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { createNotification } from '@/lib/notify';
 
 export async function POST(request, { params }) {
   if (!checkRateLimit(`confirmar:${getClientIp(request)}`)) {
@@ -19,7 +20,7 @@ export async function POST(request, { params }) {
 
   const { data: game, error: gameError } = await supabase
     .from('games')
-    .select('id')
+    .select('id, local, owner_id')
     .eq('id', id)
     .single();
 
@@ -42,6 +43,14 @@ export async function POST(request, { params }) {
         .select()
         .single();
       if (reviveError) return NextResponse.json({ error: reviveError.message }, { status: 500 });
+      if (game.owner_id) {
+        await createNotification({
+          userId: game.owner_id,
+          tipo: 'solicitacao_pendente',
+          gameId: id,
+          mensagem: `${profile.nome} pediu pra entrar na sua pelada em ${game.local}.`,
+        });
+      }
       return NextResponse.json(revivida, { status: 201 });
     }
     return NextResponse.json({ error: 'Você já solicitou presença nessa pelada.' }, { status: 409 });
@@ -59,6 +68,15 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Você já solicitou presença nessa pelada.' }, { status: 409 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (game.owner_id) {
+    await createNotification({
+      userId: game.owner_id,
+      tipo: 'solicitacao_pendente',
+      gameId: id,
+      mensagem: `${profile.nome} pediu pra entrar na sua pelada em ${game.local}.`,
+    });
   }
 
   return NextResponse.json(confirmacao, { status: 201 });
