@@ -12,6 +12,8 @@ import NewGameModal from './components/NewGameModal';
 import NewArenaModal from './components/NewArenaModal';
 import ConfirmModal from './components/ConfirmModal';
 import ManageModal from './components/ManageModal';
+import CancelPresencaModal from './components/CancelPresencaModal';
+import NotificationBell from './components/NotificationBell';
 import TicketButton from './components/TicketButton';
 import EmptyFieldIcon from './components/EmptyFieldIcon';
 
@@ -85,6 +87,7 @@ export default function Home() {
         onEdit={(game) => setModal({ type: 'manage', game })}
         onConfirm={(game) => setModal({ type: 'confirm', game })}
         onShare={shareGame}
+        onCancelPresenca={(confirmacaoId) => setModal({ type: 'cancelar', confirmacaoId })}
       />
     );
   }
@@ -96,6 +99,7 @@ export default function Home() {
           <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
           {profile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--paper-dim)' }}>
+              <NotificationBell />
               <Link href="/perfil" style={{ color: 'var(--paper-dim)', textDecoration: 'none' }}>
                 <span style={{ textDecoration: 'underline', textUnderlineOffset: 2 }}>{profile.nome}</span>
               </Link>
@@ -168,6 +172,14 @@ export default function Home() {
 
       {modal?.type === 'manage' && (
         <ManageModal game={modal.game} onClose={() => setModal(null)} onSaved={() => { setModal(null); loadGames(); }} />
+      )}
+
+      {modal?.type === 'cancelar' && (
+        <CancelPresencaModal
+          confirmacaoId={modal.confirmacaoId}
+          onClose={() => setModal(null)}
+          onCancelled={() => { setModal(null); loadGames(); showToast('Presença cancelada.'); }}
+        />
       )}
     </div>
   );

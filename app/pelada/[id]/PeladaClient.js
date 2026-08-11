@@ -8,6 +8,7 @@ import { useToast } from '../../components/ToastProvider';
 import GameCard from '../../components/GameCard';
 import ConfirmModal from '../../components/ConfirmModal';
 import ManageModal from '../../components/ManageModal';
+import CancelPresencaModal from '../../components/CancelPresencaModal';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
 
 export default function PeladaClient({ id }) {
@@ -83,6 +84,7 @@ export default function PeladaClient({ id }) {
           onEdit={(g) => setModal({ type: 'manage', game: g })}
           onConfirm={handleConfirmClick}
           onShare={shareGame}
+          onCancelPresenca={(confirmacaoId) => setModal({ type: 'cancelar', confirmacaoId })}
         />
       </div>
 
@@ -92,6 +94,14 @@ export default function PeladaClient({ id }) {
 
       {modal?.type === 'manage' && (
         <ManageModal game={modal.game} onClose={() => setModal(null)} onSaved={() => { setModal(null); loadGame(); }} />
+      )}
+
+      {modal?.type === 'cancelar' && (
+        <CancelPresencaModal
+          confirmacaoId={modal.confirmacaoId}
+          onClose={() => setModal(null)}
+          onCancelled={() => { setModal(null); loadGame(); showToast('Presença cancelada.'); }}
+        />
       )}
     </div>
   );

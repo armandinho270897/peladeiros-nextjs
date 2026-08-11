@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { attachNotaMedia } from '@/lib/ratings';
 import { authorizeGameOwner } from '@/lib/gameAuth';
+import { createNotification } from '@/lib/notify';
 
 export async function GET(request, { params }) {
   const { id } = params;
@@ -45,8 +46,18 @@ export async function PATCH(request, { params }) {
   const vagasLivres = vagasTotais - aprovados.length;
 
   if (vagasLivres > 0 && espera.length > 0) {
-    const promover = espera.slice(0, vagasLivres).map(c => c.id);
-    await supabase.from('confirmacoes').update({ status: 'aprovado' }).in('id', promover);
+    const promovidos = espera.slice(0, vagasLivres);
+    await supabase.from('confirmacoes').update({ status: 'aprovado' }).in('id', promovidos.map(c => c.id));
+    for (const c of promovidos) {
+      if (c.user_id) {
+        await createNotification({
+          userId: c.user_id,
+          tipo: 'promovido_da_espera',
+          gameId: id,
+          mensagem: `Uma vaga abriu em ${local} e você foi promovido do banco de reservas!`,
+        });
+      }
+    }
   }
 
   return NextResponse.json({ ok: true });

@@ -26,7 +26,7 @@ function ConfirmadoAvatar({ nome, notaMedia, bench }) {
   );
 }
 
-export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare }) {
+export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca }) {
   const g = game;
   const d = fmtDate(g.data);
   const confirmados = aprovadosDe(g);
@@ -37,6 +37,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
   const podeEditar = !g.owner_id || g.owner_id === currentUserId;
   const minhaConfirmacao = (g.confirmacoes || []).find((c) => c.user_id === currentUserId);
   const aguardandoAprovacao = minhaConfirmacao?.status === 'pendente';
+  const minhaPresencaAprovada = minhaConfirmacao?.status === 'aprovado';
 
   const [pulse, setPulse] = useState(false);
   const prevRestantes = useRef(restantes);
@@ -89,6 +90,10 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         <div style={{ fontSize: 10, color: 'var(--paper-dim)' }}>{lotado ? 'lotado' : 'vagas'}</div>
         {aguardandoAprovacao ? (
           <p className="pl-aguardando">Aguardando aprovação do capitão</p>
+        ) : minhaPresencaAprovada ? (
+          <button className="pl-btn-secondary pl-btn-danger" onClick={() => onCancelPresenca(minhaConfirmacao.id, g)}>
+            Cancelar presença
+          </button>
         ) : (
           <TicketButton compact onClick={() => onConfirm(g)}>
             {lotado ? 'Entrar no banco' : 'Confirmar'}

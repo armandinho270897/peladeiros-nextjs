@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { authorizeGameOwner } from '@/lib/gameAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { createNotification } from '@/lib/notify';
 
 export async function POST(request, { params }) {
   if (!checkRateLimit(`rejeitar:${getClientIp(request)}`)) {
@@ -11,12 +12,14 @@ export async function POST(request, { params }) {
   const { id } = params;
   const { codigo } = await request.json().catch(() => ({}));
 
-  const { data: confirmacao } = await supabase.from('confirmacoes').select('id, game_id, status').eq('id', id).single();
+  const { data: confirmacao } = await supabase.from('confirmacoes').select('id, game_id, status, user_id').eq('id', id).single();
   if (!confirmacao) return NextResponse.json({ error: 'Solicitação não encontrada.' }, { status: 404 });
   if (confirmacao.status !== 'pendente') return NextResponse.json({ error: 'Essa solicitação já foi respondida.' }, { status: 409 });
 
   const auth = await authorizeGameOwner(confirmacao.game_id, codigo);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  const { data: game } = await supabase.from('games').select('local').eq('id', confirmacao.game_id).single();
 
   const { data: atualizada, error } = await supabase
     .from('confirmacoes')
@@ -26,6 +29,15 @@ export async function POST(request, { params }) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (confirmacao.user_id) {
+    await createNotification({
+      userId: confirmacao.user_id,
+      tipo: 'solicitacao_rejeitada',
+      gameId: confirmacao.game_id,
+      mensagem: `Sua solicitação em ${game?.local || 'uma pelada'} não foi aprovada dessa vez.`,
+    });
+  }
 
   return NextResponse.json(atualizada);
 }
