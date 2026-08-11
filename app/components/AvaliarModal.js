@@ -23,7 +23,7 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
       ]);
       const jaAvaliados = new Set(avaliarRes.avaliados || []);
       const outros = (gameRes.confirmacoes || []).filter(
-        (c) => c.status === 'confirmado' && c.user_id && c.user_id !== user?.id && !jaAvaliados.has(c.user_id)
+        (c) => c.status === 'aprovado' && c.user_id && c.user_id !== user?.id && !jaAvaliados.has(c.user_id)
       );
       setAvaliaveis(outros);
       setLoading(false);

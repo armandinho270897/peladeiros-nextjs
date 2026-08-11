@@ -44,13 +44,13 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'Só dá pra avaliar depois que a pelada acontecer.' }, { status: 400 });
   }
 
-  const { data: confirmados } = await supabase
+  const { data: aprovados } = await supabase
     .from('confirmacoes')
     .select('user_id')
     .eq('game_id', gameId)
-    .eq('status', 'confirmado');
+    .eq('status', 'aprovado');
 
-  const idsConfirmados = new Set((confirmados || []).map((c) => c.user_id).filter(Boolean));
+  const idsConfirmados = new Set((aprovados || []).map((c) => c.user_id).filter(Boolean));
   if (!idsConfirmados.has(user.id)) {
     return NextResponse.json({ error: 'Só quem confirmou presença pode avaliar essa pelada.' }, { status: 403 });
   }

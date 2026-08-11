@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useGames } from '@/lib/useGames';
 import { useArenas } from '@/lib/useArenas';
-import { todayISO, confirmadosDe, shareUrl } from '@/lib/gameUtils';
+import { todayISO, aprovadosDe, shareUrl } from '@/lib/gameUtils';
 import { useAuth } from './components/AuthProvider';
 import { useToast } from './components/ToastProvider';
 import GameCard from './components/GameCard';
@@ -29,7 +29,7 @@ export default function Home() {
 
   function shareGame(g) {
     const d = g.data;
-    const confirmados = confirmadosDe(g).length;
+    const confirmados = aprovadosDe(g).length;
     const restantes = Math.max(0, g.vagas_totais - confirmados);
     const msg = `⚽ Pelada marcada!\n📍 ${g.local} (${g.bairro})\n📅 ${d} às ${g.horario}\n🔢 ${restantes} vaga(s) livre(s) de ${g.vagas_totais}\n👑 Capitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
     window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
@@ -50,7 +50,7 @@ export default function Home() {
   function handleConfirmed() {
     setModal(null);
     loadGames();
-    showToast('Presença confirmada!');
+    showToast('Solicitação enviada! Aguardando aprovação do capitão.');
   }
 
   const today = todayISO();
@@ -68,7 +68,7 @@ export default function Home() {
     let list = upcoming;
     if (bairroFiltro) list = list.filter((g) => g.bairro === bairroFiltro);
     if (tab === 'minhas') {
-      list = list.filter((g) => confirmadosDe(g).some((c) => c.user_id === user?.id));
+      list = list.filter((g) => aprovadosDe(g).some((c) => c.user_id === user?.id));
     }
     return list;
   }, [upcoming, bairroFiltro, tab, user]);

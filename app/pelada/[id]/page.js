@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { fmtDate, confirmadosDe } from '@/lib/gameUtils';
+import { fmtDate, aprovadosDe } from '@/lib/gameUtils';
 import PeladaClient from './PeladaClient';
 
 async function fetchGame(id) {
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }) {
   }
 
   const d = fmtDate(game.data);
-  const confirmados = confirmadosDe(game).length;
+  const confirmados = aprovadosDe(game).length;
   const restantes = Math.max(0, game.vagas_totais - confirmados);
   const title = `${game.local} — Peladeiros`;
   const description = `${d.dow} ${d.dom} às ${game.horario} · ${game.bairro} · ${restantes} vaga(s) livre(s) de ${game.vagas_totais}`;

@@ -1,6 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getCaptainCode, saveCaptainCode } from '@/lib/captainCodes';
+import { pendentesDe } from '@/lib/gameUtils';
+import Avatar from './Avatar';
 import TicketButton from './TicketButton';
 
 export default function ManageModal({ game, onClose, onSaved }) {
@@ -9,6 +11,17 @@ export default function ManageModal({ game, onClose, onSaved }) {
   const [unlocked, setUnlocked] = useState(!semOwner || !!savedCode);
   const [codigo, setCodigo] = useState(savedCode || '');
   const [error, setError] = useState('');
+  const [gameData, setGameData] = useState(game);
+  const [actingId, setActingId] = useState(null);
+
+  const reload = useCallback(async () => {
+    const res = await fetch(`/api/games/${game.id}`);
+    if (res.ok) setGameData(await res.json());
+  }, [game.id]);
+
+  useEffect(() => {
+    if (unlocked) reload();
+  }, [unlocked, reload]);
 
   function tryUnlock(e) {
     e.preventDefault();
@@ -39,6 +52,26 @@ export default function ManageModal({ game, onClose, onSaved }) {
     onSaved();
   }
 
+  async function handleAprovar(id) {
+    setActingId(id);
+    const res = await fetch(`/api/confirmacoes/${id}/aprovar`, { method: 'POST', body: JSON.stringify({ codigo }) });
+    const result = await res.json();
+    setActingId(null);
+    if (!res.ok) { setError(result.error); return; }
+    setError('');
+    reload();
+  }
+
+  async function handleRejeitar(id) {
+    setActingId(id);
+    const res = await fetch(`/api/confirmacoes/${id}/rejeitar`, { method: 'POST', body: JSON.stringify({ codigo }) });
+    const result = await res.json();
+    setActingId(null);
+    if (!res.ok) { setError(result.error); return; }
+    setError('');
+    reload();
+  }
+
   if (!unlocked) {
     return (
       <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -57,16 +90,38 @@ export default function ManageModal({ game, onClose, onSaved }) {
     );
   }
 
+  const pendentes = pendentesDe(gameData);
+
   return (
     <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="pl-modal">
         <h3>Editar pelada</h3>
+
+        {pendentes.length > 0 && (
+          <div className="pl-pending-section">
+            <div className="pl-pending-title">Solicitações pendentes</div>
+            {pendentes.map((p) => (
+              <div key={p.id} className="pl-pending-row">
+                <Avatar nome={p.nome} size={30} />
+                <div className="pl-pending-info">
+                  <div className="pl-pending-nome">{p.nome}</div>
+                  {p.bairro && <div className="pl-pending-bairro">{p.bairro}</div>}
+                </div>
+                <div className="pl-pending-actions">
+                  <button type="button" className="pl-btn-secondary" disabled={actingId === p.id} onClick={() => handleRejeitar(p.id)}>Rejeitar</button>
+                  <TicketButton compact disabled={actingId === p.id} onClick={() => handleAprovar(p.id)}>Aprovar</TicketButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         <form key="edit-form" onSubmit={handleSave}>
-          <div className="pl-field"><label>Local</label><input name="local" defaultValue={game.local} /></div>
-          <div className="pl-field"><label>Bairro</label><input name="bairro" defaultValue={game.bairro} /></div>
-          <div className="pl-field"><label>Data</label><input type="date" name="data" defaultValue={game.data} /></div>
-          <div className="pl-field"><label>Horário</label><input type="time" name="horario" defaultValue={game.horario} /></div>
-          <div className="pl-field"><label>Vagas totais</label><input type="number" name="vagas" defaultValue={game.vagas_totais} /></div>
+          <div className="pl-field"><label>Local</label><input name="local" defaultValue={gameData.local} /></div>
+          <div className="pl-field"><label>Bairro</label><input name="bairro" defaultValue={gameData.bairro} /></div>
+          <div className="pl-field"><label>Data</label><input type="date" name="data" defaultValue={gameData.data} /></div>
+          <div className="pl-field"><label>Horário</label><input type="time" name="horario" defaultValue={gameData.horario} /></div>
+          <div className="pl-field"><label>Vagas totais</label><input type="number" name="vagas" defaultValue={gameData.vagas_totais} /></div>
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
             <button type="button" className="pl-btn-secondary pl-btn-danger" onClick={handleCancelGame}>Cancelar pelada</button>

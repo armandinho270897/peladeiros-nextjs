@@ -14,10 +14,10 @@ export async function GET() {
   const today = todayISO();
 
   const [{ count: peladasConfirmadas }, { count: peladasComoCapitao }, { data: avaliacoesRecebidas }, { data: minhasConfirmacoes }] = await Promise.all([
-    supabase.from('confirmacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'confirmado'),
+    supabase.from('confirmacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'aprovado'),
     supabase.from('games').select('id', { count: 'exact', head: true }).eq('owner_id', user.id),
     supabase.from('avaliacoes').select('nota').eq('avaliado_id', user.id),
-    supabase.from('confirmacoes').select('game_id').eq('user_id', user.id).eq('status', 'confirmado'),
+    supabase.from('confirmacoes').select('game_id').eq('user_id', user.id).eq('status', 'aprovado'),
   ]);
 
   const totalAvaliacoes = (avaliacoesRecebidas || []).length;
