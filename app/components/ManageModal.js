@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { getCaptainCode, saveCaptainCode } from '@/lib/captainCodes';
 
 export default function ManageModal({ game, onClose, onSaved }) {
-  const savedCode = getCaptainCode(game.id);
-  const [unlocked, setUnlocked] = useState(!!savedCode);
+  const semOwner = !game.owner_id;
+  const savedCode = semOwner ? getCaptainCode(game.id) : null;
+  const [unlocked, setUnlocked] = useState(!semOwner || !!savedCode);
   const [codigo, setCodigo] = useState(savedCode || '');
   const [error, setError] = useState('');
 
@@ -26,7 +27,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
     };
     const res = await fetch(`/api/games/${game.id}`, { method: 'PATCH', body: JSON.stringify(body) });
     if (!res.ok) { const r = await res.json(); setError(r.error); return; }
-    saveCaptainCode(game.id, codigo);
+    if (semOwner) saveCaptainCode(game.id, codigo);
     onSaved();
   }
 
@@ -42,7 +43,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
       <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
         <div className="pl-modal">
           <h3>Área do capitão</h3>
-          <form onSubmit={tryUnlock}>
+          <form key="unlock-form" onSubmit={tryUnlock}>
             <div className="pl-field"><label>Código</label><input value={codigo} onChange={(e) => setCodigo(e.target.value)} maxLength={4} /></div>
             {error && <p className="pl-error">{error}</p>}
             <div className="pl-modal-actions">
@@ -59,7 +60,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
     <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="pl-modal">
         <h3>Editar pelada</h3>
-        <form onSubmit={handleSave}>
+        <form key="edit-form" onSubmit={handleSave}>
           <div className="pl-field"><label>Local</label><input name="local" defaultValue={game.local} /></div>
           <div className="pl-field"><label>Bairro</label><input name="bairro" defaultValue={game.bairro} /></div>
           <div className="pl-field"><label>Data</label><input type="date" name="data" defaultValue={game.data} /></div>

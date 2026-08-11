@@ -1,10 +1,10 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useGames } from '@/lib/useGames';
 import { useArenas } from '@/lib/useArenas';
-import { todayISO, confirmadosDe, normalizeWhatsapp, shareUrl } from '@/lib/gameUtils';
-import { saveCaptainCode } from '@/lib/captainCodes';
+import { todayISO, confirmadosDe, shareUrl } from '@/lib/gameUtils';
+import { useAuth } from './components/AuthProvider';
 import GameCard from './components/GameCard';
 import NewGameModal from './components/NewGameModal';
 import NewArenaModal from './components/NewArenaModal';
@@ -14,18 +14,13 @@ import ManageModal from './components/ManageModal';
 const MapViewPins = dynamic(() => import('./components/MapViewPins'), { ssr: false });
 
 export default function Home() {
+  const { user, profile, signOut } = useAuth();
   const { games, loading, loadGames } = useGames();
   const { arenas, loadArenas } = useArenas();
   const [modal, setModal] = useState(null); // 'new' | 'new-arena' | {type:'confirm', game} | {type:'manage', game}
-  const [perfil, setPerfil] = useState(null);
   const [viewMode, setViewMode] = useState('lista'); // 'lista' | 'mapa'
   const [bairroFiltro, setBairroFiltro] = useState('');
   const [tab, setTab] = useState('todas'); // 'todas' | 'minhas'
-
-  useEffect(() => {
-    const saved = localStorage.getItem('peladeiros:perfil');
-    if (saved) setPerfil(JSON.parse(saved));
-  }, []);
 
   function shareGame(g) {
     const d = g.data;
@@ -35,8 +30,7 @@ export default function Home() {
     window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
   }
 
-  function handleCreated(newGame, codigo) {
-    saveCaptainCode(newGame.id, codigo);
+  function handleCreated() {
     setModal(null);
     loadGames();
   }
@@ -46,9 +40,7 @@ export default function Home() {
     loadArenas();
   }
 
-  function handleConfirmed({ nome, whatsapp }) {
-    localStorage.setItem('peladeiros:perfil', JSON.stringify({ nome, whatsapp }));
-    setPerfil({ nome, whatsapp });
+  function handleConfirmed() {
     setModal(null);
     loadGames();
   }
@@ -64,16 +56,14 @@ export default function Home() {
     [upcoming]
   );
 
-  const minhasWhatsapp = perfil ? normalizeWhatsapp(perfil.whatsapp) : null;
-
   const filtradas = useMemo(() => {
     let list = upcoming;
     if (bairroFiltro) list = list.filter((g) => g.bairro === bairroFiltro);
     if (tab === 'minhas') {
-      list = list.filter((g) => minhasWhatsapp && confirmadosDe(g).some((c) => normalizeWhatsapp(c.whatsapp) === minhasWhatsapp));
+      list = list.filter((g) => confirmadosDe(g).some((c) => c.user_id === user?.id));
     }
     return list;
-  }, [upcoming, bairroFiltro, tab, minhasWhatsapp]);
+  }, [upcoming, bairroFiltro, tab, user]);
 
   const hoje = filtradas.filter((g) => g.data === today);
   const proximas = filtradas.filter((g) => g.data !== today);
@@ -83,6 +73,7 @@ export default function Home() {
       <GameCard
         key={g.id}
         game={g}
+        currentUserId={user?.id}
         onEdit={(game) => setModal({ type: 'manage', game })}
         onConfirm={(game) => setModal({ type: 'confirm', game })}
         onShare={shareGame}
@@ -93,7 +84,15 @@ export default function Home() {
   return (
     <div>
       <div className="pl-header">
-        <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+          <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
+          {profile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--paper-dim)' }}>
+              <span>{profile.nome}</span>
+              <button className="pl-share-btn" onClick={signOut}>Sair</button>
+            </div>
+          )}
+        </div>
         <p className="pl-tagline">achou o campo, chamou o povo, bateu bola</p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="pl-newbtn" onClick={() => setModal('new')}>+ Criar pelada</button>
@@ -118,10 +117,6 @@ export default function Home() {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--paper-dim)' }}>Carregando peladas...</div>
-      ) : tab === 'minhas' && !perfil ? (
-        <div style={{ textAlign: 'center', padding: 60, color: 'var(--paper-dim)' }}>
-          <p>Confirme presença em alguma pelada primeiro pra ela aparecer aqui.</p>
-        </div>
       ) : viewMode === 'mapa' ? (
         <MapViewPins games={filtradas} arenas={arenas} onConfirm={(game) => setModal({ type: 'confirm', game })} />
       ) : filtradas.length === 0 ? (
@@ -154,7 +149,7 @@ export default function Home() {
       )}
 
       {modal?.type === 'confirm' && (
-        <ConfirmModal game={modal.game} perfil={perfil} onCancel={() => setModal(null)} onConfirmed={handleConfirmed} />
+        <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={handleConfirmed} />
       )}
 
       {modal?.type === 'manage' && (

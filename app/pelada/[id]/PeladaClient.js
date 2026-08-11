@@ -1,17 +1,20 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { confirmadosDe, shareUrl } from '@/lib/gameUtils';
+import { useAuth } from '../../components/AuthProvider';
 import GameCard from '../../components/GameCard';
 import ConfirmModal from '../../components/ConfirmModal';
 import ManageModal from '../../components/ManageModal';
 
 export default function PeladaClient({ id }) {
+  const router = useRouter();
+  const { user } = useAuth();
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [modal, setModal] = useState(null);
-  const [perfil, setPerfil] = useState(null);
 
   const loadGame = useCallback(async () => {
     setLoading(true);
@@ -24,8 +27,6 @@ export default function PeladaClient({ id }) {
 
   useEffect(() => {
     loadGame();
-    const saved = localStorage.getItem('peladeiros:perfil');
-    if (saved) setPerfil(JSON.parse(saved));
   }, [loadGame]);
 
   function shareGame(g) {
@@ -35,11 +36,12 @@ export default function PeladaClient({ id }) {
     window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
   }
 
-  function handleConfirmed({ nome, whatsapp }) {
-    localStorage.setItem('peladeiros:perfil', JSON.stringify({ nome, whatsapp }));
-    setPerfil({ nome, whatsapp });
-    setModal(null);
-    loadGame();
+  function handleConfirmClick(g) {
+    if (!user) {
+      router.push(`/login?next=${encodeURIComponent(`/pelada/${id}`)}`);
+      return;
+    }
+    setModal({ type: 'confirm', game: g });
   }
 
   if (loading) {
@@ -67,14 +69,15 @@ export default function PeladaClient({ id }) {
       <div className="pl-list" style={{ paddingTop: 14 }}>
         <GameCard
           game={game}
+          currentUserId={user?.id}
           onEdit={(g) => setModal({ type: 'manage', game: g })}
-          onConfirm={(g) => setModal({ type: 'confirm', game: g })}
+          onConfirm={handleConfirmClick}
           onShare={shareGame}
         />
       </div>
 
       {modal?.type === 'confirm' && (
-        <ConfirmModal game={modal.game} perfil={perfil} onCancel={() => setModal(null)} onConfirmed={handleConfirmed} />
+        <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={() => { setModal(null); loadGame(); }} />
       )}
 
       {modal?.type === 'manage' && (

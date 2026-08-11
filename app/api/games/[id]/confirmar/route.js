@@ -1,6 +1,6 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
+import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
-import { normalizeWhatsapp } from '@/lib/gameUtils';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request, { params }) {
@@ -8,12 +8,14 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'Muitas confirmações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 
-  const { id } = params;
-  const { nome, whatsapp } = await request.json();
+  const authClient = createServerClient();
+  const { data: { user } } = await authClient.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Faça login pra confirmar presença.' }, { status: 401 });
 
-  if (!nome || !whatsapp) {
-    return NextResponse.json({ error: 'Nome e WhatsApp são obrigatórios.' }, { status: 400 });
-  }
+  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp').eq('id', user.id).maybeSingle();
+  if (!profile) return NextResponse.json({ error: 'Complete seu perfil antes de confirmar presença.' }, { status: 400 });
+
+  const { id } = params;
 
   const { data: game, error: gameError } = await supabase
     .from('games')
@@ -23,15 +25,14 @@ export async function POST(request, { params }) {
 
   if (gameError || !game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
 
-  const waNorm = normalizeWhatsapp(whatsapp);
-  const { data: existentes } = await supabase
+  const { data: existente } = await supabase
     .from('confirmacoes')
-    .select('whatsapp')
+    .select('id')
     .eq('game_id', id)
-    .in('status', ['confirmado', 'espera']);
+    .eq('user_id', user.id)
+    .maybeSingle();
 
-  const jaConfirmado = (existentes || []).some((c) => normalizeWhatsapp(c.whatsapp) === waNorm);
-  if (jaConfirmado) {
+  if (existente) {
     return NextResponse.json({ error: 'Você já confirmou presença nessa pelada.' }, { status: 409 });
   }
 
@@ -45,11 +46,17 @@ export async function POST(request, { params }) {
 
   const { data: confirmacao, error } = await supabase
     .from('confirmacoes')
-    .insert({ game_id: id, nome, whatsapp, status })
+    .insert({ game_id: id, user_id: user.id, nome: profile.nome, whatsapp: profile.whatsapp, status })
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    // guarda-costas final contra corrida (constraint unique game_id+user_id)
+    if (error.code === '23505') {
+      return NextResponse.json({ error: 'Você já confirmou presença nessa pelada.' }, { status: 409 });
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   return NextResponse.json(confirmacao, { status: 201 });
 }

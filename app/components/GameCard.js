@@ -1,22 +1,25 @@
 'use client';
 import { fmtDate, confirmadosDe, esperaDe } from '@/lib/gameUtils';
 
-export default function GameCard({ game, onEdit, onConfirm, onShare }) {
+export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare }) {
   const g = game;
   const d = fmtDate(g.data);
   const confirmados = confirmadosDe(g);
   const espera = esperaDe(g);
   const restantes = Math.max(0, g.vagas_totais - confirmados.length);
   const lotado = restantes === 0;
+  const podeEditar = !g.owner_id || g.owner_id === currentUserId;
 
   return (
     <div className="pl-card">
-      <button
-        style={{ position: 'absolute', top: 10, right: 12, background: 'none', border: 'none', color: 'var(--paper-dim)', fontSize: 11, cursor: 'pointer' }}
-        onClick={() => onEdit(g)}
-      >
-        Editar
-      </button>
+      {podeEditar && (
+        <button
+          style={{ position: 'absolute', top: 10, right: 12, background: 'none', border: 'none', color: 'var(--paper-dim)', fontSize: 11, cursor: 'pointer' }}
+          onClick={() => onEdit(g)}
+        >
+          Editar
+        </button>
+      )}
       <div className="pl-date"><div className="dow">{d.dow}</div><div className="dom">{d.dom}</div></div>
       <div className="pl-info">
         <h3>{g.local}</h3>

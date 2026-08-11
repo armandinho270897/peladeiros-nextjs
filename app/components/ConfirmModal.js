@@ -1,19 +1,21 @@
 'use client';
 import { useState } from 'react';
+import { useAuth } from './AuthProvider';
 
-export default function ConfirmModal({ game, perfil, onCancel, onConfirmed }) {
+export default function ConfirmModal({ game, onCancel, onConfirmed }) {
+  const { profile } = useAuth();
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   async function handleConfirm(e) {
     e.preventDefault();
-    const f = e.target;
-    const nome = f.nome.value.trim();
-    const whatsapp = f.whatsapp.value.trim();
-    if (!nome || !whatsapp) { setError('Nome e WhatsApp são obrigatórios.'); return; }
-    const res = await fetch(`/api/games/${game.id}/confirmar`, { method: 'POST', body: JSON.stringify({ nome, whatsapp }) });
-    if (!res.ok) { const r = await res.json(); setError(r.error); return; }
+    setLoading(true);
+    const res = await fetch(`/api/games/${game.id}/confirmar`, { method: 'POST' });
+    const result = await res.json();
+    setLoading(false);
+    if (!res.ok) { setError(result.error); return; }
     setError('');
-    onConfirmed({ nome, whatsapp });
+    onConfirmed(result);
   }
 
   return (
@@ -21,12 +23,11 @@ export default function ConfirmModal({ game, perfil, onCancel, onConfirmed }) {
       <div className="pl-modal">
         <h3>Confirmar presença</h3>
         <form onSubmit={handleConfirm}>
-          <div className="pl-field"><label>Seu nome</label><input name="nome" defaultValue={perfil?.nome || ''} /></div>
-          <div className="pl-field"><label>WhatsApp</label><input name="whatsapp" defaultValue={perfil?.whatsapp || ''} /></div>
+          <p>Confirmar como <b>{profile?.nome}</b>?</p>
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
             <button type="button" className="pl-btn-secondary" onClick={onCancel}>Cancelar</button>
-            <button type="submit" className="pl-btn-primary">Confirmar</button>
+            <button type="submit" className="pl-btn-primary" disabled={loading}>{loading ? 'Confirmando...' : 'Confirmar'}</button>
           </div>
         </form>
       </div>

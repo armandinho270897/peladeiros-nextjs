@@ -2,10 +2,12 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useArenas } from '@/lib/useArenas';
+import { useAuth } from './AuthProvider';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 
 export default function NewGameModal({ onCancel, onCreated }) {
+  const { profile } = useAuth();
   const { arenas } = useArenas();
   const [error, setError] = useState('');
   const [coords, setCoords] = useState({ lat: null, lng: null });
@@ -32,8 +34,6 @@ export default function NewGameModal({ onCancel, onCreated }) {
       data: f.data.value,
       horario: f.horario.value,
       vagasTotais: parseInt(f.vagas.value, 10),
-      capitao: f.capitao.value.trim(),
-      codigo: f.codigo.value.trim(),
       latitude: coords.lat,
       longitude: coords.lng,
       arenaId: arenaId || null,
@@ -42,7 +42,7 @@ export default function NewGameModal({ onCancel, onCreated }) {
     const result = await res.json();
     if (!res.ok) { setError(result.error); return; }
     setError('');
-    onCreated(result, body.codigo);
+    onCreated(result);
   }
 
   return (
@@ -64,8 +64,10 @@ export default function NewGameModal({ onCancel, onCreated }) {
           <div className="pl-field"><label>Data</label><input type="date" name="data" /></div>
           <div className="pl-field"><label>Horário</label><input type="time" name="horario" /></div>
           <div className="pl-field"><label>Vagas totais</label><input type="number" name="vagas" min="1" max="30" /></div>
-          <div className="pl-field"><label>Seu nome (capitão)</label><input name="capitao" /></div>
-          <div className="pl-field"><label>Código (4 números)</label><input name="codigo" maxLength={4} /></div>
+          <div className="pl-field">
+            <label>Capitão</label>
+            <p style={{ margin: 0, fontSize: 14 }}>{profile?.nome} <span style={{ color: 'var(--paper-dim)', fontSize: 12 }}>(você, logado)</span></p>
+          </div>
           <div className="pl-field">
             <label>Local no mapa (opcional) — toque no mapa para marcar</label>
             <LocationPickerMap lat={coords.lat} lng={coords.lng} onPick={(lat, lng) => setCoords({ lat, lng })} />

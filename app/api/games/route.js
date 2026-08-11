@@ -1,4 +1,5 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
+import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
@@ -21,17 +22,26 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Muitas peladas criadas em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 
-  const body = await request.json();
-  const { local, bairro, data, horario, vagasTotais, capitao, codigo, latitude, longitude, arenaId } = body;
+  const authClient = createServerClient();
+  const { data: { user } } = await authClient.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Faça login pra criar uma pelada.' }, { status: 401 });
 
-  if (!local || !bairro || !data || !horario || !vagasTotais || !capitao || !/^\d{4}$/.test(codigo || '')) {
-    return NextResponse.json({ error: 'Dados inválidos. Confere se preencheu tudo e o código tem 4 números.' }, { status: 400 });
+  const { data: profile } = await supabase.from('profiles').select('nome').eq('id', user.id).maybeSingle();
+  if (!profile) return NextResponse.json({ error: 'Complete seu perfil antes de criar uma pelada.' }, { status: 400 });
+
+  const body = await request.json();
+  const { local, bairro, data, horario, vagasTotais, latitude, longitude, arenaId } = body;
+
+  if (!local || !bairro || !data || !horario || !vagasTotais) {
+    return NextResponse.json({ error: 'Dados inválidos. Confere se preencheu tudo.' }, { status: 400 });
   }
 
   const { data: game, error } = await supabase
     .from('games')
     .insert({
-      local, bairro, data, horario, vagas_totais: vagasTotais, capitao, codigo,
+      local, bairro, data, horario, vagas_totais: vagasTotais,
+      capitao: profile.nome,
+      owner_id: user.id,
       latitude: latitude ?? null,
       longitude: longitude ?? null,
       arena_id: arenaId ?? null,

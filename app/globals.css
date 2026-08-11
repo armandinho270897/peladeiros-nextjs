@@ -104,3 +104,10 @@ body {
 .pl-btn-secondary { background: transparent; color: var(--paper-dim); border: 1px solid rgba(243,243,238,0.2); font-family: var(--font-display); text-transform: uppercase; padding: 11px; border-radius: 3px; cursor: pointer; flex: 1; }
 .pl-modal-actions { display: flex; gap: 10px; margin-top: 16px; }
 .pl-error { color: var(--tag-red); font-size: 12px; }
+
+.pl-authpage { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.pl-authcard { background: var(--card-bg); border: 2px solid var(--neon); border-radius: 8px; padding: 28px 24px; width: 100%; max-width: 380px; }
+.pl-authcard .pl-brand { justify-content: center; margin-bottom: 4px; }
+.pl-authcard .pl-tagline { text-align: center; margin-bottom: 22px; }
+.pl-authcard h3 { font-family: var(--font-display); color: var(--neon); text-transform: uppercase; margin-top: 0; }
+.pl-authcard p.pl-hint { font-size: 13px; color: var(--paper-dim); margin-bottom: 18px; }
