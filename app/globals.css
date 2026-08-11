@@ -298,4 +298,25 @@ body {
   font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px;
   opacity: 0.75;
 }
+
+/* Aprovação do capitão: badge de pendentes no card, seção de solicitações no modal */
+.pl-pending-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 15px; height: 15px; margin-left: 4px; padding: 0 3px;
+  background: var(--gold); color: var(--ink);
+  font-family: var(--font-body); font-size: 10px; font-weight: 700;
+  border-radius: 8px; vertical-align: middle;
+}
+
+.pl-aguardando { font-size: 11px; color: var(--paper-dim); margin: 8px 0 0; line-height: 1.3; }
+
+.pl-pending-section { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px dashed rgba(110,113,120,0.4); }
+.pl-pending-title { font-size: 11px; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.pl-pending-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.pl-pending-info { flex: 1; min-width: 0; }
+.pl-pending-nome { font-size: 13px; color: var(--paper); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-pending-bairro { font-size: 11px; color: var(--paper-dim); }
+.pl-pending-actions { display: flex; align-items: center; gap: 6px; }
+.pl-pending-actions .pl-btn-secondary { flex: none; padding: 4px 6px 8px; font-size: 12px; }
+.pl-pending-actions .pl-ticket { margin: 0; }
 .pl-inapp-banner button:hover { opacity: 1; }

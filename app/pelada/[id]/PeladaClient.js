@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { confirmadosDe, shareUrl } from '@/lib/gameUtils';
+import { aprovadosDe, shareUrl } from '@/lib/gameUtils';
 import { useAuth } from '../../components/AuthProvider';
 import { useToast } from '../../components/ToastProvider';
 import GameCard from '../../components/GameCard';
@@ -33,7 +33,7 @@ export default function PeladaClient({ id }) {
   }, [loadGame]);
 
   function shareGame(g) {
-    const confirmados = confirmadosDe(g).length;
+    const confirmados = aprovadosDe(g).length;
     const restantes = Math.max(0, g.vagas_totais - confirmados);
     const msg = `⚽ Pelada marcada!\n📍 ${g.local} (${g.bairro})\n📅 ${g.data} às ${g.horario}\n🔢 ${restantes} vaga(s) livre(s) de ${g.vagas_totais}\n👑 Capitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
     window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
@@ -87,7 +87,7 @@ export default function PeladaClient({ id }) {
       </div>
 
       {modal?.type === 'confirm' && (
-        <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={() => { setModal(null); loadGame(); showToast('Presença confirmada!'); }} />
+        <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={() => { setModal(null); loadGame(); showToast('Solicitação enviada! Aguardando aprovação do capitão.'); }} />
       )}
 
       {modal?.type === 'manage' && (

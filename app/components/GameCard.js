@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { fmtDate, confirmadosDe, esperaDe } from '@/lib/gameUtils';
+import { fmtDate, aprovadosDe, esperaDe, pendentesDe } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
@@ -29,11 +29,14 @@ function ConfirmadoAvatar({ nome, notaMedia, bench }) {
 export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare }) {
   const g = game;
   const d = fmtDate(g.data);
-  const confirmados = confirmadosDe(g);
+  const confirmados = aprovadosDe(g);
   const espera = esperaDe(g);
+  const pendentes = pendentesDe(g);
   const restantes = Math.max(0, g.vagas_totais - confirmados.length);
   const lotado = restantes === 0;
   const podeEditar = !g.owner_id || g.owner_id === currentUserId;
+  const minhaConfirmacao = (g.confirmacoes || []).find((c) => c.user_id === currentUserId);
+  const aguardandoAprovacao = minhaConfirmacao?.status === 'pendente';
 
   const [pulse, setPulse] = useState(false);
   const prevRestantes = useRef(restantes);
@@ -52,6 +55,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
       {podeEditar && (
         <button className="pl-edit-link" onClick={() => onEdit(g)}>
           Editar
+          {pendentes.length > 0 && <span className="pl-pending-badge">{pendentes.length}</span>}
         </button>
       )}
       <div className="pl-date"><div className="dow">{d.dow}</div><div className="dom">{d.dom}</div></div>
@@ -83,9 +87,13 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
       <div style={{ textAlign: 'center' }}>
         <div className={`pl-flip ${lotado ? 'lotado' : ''} ${pulse ? 'pl-flip-pulse' : ''}`}>{lotado ? 'X' : restantes}</div>
         <div style={{ fontSize: 10, color: 'var(--paper-dim)' }}>{lotado ? 'lotado' : 'vagas'}</div>
-        <TicketButton compact onClick={() => onConfirm(g)}>
-          {lotado ? 'Entrar no banco' : 'Confirmar'}
-        </TicketButton>
+        {aguardandoAprovacao ? (
+          <p className="pl-aguardando">Aguardando aprovação do capitão</p>
+        ) : (
+          <TicketButton compact onClick={() => onConfirm(g)}>
+            {lotado ? 'Entrar no banco' : 'Confirmar'}
+          </TicketButton>
+        )}
         <button className="pl-share-btn" onClick={() => onShare(g)}>Compartilhar</button>
       </div>
     </div>

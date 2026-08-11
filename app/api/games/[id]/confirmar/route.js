@@ -12,14 +12,14 @@ export async function POST(request, { params }) {
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login pra confirmar presença.' }, { status: 401 });
 
-  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp').eq('id', user.id).maybeSingle();
+  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro').eq('id', user.id).maybeSingle();
   if (!profile) return NextResponse.json({ error: 'Complete seu perfil antes de confirmar presença.' }, { status: 400 });
 
   const { id } = params;
 
   const { data: game, error: gameError } = await supabase
     .from('games')
-    .select('vagas_totais')
+    .select('id')
     .eq('id', id)
     .single();
 
@@ -27,33 +27,36 @@ export async function POST(request, { params }) {
 
   const { data: existente } = await supabase
     .from('confirmacoes')
-    .select('id')
+    .select('id, status')
     .eq('game_id', id)
     .eq('user_id', user.id)
     .maybeSingle();
 
   if (existente) {
-    return NextResponse.json({ error: 'Você já confirmou presença nessa pelada.' }, { status: 409 });
+    if (existente.status === 'rejeitado') {
+      // solicitação rejeitada não é banimento — deixa a pessoa pedir de novo
+      const { data: revivida, error: reviveError } = await supabase
+        .from('confirmacoes')
+        .update({ status: 'pendente' })
+        .eq('id', existente.id)
+        .select()
+        .single();
+      if (reviveError) return NextResponse.json({ error: reviveError.message }, { status: 500 });
+      return NextResponse.json(revivida, { status: 201 });
+    }
+    return NextResponse.json({ error: 'Você já solicitou presença nessa pelada.' }, { status: 409 });
   }
-
-  const { count } = await supabase
-    .from('confirmacoes')
-    .select('id', { count: 'exact', head: true })
-    .eq('game_id', id)
-    .eq('status', 'confirmado');
-
-  const status = count >= game.vagas_totais ? 'espera' : 'confirmado';
 
   const { data: confirmacao, error } = await supabase
     .from('confirmacoes')
-    .insert({ game_id: id, user_id: user.id, nome: profile.nome, whatsapp: profile.whatsapp, status })
+    .insert({ game_id: id, user_id: user.id, nome: profile.nome, whatsapp: profile.whatsapp, bairro: profile.bairro ?? null, status: 'pendente' })
     .select()
     .single();
 
   if (error) {
     // guarda-costas final contra corrida (constraint unique game_id+user_id)
     if (error.code === '23505') {
-      return NextResponse.json({ error: 'Você já confirmou presença nessa pelada.' }, { status: 409 });
+      return NextResponse.json({ error: 'Você já solicitou presença nessa pelada.' }, { status: 409 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

@@ -18,7 +18,7 @@ export async function DELETE(request, { params }) {
 
   await supabase.from('confirmacoes').delete().eq('id', id);
 
-  if (confirmacao.status === 'confirmado') {
+  if (confirmacao.status === 'aprovado') {
     const { data: proximoDaFila } = await supabase
       .from('confirmacoes')
       .select('id')
@@ -29,7 +29,7 @@ export async function DELETE(request, { params }) {
       .maybeSingle();
 
     if (proximoDaFila) {
-      await supabase.from('confirmacoes').update({ status: 'confirmado' }).eq('id', proximoDaFila.id);
+      await supabase.from('confirmacoes').update({ status: 'aprovado' }).eq('id', proximoDaFila.id);
     }
   }
 

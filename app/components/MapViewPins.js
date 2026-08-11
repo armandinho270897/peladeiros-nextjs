@@ -2,7 +2,7 @@
 import 'leaflet/dist/leaflet.css';
 import { arenaIcon, peladaIcon } from '@/lib/leafletIcon';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { fmtDate, confirmadosDe } from '@/lib/gameUtils';
+import { fmtDate, aprovadosDe } from '@/lib/gameUtils';
 import TicketButton from './TicketButton';
 import EmptyFieldIcon from './EmptyFieldIcon';
 
@@ -50,7 +50,7 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
           ))}
           {jogosComCoordenadas.map((g) => {
             const d = fmtDate(g.data);
-            const confirmados = confirmadosDe(g).length;
+            const confirmados = aprovadosDe(g).length;
             const restantes = Math.max(0, g.vagas_totais - confirmados);
             return (
               <Marker key={`pelada-${g.id}`} position={[Number(g.latitude), Number(g.longitude)]} icon={peladaIcon}>
