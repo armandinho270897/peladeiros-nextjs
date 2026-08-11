@@ -3,6 +3,7 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useArenas } from '@/lib/useArenas';
 import { useAuth } from './AuthProvider';
+import TicketButton from './TicketButton';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 
@@ -81,7 +82,7 @@ export default function NewGameModal({ onCancel, onCreated }) {
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
             <button type="button" className="pl-btn-secondary" onClick={onCancel}>Cancelar</button>
-            <button type="submit" className="pl-btn-primary">Criar</button>
+            <TicketButton type="submit">Criar</TicketButton>
           </div>
         </form>
       </div>

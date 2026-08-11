@@ -3,6 +3,8 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
+import TicketButton from '../components/TicketButton';
+import LoadingBall from '../components/LoadingBall';
 
 function CompletarPerfilForm() {
   const router = useRouter();
@@ -38,16 +40,16 @@ function CompletarPerfilForm() {
         <h3>Completar perfil</h3>
         <p className="pl-hint">Só na primeira vez — é o que aparece pros outros jogadores.</p>
         {authLoading ? (
-          <p className="pl-hint">Carregando...</p>
+          <LoadingBall />
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="pl-field"><label>Nome</label><input name="nome" required /></div>
             <div className="pl-field"><label>WhatsApp</label><input name="whatsapp" required /></div>
             <div className="pl-field"><label>Bairro (opcional)</label><input name="bairro" /></div>
             {error && <p className="pl-error">{error}</p>}
-            <button type="submit" className="pl-btn-primary" style={{ width: '100%' }} disabled={loading || !user}>
+            <TicketButton type="submit" style={{ width: '100%' }} disabled={loading || !user}>
               {loading ? 'Salvando...' : 'Salvar e continuar'}
-            </button>
+            </TicketButton>
           </form>
         )}
       </div>

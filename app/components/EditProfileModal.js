@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
+import TicketButton from './TicketButton';
 
 export default function EditProfileModal({ onClose, onSaved }) {
   const { user, profile, refreshProfile } = useAuth();
@@ -39,7 +40,7 @@ export default function EditProfileModal({ onClose, onSaved }) {
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
             <button type="button" className="pl-btn-secondary" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="pl-btn-primary" disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</button>
+            <TicketButton type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Salvar'}</TicketButton>
           </div>
         </form>
       </div>

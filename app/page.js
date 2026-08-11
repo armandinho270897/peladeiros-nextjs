@@ -12,6 +12,8 @@ import NewGameModal from './components/NewGameModal';
 import NewArenaModal from './components/NewArenaModal';
 import ConfirmModal from './components/ConfirmModal';
 import ManageModal from './components/ManageModal';
+import TicketButton from './components/TicketButton';
+import EmptyFieldIcon from './components/EmptyFieldIcon';
 
 const MapViewPins = dynamic(() => import('./components/MapViewPins'), { ssr: false });
 
@@ -102,9 +104,9 @@ export default function Home() {
           )}
         </div>
         <p className="pl-tagline">achou o campo, chamou o povo, bateu bola</p>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button className="pl-newbtn" onClick={() => setModal('new')}>+ Criar pelada</button>
-          <button className="pl-newbtn pl-newbtn-secondary" onClick={() => setModal('new-arena')}>+ Cadastrar arena</button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
+          <TicketButton onClick={() => setModal('new')}>Criar pelada</TicketButton>
+          <TicketButton onClick={() => setModal('new-arena')}>Cadastrar arena</TicketButton>
         </div>
       </div>
 
@@ -132,8 +134,8 @@ export default function Home() {
       ) : viewMode === 'mapa' ? (
         <MapViewPins games={filtradas} arenas={arenas} onConfirm={(game) => setModal({ type: 'confirm', game })} />
       ) : filtradas.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 60, color: 'var(--paper-dim)' }}>
-          <div style={{ fontSize: 40 }}>⚽</div>
+        <div className="pl-empty">
+          <EmptyFieldIcon />
           <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>
             {tab === 'minhas' ? 'Você não confirmou nenhuma pelada futura' : 'Nenhuma pelada marcada'}
           </h3>

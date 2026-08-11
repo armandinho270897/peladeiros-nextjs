@@ -3,6 +3,8 @@ import 'leaflet/dist/leaflet.css';
 import { arenaIcon, peladaIcon } from '@/lib/leafletIcon';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { fmtDate, confirmadosDe } from '@/lib/gameUtils';
+import TicketButton from './TicketButton';
+import EmptyFieldIcon from './EmptyFieldIcon';
 
 const DEFAULT_CENTER = [-14.235, -51.9253];
 const DEFAULT_ZOOM = 4;
@@ -24,8 +26,9 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
   return (
     <div style={{ maxWidth: 640, margin: '14px auto 0', padding: '0 16px' }}>
       {todosOsPins.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 40, color: 'var(--paper-dim)' }}>
-          Nenhuma pelada ou arena com localização marcada no mapa ainda.
+        <div className="pl-empty" style={{ padding: '40px 20px' }}>
+          <EmptyFieldIcon width={110} />
+          <p>Nenhuma pelada ou arena com localização marcada no mapa ainda.</p>
         </div>
       ) : (
         <MapContainer center={center} zoom={zoom} style={{ height: 420, width: '100%', borderRadius: 6 }}>
@@ -56,9 +59,9 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
                     <b>{g.local}</b>
                     <div>{d.dow} {d.dom} às {g.horario}</div>
                     <div>{restantes > 0 ? `${restantes} vaga(s)` : 'Lotado'}</div>
-                    <button className="pl-confirm-btn" style={{ marginTop: 6 }} onClick={() => onConfirm(g)}>
-                      {restantes > 0 ? 'Confirmar' : 'Entrar na fila'}
-                    </button>
+                    <TicketButton compact style={{ marginTop: 6 }} onClick={() => onConfirm(g)}>
+                      {restantes > 0 ? 'Confirmar' : 'Entrar no banco'}
+                    </TicketButton>
                   </div>
                 </Popup>
               </Marker>

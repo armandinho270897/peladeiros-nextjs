@@ -8,6 +8,7 @@ import { useToast } from '../../components/ToastProvider';
 import GameCard from '../../components/GameCard';
 import ConfirmModal from '../../components/ConfirmModal';
 import ManageModal from '../../components/ManageModal';
+import EmptyFieldIcon from '../../components/EmptyFieldIcon';
 
 export default function PeladaClient({ id }) {
   const router = useRouter();
@@ -56,11 +57,14 @@ export default function PeladaClient({ id }) {
 
   if (notFound) {
     return (
-      <div style={{ textAlign: 'center', padding: 60, color: 'var(--paper-dim)' }}>
-        <div style={{ fontSize: 40 }}>⚽</div>
+      <div className="pl-empty">
+        <EmptyFieldIcon />
         <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>Pelada não encontrada</h3>
         <p>Ela pode ter sido cancelada pelo capitão.</p>
-        <Link href="/" className="pl-btn-primary" style={{ display: 'inline-block', marginTop: 12, textDecoration: 'none' }}>Ver todas as peladas</Link>
+        <Link href="/" className="pl-ticket" style={{ display: 'inline-flex', marginTop: 12, textDecoration: 'none' }}>
+          <span className="pl-ticket-label">Ver todas as peladas</span>
+          <span className="pl-ticket-stub" aria-hidden="true">⚽</span>
+        </Link>
       </div>
     );
   }

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { getCaptainCode, saveCaptainCode } from '@/lib/captainCodes';
+import TicketButton from './TicketButton';
 
 export default function ManageModal({ game, onClose, onSaved }) {
   const semOwner = !game.owner_id;
@@ -48,7 +49,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
             {error && <p className="pl-error">{error}</p>}
             <div className="pl-modal-actions">
               <button type="button" className="pl-btn-secondary" onClick={onClose}>Cancelar</button>
-              <button type="submit" className="pl-btn-primary">Entrar</button>
+              <TicketButton type="submit">Entrar</TicketButton>
             </div>
           </form>
         </div>
@@ -68,8 +69,8 @@ export default function ManageModal({ game, onClose, onSaved }) {
           <div className="pl-field"><label>Vagas totais</label><input type="number" name="vagas" defaultValue={game.vagas_totais} /></div>
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
-            <button type="button" className="pl-btn-secondary" style={{ color: 'var(--tag-red)', borderColor: 'var(--tag-red)' }} onClick={handleCancelGame}>Cancelar pelada</button>
-            <button type="submit" className="pl-btn-primary">Salvar</button>
+            <button type="button" className="pl-btn-secondary pl-btn-danger" onClick={handleCancelGame}>Cancelar pelada</button>
+            <TicketButton type="submit">Salvar</TicketButton>
           </div>
         </form>
       </div>

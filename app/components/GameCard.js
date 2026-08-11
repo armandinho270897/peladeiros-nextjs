@@ -2,10 +2,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { fmtDate, confirmadosDe, esperaDe } from '@/lib/gameUtils';
 import Avatar from './Avatar';
+import CaptainIcon from './CaptainIcon';
+import TicketButton from './TicketButton';
 
-function ConfirmadoAvatar({ nome, notaMedia }) {
+function ConfirmadoAvatar({ nome, notaMedia, bench }) {
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative' }} className={bench ? 'pl-bench-avatar' : ''}>
       <Avatar nome={nome} size={26} />
       {notaMedia != null && (
         <div
@@ -46,11 +48,9 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
 
   return (
     <div className="pl-card">
+      {lotado && <div className="pl-stamp">Lotado</div>}
       {podeEditar && (
-        <button
-          style={{ position: 'absolute', top: 10, right: 12, background: 'none', border: 'none', color: 'var(--paper-dim)', fontSize: 11, cursor: 'pointer' }}
-          onClick={() => onEdit(g)}
-        >
+        <button className="pl-edit-link" onClick={() => onEdit(g)}>
           Editar
         </button>
       )}
@@ -59,8 +59,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         <h3>{g.local}</h3>
         <p className="meta">{g.horario}</p>
         <span className="pl-bairro-tag">{g.bairro}</span>
-        <p className="meta">👑 Capitão: <b>{g.capitao}</b></p>
-        {espera.length > 0 && <p style={{ color: 'var(--gold)', fontSize: 11 }}>{espera.length} na fila de espera</p>}
+        <p className="meta"><CaptainIcon /> Capitão: <b>{g.capitao}</b></p>
         {confirmados.length > 0 && (
           <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
             {confirmados.slice(0, 6).map((c) => (
@@ -71,13 +70,22 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
             )}
           </div>
         )}
+        {espera.length > 0 && (
+          <div className="pl-bench">
+            <span className="pl-bench-label">Banco:</span>
+            {espera.slice(0, 6).map((c) => (
+              <ConfirmadoAvatar key={c.id} nome={c.nome} notaMedia={c.nota_media} bench />
+            ))}
+            {espera.length > 6 && <span style={{ fontSize: 11, color: 'var(--concrete)' }}>+{espera.length - 6}</span>}
+          </div>
+        )}
       </div>
       <div style={{ textAlign: 'center' }}>
         <div className={`pl-flip ${lotado ? 'lotado' : ''} ${pulse ? 'pl-flip-pulse' : ''}`}>{lotado ? 'X' : restantes}</div>
         <div style={{ fontSize: 10, color: 'var(--paper-dim)' }}>{lotado ? 'lotado' : 'vagas'}</div>
-        <button className="pl-confirm-btn" onClick={() => onConfirm(g)}>
-          {lotado ? 'Entrar na fila' : 'Confirmar'}
-        </button>
+        <TicketButton compact onClick={() => onConfirm(g)}>
+          {lotado ? 'Entrar no banco' : 'Confirmar'}
+        </TicketButton>
         <button className="pl-share-btn" onClick={() => onShare(g)}>Compartilhar</button>
       </div>
     </div>

@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import Avatar from './Avatar';
 import StarRating from './StarRating';
+import TicketButton from './TicketButton';
+import LoadingBall from './LoadingBall';
 import { useAuth } from './AuthProvider';
 
 export default function AvaliarModal({ game, onClose, onSaved }) {
@@ -53,7 +55,7 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
         <p className="pl-hint" style={{ marginTop: -8 }}>{game.local} — {game.data}</p>
 
         {loading ? (
-          <p className="pl-hint">Carregando...</p>
+          <LoadingBall />
         ) : avaliaveis.length === 0 ? (
           <p className="pl-hint">Todo mundo já foi avaliado nessa pelada (ou não tinha ninguém pra avaliar).</p>
         ) : (
@@ -70,7 +72,7 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
                     placeholder="tag (opcional)"
                     value={tags[a.user_id] || ''}
                     onChange={(e) => setTags((prev) => ({ ...prev, [a.user_id]: e.target.value }))}
-                    style={{ width: 110, background: 'var(--ink)', border: '1px solid rgba(166,255,0,0.25)', color: 'var(--paper)', padding: '6px 8px', borderRadius: 3, fontSize: 12 }}
+                    style={{ width: 110, background: 'var(--ink)', border: '1px solid rgba(110,113,120,0.4)', color: 'var(--paper)', padding: '6px 8px', borderRadius: 3, fontSize: 12 }}
                   />
                 </div>
               ))}
@@ -78,7 +80,7 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
             {error && <p className="pl-error">{error}</p>}
             <div className="pl-modal-actions">
               <button type="button" className="pl-btn-secondary" onClick={onClose}>Fechar</button>
-              <button type="submit" className="pl-btn-primary" disabled={saving}>{saving ? 'Enviando...' : 'Enviar avaliações'}</button>
+              <TicketButton type="submit" disabled={saving}>{saving ? 'Enviando...' : 'Enviar avaliações'}</TicketButton>
             </div>
           </form>
         )}

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
+import TicketButton from '../components/TicketButton';
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -49,9 +50,9 @@ function LoginForm() {
                 <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" />
               </div>
               {error && <p className="pl-error">{error}</p>}
-              <button type="submit" className="pl-btn-primary" style={{ width: '100%' }} disabled={loading}>
+              <TicketButton type="submit" style={{ width: '100%' }} disabled={loading}>
                 {loading ? 'Enviando...' : 'Entrar'}
-              </button>
+              </TicketButton>
             </form>
           </>
         )}

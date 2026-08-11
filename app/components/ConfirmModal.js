@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
+import TicketButton from './TicketButton';
 
 export default function ConfirmModal({ game, onCancel, onConfirmed }) {
   const { profile } = useAuth();
@@ -27,7 +28,7 @@ export default function ConfirmModal({ game, onCancel, onConfirmed }) {
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
             <button type="button" className="pl-btn-secondary" onClick={onCancel}>Cancelar</button>
-            <button type="submit" className="pl-btn-primary" disabled={loading}>{loading ? 'Confirmando...' : 'Confirmar'}</button>
+            <TicketButton type="submit" disabled={loading}>{loading ? 'Confirmando...' : 'Confirmar'}</TicketButton>
           </div>
         </form>
       </div>

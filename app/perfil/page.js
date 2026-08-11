@@ -4,6 +4,9 @@ import Link from 'next/link';
 import Avatar from '../components/Avatar';
 import EditProfileModal from '../components/EditProfileModal';
 import AvaliarModal from '../components/AvaliarModal';
+import CaptainIcon from '../components/CaptainIcon';
+import EmptyFieldIcon from '../components/EmptyFieldIcon';
+import TicketButton from '../components/TicketButton';
 import { fmtDate } from '@/lib/gameUtils';
 import { useToast } from '../components/ToastProvider';
 
@@ -79,8 +82,8 @@ export default function PerfilPage() {
       <div style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Histórico de peladas</div>
 
       {historico.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 60, color: 'var(--paper-dim)' }}>
-          <div style={{ fontSize: 40 }}>⚽</div>
+        <div className="pl-empty">
+          <EmptyFieldIcon />
           <p>Nenhuma pelada passada ainda. Confirma presença em alguma pra ela aparecer aqui depois.</p>
         </div>
       ) : (
@@ -94,10 +97,10 @@ export default function PerfilPage() {
                   <h3>{g.local}</h3>
                   <p className="meta">{g.horario}</p>
                   <span className="pl-bairro-tag">{g.bairro}</span>
-                  <p className="meta">👑 Capitão: <b>{g.capitao}</b></p>
+                  <p className="meta"><CaptainIcon /> Capitão: <b>{g.capitao}</b></p>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <button className="pl-confirm-btn" onClick={() => setAvaliarGame(g)}>Avaliar jogadores</button>
+                  <TicketButton compact onClick={() => setAvaliarGame(g)}>Avaliar jogadores</TicketButton>
                 </div>
               </div>
             );
