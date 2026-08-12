@@ -30,6 +30,18 @@ function LoginForm() {
     setSent(true);
   }
 
+  async function handleGoogle() {
+    setError('');
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      },
+    });
+    if (error) setError('Não consegui iniciar o login com Google. Tenta de novo.');
+  }
+
   return (
     <div className="pl-authpage">
       <div className="pl-authcard">
@@ -55,6 +67,10 @@ function LoginForm() {
                 {loading ? 'Enviando...' : 'Entrar'}
               </TicketButton>
             </form>
+            <div className="pl-authpage-divider"><span>ou</span></div>
+            <button type="button" className="pl-btn-secondary" style={{ width: '100%' }} onClick={handleGoogle}>
+              Entrar com Google
+            </button>
           </>
         )}
       </div>
