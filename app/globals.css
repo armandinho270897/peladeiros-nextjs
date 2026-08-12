@@ -374,6 +374,13 @@ body::after {
 .pl-conquista-icone { font-size: 22px; }
 .pl-conquista-titulo { font-size: 10px; color: var(--paper-dim); text-transform: uppercase; margin-top: 4px; }
 .pl-conquista.desbloqueada .pl-conquista-titulo { color: var(--paper); }
+
+.pl-notif-pref-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid rgba(110,113,120,0.25);
+  font-size: 14px; color: var(--paper); cursor: pointer;
+}
+.pl-notif-pref-row input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--neon); cursor: pointer; flex-shrink: 0; }
 .pl-avatar-row { display: flex; align-items: center; gap: -6px; }
 .pl-avatar-row > * { margin-left: -8px; }
 .pl-avatar-row > *:first-child { margin-left: 0; }

@@ -22,6 +22,11 @@ export default function EditProfileModal({ onClose, onSaved }) {
         whatsapp: f.whatsapp.value.trim(),
         bairro: f.bairro.value.trim() || null,
         posicao: f.posicao.value || null,
+        idade: f.idade.value ? parseInt(f.idade.value, 10) : null,
+        altura_cm: f.altura.value ? parseInt(f.altura.value, 10) : null,
+        peso_kg: f.peso.value ? parseFloat(f.peso.value) : null,
+        instagram: f.instagram.value.trim() || null,
+        escolinhas: f.escolinhas.value.trim() || null,
       })
       .eq('id', user.id);
     setLoading(false);
@@ -49,6 +54,13 @@ export default function EditProfileModal({ onClose, onSaved }) {
               <option value="qualquer">Qualquer posição</option>
             </select>
           </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div className="pl-field" style={{ flex: 1 }}><label>Idade (opcional)</label><input name="idade" type="number" min="1" max="120" defaultValue={profile?.idade || ''} /></div>
+            <div className="pl-field" style={{ flex: 1 }}><label>Altura em cm (opcional)</label><input name="altura" type="number" min="1" max="260" defaultValue={profile?.altura_cm || ''} /></div>
+            <div className="pl-field" style={{ flex: 1 }}><label>Peso em kg (opcional)</label><input name="peso" type="number" min="1" max="300" step="0.1" defaultValue={profile?.peso_kg || ''} /></div>
+          </div>
+          <div className="pl-field"><label>Instagram (opcional)</label><input name="instagram" placeholder="@seu_usuario" defaultValue={profile?.instagram || ''} /></div>
+          <div className="pl-field"><label>Escolinhas (opcional)</label><input name="escolinhas" placeholder="Onde você já jogou/treinou" defaultValue={profile?.escolinhas || ''} /></div>
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
             <button type="button" className="pl-btn-secondary" onClick={onClose}>Cancelar</button>

@@ -61,7 +61,10 @@ export default function PerfilPage() {
         <div className="pl-perfil-info">
           <h2>{profile.nome}</h2>
           <p>{profile.bairro || 'Bairro não informado'}</p>
-          <button className="pl-share-btn" style={{ marginTop: 6 }} onClick={() => setEditOpen(true)}>Editar perfil</button>
+          <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
+            <button className="pl-share-btn" onClick={() => setEditOpen(true)}>Editar perfil</button>
+            <Link href="/configuracoes" className="pl-share-btn" style={{ textDecoration: 'none' }}>Notificações</Link>
+          </div>
         </div>
       </div>
 
