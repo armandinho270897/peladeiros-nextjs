@@ -6,6 +6,7 @@ import EditProfileModal from '../components/EditProfileModal';
 import AvaliarModal from '../components/AvaliarModal';
 import CaptainIcon from '../components/CaptainIcon';
 import EmptyFieldIcon from '../components/EmptyFieldIcon';
+import ConquistasBadges from '../components/ConquistasBadges';
 import TicketButton from '../components/TicketButton';
 import { fmtDate } from '@/lib/gameUtils';
 import { useToast } from '../components/ToastProvider';
@@ -47,7 +48,7 @@ export default function PerfilPage() {
     );
   }
 
-  const { profile, stats, historico } = data;
+  const { profile, stats, historico, conquistas } = data;
 
   return (
     <div>
@@ -79,7 +80,10 @@ export default function PerfilPage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Histórico de peladas</div>
+      <div className="pl-section-title" style={{ maxWidth: 640, margin: '0 auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Conquistas</div>
+      <ConquistasBadges conquistas={conquistas} />
+
+      <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Histórico de peladas</div>
 
       {historico.length === 0 ? (
         <div className="pl-empty">
