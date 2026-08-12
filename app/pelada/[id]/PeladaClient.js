@@ -85,7 +85,7 @@ export default function PeladaClient({ id }) {
           onEdit={(g) => setModal({ type: 'manage', game: g })}
           onConfirm={handleConfirmClick}
           onShare={shareGame}
-          onCancelPresenca={(confirmacaoId) => setModal({ type: 'cancelar', confirmacaoId })}
+          onCancelPresenca={(confirmacaoId, g) => setModal({ type: 'cancelar', confirmacaoId, game: g })}
         />
       </div>
 
@@ -102,6 +102,7 @@ export default function PeladaClient({ id }) {
       {modal?.type === 'cancelar' && (
         <CancelPresencaModal
           confirmacaoId={modal.confirmacaoId}
+          game={modal.game}
           onClose={() => setModal(null)}
           onCancelled={() => { setModal(null); loadGame(); showToast('Presença cancelada.'); }}
         />

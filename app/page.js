@@ -125,7 +125,7 @@ export default function Home() {
         onEdit={(game) => setModal({ type: 'manage', game })}
         onConfirm={(game) => setModal({ type: 'confirm', game })}
         onShare={shareGame}
-        onCancelPresenca={(confirmacaoId) => setModal({ type: 'cancelar', confirmacaoId })}
+        onCancelPresenca={(confirmacaoId, game) => setModal({ type: 'cancelar', confirmacaoId, game })}
       />
     );
   }
@@ -229,6 +229,7 @@ export default function Home() {
       {modal?.type === 'cancelar' && (
         <CancelPresencaModal
           confirmacaoId={modal.confirmacaoId}
+          game={modal.game}
           onClose={() => setModal(null)}
           onCancelled={() => { setModal(null); loadGames(); showToast('Presença cancelada.'); }}
         />

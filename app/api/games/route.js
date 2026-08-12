@@ -3,6 +3,7 @@ import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { attachNotaMedia } from '@/lib/ratings';
+import { createNotification } from '@/lib/notify';
 
 export async function GET() {
   const { data: games, error } = await supabase
@@ -69,6 +70,17 @@ export async function POST(request) {
       }));
       if (rows.length > 0) await supabase.from('confirmacoes').insert(rows);
     }
+  }
+
+  // avisa quem tem o mesmo bairro no perfil que tem pelada nova por perto
+  const { data: vizinhos } = await supabase.from('profiles').select('id').eq('bairro', bairro).neq('id', user.id);
+  for (const v of vizinhos || []) {
+    await createNotification({
+      userId: v.id,
+      tipo: 'pelada_nova_perto',
+      gameId: game.id,
+      mensagem: `Pelada nova em ${bairro}: ${local}, ${data} às ${horario}.`,
+    });
   }
 
   const { codigo: _omit, ...safe } = game;

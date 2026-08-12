@@ -20,6 +20,11 @@ export function AuthProvider({ children }) {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user || null);
       loadProfile(user?.id).finally(() => setLoading(false));
+      // "partida próxima": checagem única na abertura do app, não em cada
+      // refresh de token — a rota é idempotente, não duplica notificação.
+      if (user) {
+        fetch('/api/notificacoes/verificar-proximas', { method: 'POST' }).catch(() => {});
+      }
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
