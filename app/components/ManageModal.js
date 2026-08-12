@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { getCaptainCode, saveCaptainCode } from '@/lib/captainCodes';
-import { pendentesDe, POSICAO_LABEL } from '@/lib/gameUtils';
+import { pendentesDe, POSICAO_LABEL, emCimaDaHora } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
 import PlayerSearch from './PlayerSearch';
@@ -146,6 +146,9 @@ export default function ManageModal({ game, onClose, onSaved }) {
           <div className="pl-field"><label>Data</label><input type="date" name="data" defaultValue={gameData.data} /></div>
           <div className="pl-field"><label>Horário</label><input type="time" name="horario" defaultValue={gameData.horario} /></div>
           <div className="pl-field"><label>Vagas totais</label><input type="number" name="vagas" defaultValue={gameData.vagas_totais} /></div>
+          {emCimaDaHora(gameData) && (
+            <p className="pl-error">Tá em cima da hora — cancelar agora deixa todo mundo sem tempo de se reorganizar.</p>
+          )}
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
             <button type="button" className="pl-btn-secondary pl-btn-danger" onClick={handleCancelGame}>Cancelar pelada</button>

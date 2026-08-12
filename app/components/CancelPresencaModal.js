@@ -1,19 +1,13 @@
 'use client';
 import { useState } from 'react';
+import { emCimaDaHora as calcEmCimaDaHora } from '@/lib/gameUtils';
 import TicketButton from './TicketButton';
-
-const LIMITE_EM_CIMA_DA_HORA_MS = 3 * 60 * 60 * 1000;
 
 export default function CancelPresencaModal({ confirmacaoId, game, onClose, onCancelled }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const emCimaDaHora = (() => {
-    if (!game?.data || !game?.horario) return false;
-    const inicio = new Date(`${game.data}T${game.horario}`);
-    const diff = inicio.getTime() - Date.now();
-    return diff >= 0 && diff < LIMITE_EM_CIMA_DA_HORA_MS;
-  })();
+  const emCimaDaHora = calcEmCimaDaHora(game);
 
   async function handleConfirm() {
     setLoading(true);
