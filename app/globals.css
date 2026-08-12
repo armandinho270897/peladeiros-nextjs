@@ -325,7 +325,41 @@ body::after {
 .pl-pending-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
 .pl-pending-info { flex: 1; min-width: 0; }
 .pl-pending-nome { font-size: 13px; color: var(--paper); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pl-pending-bairro { font-size: 11px; color: var(--paper-dim); }
+.pl-pending-meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; color: var(--paper-dim); }
+.pl-pending-meta span:not(:last-child)::after { content: '·'; margin-left: 6px; opacity: 0.6; }
+
+/* Escalação visual — desenho de campo em CSS puro, sem imagem externa */
+.pl-escalacao { max-width: 640px; margin: 18px auto 0; padding: 0 16px 24px; }
+.pl-escalacao-title { font-size: 11px; text-transform: uppercase; color: var(--paper-dim); margin-bottom: 8px; }
+.pl-field-draw {
+  position: relative;
+  background: repeating-linear-gradient(to bottom, #1c3a1a, #1c3a1a 36px, #204019 36px, #204019 72px);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 6px;
+  padding: 16px 10px;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pl-field-draw::before {
+  content: '';
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 64px; height: 64px; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 50%;
+  pointer-events: none;
+}
+.pl-field-draw::after {
+  content: '';
+  position: absolute; left: 8%; right: 8%; top: 50%;
+  border-top: 1.5px solid rgba(255,255,255,0.3);
+  pointer-events: none;
+}
+.pl-field-zone { position: relative; z-index: 1; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 30px; }
+.pl-field-player { display: flex; }
+.pl-field-zone-empty { font-size: 10px; text-transform: uppercase; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; }
+.pl-field-reservas { display: flex; align-items: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.pl-field-reservas-label { font-size: 11px; color: var(--paper-dim); text-transform: uppercase; margin-right: 4px; }
 .pl-pending-actions { display: flex; align-items: center; gap: 6px; }
 .pl-pending-actions .pl-btn-secondary { flex: none; padding: 4px 6px 8px; font-size: 12px; }
 .pl-pending-actions .pl-ticket { margin: 0; }

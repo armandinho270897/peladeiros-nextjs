@@ -9,6 +9,7 @@ import GameCard from '../../components/GameCard';
 import ConfirmModal from '../../components/ConfirmModal';
 import ManageModal from '../../components/ManageModal';
 import CancelPresencaModal from '../../components/CancelPresencaModal';
+import EscalacaoField from '../../components/EscalacaoField';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
 
 export default function PeladaClient({ id }) {
@@ -87,6 +88,8 @@ export default function PeladaClient({ id }) {
           onCancelPresenca={(confirmacaoId) => setModal({ type: 'cancelar', confirmacaoId })}
         />
       </div>
+
+      <EscalacaoField game={game} />
 
       {modal?.type === 'confirm' && (
         <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={() => { setModal(null); loadGame(); showToast('Solicitação enviada! Aguardando aprovação do capitão.'); }} />
