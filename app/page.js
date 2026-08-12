@@ -88,6 +88,14 @@ export default function Home() {
     showToast('Solicitação enviada! Aguardando aprovação do capitão.');
   }
 
+  async function handleConfirmarVaga(confirmacaoId) {
+    const res = await fetch(`/api/confirmacoes/${confirmacaoId}/confirmar-vaga`, { method: 'POST' });
+    const result = await res.json();
+    if (!res.ok) { showToast(result.error || 'Não consegui confirmar sua vaga.'); return; }
+    loadGames();
+    showToast('Vaga confirmada!');
+  }
+
   const today = todayISO();
   const upcoming = useMemo(
     () => games.filter((g) => g.data >= today).sort((a, b) => (a.data + a.horario).localeCompare(b.data + b.horario)),
@@ -129,6 +137,7 @@ export default function Home() {
         onConfirm={(game) => setModal({ type: 'confirm', game })}
         onShare={shareGame}
         onCancelPresenca={(confirmacaoId, game) => setModal({ type: 'cancelar', confirmacaoId, game })}
+        onConfirmarVaga={handleConfirmarVaga}
         justLotou={!!justLotaram[g.id]}
       />
     );

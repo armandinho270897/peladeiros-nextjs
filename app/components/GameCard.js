@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { fmtDate, aprovadosDe, esperaDe, pendentesDe, todayISO } from '@/lib/gameUtils';
+import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
@@ -27,18 +27,19 @@ function ConfirmadoAvatar({ nome, notaMedia, bench }) {
   );
 }
 
-export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, justLotou }) {
+export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou }) {
   const g = game;
   const d = fmtDate(g.data);
   const confirmados = aprovadosDe(g);
   const espera = esperaDe(g);
   const pendentes = pendentesDe(g);
-  const restantes = Math.max(0, g.vagas_totais - confirmados.length);
+  const restantes = Math.max(0, g.vagas_totais - ocupandoVagaDe(g).length);
   const lotado = restantes === 0;
   const podeEditar = !g.owner_id || g.owner_id === currentUserId;
   const minhaConfirmacao = (g.confirmacoes || []).find((c) => c.user_id === currentUserId);
   const aguardandoAprovacao = minhaConfirmacao?.status === 'pendente';
   const minhaPresencaAprovada = minhaConfirmacao?.status === 'aprovado';
+  const minhaVagaAguardandoConfirmacao = minhaConfirmacao?.status === 'aguardando_confirmacao';
 
   const [pulse, setPulse] = useState(false);
   const prevRestantes = useRef(restantes);
@@ -110,6 +111,13 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         <div style={{ fontSize: 10, color: 'var(--paper-dim)' }}>{lotado ? 'lotado' : 'vagas'}</div>
         {aguardandoAprovacao ? (
           <p className="pl-aguardando">Aguardando aprovação do capitão</p>
+        ) : minhaVagaAguardandoConfirmacao ? (
+          <>
+            <p className="pl-aguardando">Aprovado — falta você confirmar</p>
+            <TicketButton compact onClick={() => onConfirmarVaga(minhaConfirmacao.id)}>
+              Confirmar minha vaga
+            </TicketButton>
+          </>
         ) : minhaPresencaAprovada ? (
           <button className="pl-btn-secondary pl-btn-danger" onClick={() => onCancelPresenca(minhaConfirmacao.id, g)}>
             Cancelar presença

@@ -1,7 +1,7 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
-import { createNotification } from '@/lib/notify';
+import { promoverEsperaComConfirmacao } from '@/lib/confirmacoesExpiry';
 
 // Duas formas de cancelar uma confirmação:
 // - o próprio jogador, autenticado, cancelando a própria presença (sem PIN nenhum)
@@ -30,31 +30,10 @@ export async function DELETE(request, { params }) {
   const autorizado = await authorizeCancel(confirmacao, codigo);
   if (!autorizado) return NextResponse.json({ error: 'Você não pode cancelar essa presença.' }, { status: 403 });
 
-  const { data: game } = await supabase.from('games').select('local').eq('id', confirmacao.game_id).single();
-
   await supabase.from('confirmacoes').delete().eq('id', id);
 
-  if (confirmacao.status === 'aprovado') {
-    const { data: proximoDaFila } = await supabase
-      .from('confirmacoes')
-      .select('id, user_id')
-      .eq('game_id', confirmacao.game_id)
-      .eq('status', 'espera')
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle();
-
-    if (proximoDaFila) {
-      await supabase.from('confirmacoes').update({ status: 'aprovado' }).eq('id', proximoDaFila.id);
-      if (proximoDaFila.user_id) {
-        await createNotification({
-          userId: proximoDaFila.user_id,
-          tipo: 'promovido_da_espera',
-          gameId: confirmacao.game_id,
-          mensagem: `Uma vaga abriu em ${game?.local || 'sua pelada'} e você foi promovido do banco de reservas!`,
-        });
-      }
-    }
+  if (confirmacao.status === 'aprovado' || confirmacao.status === 'aguardando_confirmacao') {
+    await promoverEsperaComConfirmacao(confirmacao.game_id, 1);
   }
 
   return NextResponse.json({ ok: true });

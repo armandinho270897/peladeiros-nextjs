@@ -4,8 +4,11 @@ import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { attachNotaMedia } from '@/lib/ratings';
 import { createNotification } from '@/lib/notify';
+import { sweepExpiredConfirmacoes } from '@/lib/confirmacoesExpiry';
 
 export async function GET() {
+  await sweepExpiredConfirmacoes();
+
   const { data: games, error } = await supabase
     .from('games')
     .select('*, confirmacoes(*)')
