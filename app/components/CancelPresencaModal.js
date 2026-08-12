@@ -2,9 +2,18 @@
 import { useState } from 'react';
 import TicketButton from './TicketButton';
 
-export default function CancelPresencaModal({ confirmacaoId, onClose, onCancelled }) {
+const LIMITE_EM_CIMA_DA_HORA_MS = 3 * 60 * 60 * 1000;
+
+export default function CancelPresencaModal({ confirmacaoId, game, onClose, onCancelled }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const emCimaDaHora = (() => {
+    if (!game?.data || !game?.horario) return false;
+    const inicio = new Date(`${game.data}T${game.horario}`);
+    const diff = inicio.getTime() - Date.now();
+    return diff >= 0 && diff < LIMITE_EM_CIMA_DA_HORA_MS;
+  })();
 
   async function handleConfirm() {
     setLoading(true);
@@ -19,6 +28,9 @@ export default function CancelPresencaModal({ confirmacaoId, onClose, onCancelle
       <div className="pl-modal">
         <h3>Cancelar presença</h3>
         <p>Tem certeza? Sua vaga vai ser liberada pro próximo do banco de reservas.</p>
+        {emCimaDaHora && (
+          <p className="pl-error">Tá em cima da hora — o time pode ficar sem reposição a tempo.</p>
+        )}
         {error && <p className="pl-error">{error}</p>}
         <div className="pl-modal-actions">
           <button type="button" className="pl-btn-secondary" onClick={onClose}>Voltar</button>
