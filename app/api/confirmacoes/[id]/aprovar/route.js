@@ -4,6 +4,8 @@ import { authorizeGameOwner } from '@/lib/gameAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 
+const PRAZO_CONFIRMACAO_MS = 2 * 60 * 60 * 1000;
+
 // O app não guarda duração/horário de término da pelada — assume ~2h de
 // jogo pra decidir se duas peladas no mesmo dia "brigam" de horário.
 const JANELA_CONFLITO_MS = 2 * 60 * 60 * 1000;
@@ -61,13 +63,15 @@ export async function POST(request, { params }) {
     .from('confirmacoes')
     .select('id', { count: 'exact', head: true })
     .eq('game_id', confirmacao.game_id)
-    .eq('status', 'aprovado');
+    .in('status', ['aprovado', 'aguardando_confirmacao']);
 
-  const novoStatus = count >= game.vagas_totais ? 'espera' : 'aprovado';
+  const temVaga = count < game.vagas_totais;
+  const novoStatus = temVaga ? 'aguardando_confirmacao' : 'espera';
+  const prazoConfirmacao = temVaga ? new Date(Date.now() + PRAZO_CONFIRMACAO_MS).toISOString() : null;
 
   const { data: atualizada, error } = await supabase
     .from('confirmacoes')
-    .update({ status: novoStatus })
+    .update({ status: novoStatus, prazo_confirmacao: prazoConfirmacao })
     .eq('id', id)
     .select()
     .single();
@@ -75,12 +79,12 @@ export async function POST(request, { params }) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   if (confirmacao.user_id) {
-    if (novoStatus === 'aprovado') {
+    if (novoStatus === 'aguardando_confirmacao') {
       await createNotification({
         userId: confirmacao.user_id,
-        tipo: 'solicitacao_aprovada',
+        tipo: 'aprovado_aguardando_confirmacao',
         gameId: confirmacao.game_id,
-        mensagem: `Sua presença em ${game.local} foi aprovada!`,
+        mensagem: `Sua presença em ${game.local} foi aprovada! Confirma sua vaga em até 2h ou ela passa pro próximo do banco.`,
       });
       await cancelarConflitosDeHorario(confirmacao.user_id, { id: confirmacao.game_id, ...game });
     } else {

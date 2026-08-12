@@ -27,7 +27,7 @@ export async function POST(request, { params }) {
     .from('confirmacoes')
     .select('id', { count: 'exact', head: true })
     .eq('game_id', id)
-    .eq('status', 'aprovado');
+    .in('status', ['aprovado', 'aguardando_confirmacao']);
 
   const novoStatus = count >= game.vagas_totais ? 'espera' : 'aprovado';
 

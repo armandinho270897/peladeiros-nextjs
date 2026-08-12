@@ -43,6 +43,14 @@ export default function PeladaClient({ id }) {
     window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
   }
 
+  async function handleConfirmarVaga(confirmacaoId) {
+    const res = await fetch(`/api/confirmacoes/${confirmacaoId}/confirmar-vaga`, { method: 'POST' });
+    const result = await res.json();
+    if (!res.ok) { showToast(result.error || 'Não consegui confirmar sua vaga.'); return; }
+    loadGame();
+    showToast('Vaga confirmada!');
+  }
+
   function handleConfirmClick(g) {
     if (!user) {
       router.push(`/login?next=${encodeURIComponent(`/pelada/${id}`)}`);
@@ -88,6 +96,7 @@ export default function PeladaClient({ id }) {
           onConfirm={handleConfirmClick}
           onShare={shareGame}
           onCancelPresenca={(confirmacaoId, g) => setModal({ type: 'cancelar', confirmacaoId, game: g })}
+          onConfirmarVaga={handleConfirmarVaga}
           justLotou={!!justLotaram[game?.id]}
         />
       </div>

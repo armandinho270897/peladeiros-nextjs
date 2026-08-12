@@ -2,9 +2,11 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { attachNotaMedia } from '@/lib/ratings';
 import { authorizeGameOwner } from '@/lib/gameAuth';
-import { createNotification } from '@/lib/notify';
+import { sweepExpiredConfirmacoes, promoverEsperaComConfirmacao } from '@/lib/confirmacoesExpiry';
 
 export async function GET(request, { params }) {
+  await sweepExpiredConfirmacoes();
+
   const { id } = params;
   const { data: game, error } = await supabase
     .from('games')
@@ -37,27 +39,14 @@ export async function PATCH(request, { params }) {
   // se vagas aumentaram, promove quem estiver na fila de espera
   const { data: confirmacoes } = await supabase
     .from('confirmacoes')
-    .select('*')
-    .eq('game_id', id)
-    .order('created_at', { ascending: true });
+    .select('id, status')
+    .eq('game_id', id);
 
-  const aprovados = confirmacoes.filter(c => c.status === 'aprovado');
-  const espera = confirmacoes.filter(c => c.status === 'espera');
-  const vagasLivres = vagasTotais - aprovados.length;
+  const ocupando = confirmacoes.filter(c => c.status === 'aprovado' || c.status === 'aguardando_confirmacao').length;
+  const vagasLivres = vagasTotais - ocupando;
 
-  if (vagasLivres > 0 && espera.length > 0) {
-    const promovidos = espera.slice(0, vagasLivres);
-    await supabase.from('confirmacoes').update({ status: 'aprovado' }).in('id', promovidos.map(c => c.id));
-    for (const c of promovidos) {
-      if (c.user_id) {
-        await createNotification({
-          userId: c.user_id,
-          tipo: 'promovido_da_espera',
-          gameId: id,
-          mensagem: `Uma vaga abriu em ${local} e você foi promovido do banco de reservas!`,
-        });
-      }
-    }
+  if (vagasLivres > 0) {
+    await promoverEsperaComConfirmacao(id, vagasLivres);
   }
 
   return NextResponse.json({ ok: true });

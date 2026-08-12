@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { getCaptainCode, saveCaptainCode } from '@/lib/captainCodes';
-import { pendentesDe, POSICAO_LABEL, emCimaDaHora } from '@/lib/gameUtils';
+import { pendentesDe, aguardandoConfirmacaoDe, POSICAO_LABEL, emCimaDaHora } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
 import PlayerSearch from './PlayerSearch';
@@ -102,6 +102,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
   }
 
   const pendentes = pendentesDe(gameData);
+  const aguardandoConfirmacao = aguardandoConfirmacaoDe(gameData);
 
   return (
     <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -134,6 +135,24 @@ export default function ManageModal({ game, onClose, onSaved }) {
                 <div className="pl-pending-actions">
                   <button type="button" className="pl-btn-secondary" disabled={actingId === p.id} onClick={() => handleRejeitar(p.id)}>Rejeitar</button>
                   <TicketButton compact disabled={actingId === p.id} onClick={() => handleAprovar(p.id)}>Aprovar</TicketButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {aguardandoConfirmacao.length > 0 && (
+          <div className="pl-pending-section">
+            <div className="pl-pending-title pl-section-title">Aguardando confirmação do jogador</div>
+            {aguardandoConfirmacao.map((p) => (
+              <div key={p.id} className="pl-pending-row">
+                <Avatar nome={p.nome} size={30} />
+                <div className="pl-pending-info">
+                  <div className="pl-pending-nome">{p.nome}</div>
+                  <div className="pl-pending-meta">
+                    {p.bairro && <span>{p.bairro}</span>}
+                    {p.posicao && <span>{POSICAO_LABEL[p.posicao] || p.posicao}</span>}
+                  </div>
                 </div>
               </div>
             ))}
