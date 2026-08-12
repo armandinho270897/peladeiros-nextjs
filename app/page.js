@@ -1,10 +1,11 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useGames } from '@/lib/useGames';
 import { useArenas } from '@/lib/useArenas';
-import { todayISO, aprovadosDe, shareUrl } from '@/lib/gameUtils';
+import { todayISO, aprovadosDe, shareUrl, haversineKm } from '@/lib/gameUtils';
+import { getRadiusPref, saveRadiusPref } from '@/lib/radiusPref';
 import { useAuth } from './components/AuthProvider';
 import { useToast } from './components/ToastProvider';
 import GameCard from './components/GameCard';
@@ -28,6 +29,35 @@ export default function Home() {
   const [viewMode, setViewMode] = useState('lista'); // 'lista' | 'mapa'
   const [bairroFiltro, setBairroFiltro] = useState('');
   const [tab, setTab] = useState('todas'); // 'todas' | 'minhas'
+  const [raioAtivo, setRaioAtivo] = useState(false);
+  const [raioKm, setRaioKm] = useState(10);
+  const [minhaLocalizacao, setMinhaLocalizacao] = useState(null);
+  const [erroLocalizacao, setErroLocalizacao] = useState('');
+
+  useEffect(() => {
+    const salvo = getRadiusPref();
+    if (salvo) setRaioKm(salvo);
+  }, []);
+
+  function toggleRaio() {
+    if (raioAtivo) { setRaioAtivo(false); setErroLocalizacao(''); return; }
+    if (!navigator.geolocation) { setErroLocalizacao('Seu navegador não suporta localização.'); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setMinhaLocalizacao({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setRaioAtivo(true);
+        setErroLocalizacao('');
+      },
+      () => setErroLocalizacao('Não consegui acessar sua localização.'),
+      { timeout: 10000 }
+    );
+  }
+
+  function handleRaioChange(e) {
+    const km = Number(e.target.value);
+    setRaioKm(km);
+    saveRadiusPref(km);
+  }
 
   function shareGame(g) {
     const d = g.data;
@@ -72,8 +102,16 @@ export default function Home() {
     if (tab === 'minhas') {
       list = list.filter((g) => aprovadosDe(g).some((c) => c.user_id === user?.id));
     }
+    if (raioAtivo && minhaLocalizacao) {
+      list = list.filter(
+        (g) =>
+          g.latitude != null &&
+          g.longitude != null &&
+          haversineKm(minhaLocalizacao.lat, minhaLocalizacao.lng, Number(g.latitude), Number(g.longitude)) <= raioKm
+      );
+    }
     return list;
-  }, [upcoming, bairroFiltro, tab, user]);
+  }, [upcoming, bairroFiltro, tab, user, raioAtivo, minhaLocalizacao, raioKm]);
 
   const hoje = filtradas.filter((g) => g.data === today);
   const proximas = filtradas.filter((g) => g.data !== today);
@@ -124,9 +162,23 @@ export default function Home() {
           <option value="">Todos os bairros</option>
           {bairros.map((b) => <option key={b} value={b}>{b}</option>)}
         </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button className="pl-toggle-map" onClick={toggleRaio}>
+            {raioAtivo ? `📍 Até ${raioKm}km` : '📍 Perto de mim'}
+          </button>
+          {raioAtivo && (
+            <input
+              type="range" min="1" max="50" value={raioKm}
+              onChange={handleRaioChange}
+              style={{ width: 90 }}
+              aria-label="Raio em quilômetros"
+            />
+          )}
+        </div>
         <button className="pl-toggle-map" onClick={() => setViewMode(viewMode === 'lista' ? 'mapa' : 'lista')}>
           {viewMode === 'lista' ? '🗺️ Ver no mapa' : '📋 Ver lista'}
         </button>
+        {erroLocalizacao && <span style={{ fontSize: 11, color: 'var(--tag-red)' }}>{erroLocalizacao}</span>}
       </div>
 
       {loading ? (
