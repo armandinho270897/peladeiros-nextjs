@@ -306,6 +306,8 @@ body::after {
 .pl-authcard .pl-tagline { text-align: center; margin-bottom: 22px; }
 .pl-authcard h3 { font-family: var(--font-display); color: var(--paper); text-transform: uppercase; margin-top: 0; }
 .pl-authcard p.pl-hint { font-size: 13px; color: var(--paper-dim); margin-bottom: 18px; }
+.pl-authpage-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: var(--paper-dim); font-size: 11px; text-transform: uppercase; }
+.pl-authpage-divider::before, .pl-authpage-divider::after { content: ''; flex: 1; height: 1px; background: rgba(110,113,120,0.35); }
 
 /* Toasts */
 .pl-toast-container {
