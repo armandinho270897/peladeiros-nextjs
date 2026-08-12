@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { getCaptainCode, saveCaptainCode } from '@/lib/captainCodes';
-import { pendentesDe } from '@/lib/gameUtils';
+import { pendentesDe, POSICAO_LABEL } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
 import PlayerSearch from './PlayerSearch';
@@ -124,7 +124,12 @@ export default function ManageModal({ game, onClose, onSaved }) {
                 <Avatar nome={p.nome} size={30} />
                 <div className="pl-pending-info">
                   <div className="pl-pending-nome">{p.nome}</div>
-                  {p.bairro && <div className="pl-pending-bairro">{p.bairro}</div>}
+                  <div className="pl-pending-meta">
+                    {p.bairro && <span>{p.bairro}</span>}
+                    {p.posicao && <span>{POSICAO_LABEL[p.posicao] || p.posicao}</span>}
+                    {p.nota_media != null && <span>★{p.nota_media.toFixed(1)}</span>}
+                    <span>{p.peladas_jogadas} pelada{p.peladas_jogadas === 1 ? '' : 's'} jogada{p.peladas_jogadas === 1 ? '' : 's'}</span>
+                  </div>
                 </div>
                 <div className="pl-pending-actions">
                   <button type="button" className="pl-btn-secondary" disabled={actingId === p.id} onClick={() => handleRejeitar(p.id)}>Rejeitar</button>
