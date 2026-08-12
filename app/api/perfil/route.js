@@ -1,7 +1,34 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
-import { todayISO } from '@/lib/gameUtils';
+import { todayISO, LIMITE_EM_CIMA_DA_HORA_MS } from '@/lib/gameUtils';
+
+// Peladas em que o mesmo capitão comandou sem cancelamento de última hora
+// (ninguém que tinha aprovado cancelou a menos de 3h do início) — critério
+// do selo "O Brabo que Comanda".
+const BRABO_THRESHOLD = 3;
+
+async function peladasBoasComoCapitao(userId, today) {
+  const { data: peladas } = await supabase.from('games').select('id, data, horario').eq('owner_id', userId).lt('data', today);
+  if (!peladas || peladas.length === 0) return 0;
+
+  const gameIds = peladas.map((g) => g.id);
+  const { data: cancelamentos } = await supabase
+    .from('confirmacoes')
+    .select('game_id, cancelado_em')
+    .in('game_id', gameIds)
+    .eq('status', 'cancelado')
+    .not('cancelado_em', 'is', null);
+
+  const comProblema = new Set();
+  for (const c of cancelamentos || []) {
+    const game = peladas.find((g) => g.id === c.game_id);
+    if (!game) continue;
+    const diff = new Date(`${game.data}T${game.horario}`).getTime() - new Date(c.cancelado_em).getTime();
+    if (diff >= 0 && diff < LIMITE_EM_CIMA_DA_HORA_MS) comProblema.add(game.id);
+  }
+  return peladas.filter((g) => !comProblema.has(g.id)).length;
+}
 
 export async function GET() {
   const authClient = createServerClient();
@@ -38,9 +65,22 @@ export async function GET() {
     historico = games || [];
   }
 
+  const peladasJogadas = historico.length;
+  const brabo = await peladasBoasComoCapitao(user.id, today);
+  const temAvaliacaoCinco = (avaliacoesRecebidas || []).some((a) => a.nota === 5);
+
+  const conquistas = [
+    { id: 'primeira_pelada', titulo: 'Primeira pelada', descricao: 'Jogou a primeira pelada', desbloqueada: peladasJogadas >= 1 },
+    { id: 'cinco_peladas', titulo: '5 peladas', descricao: 'Já jogou 5 peladas', desbloqueada: peladasJogadas >= 5 },
+    { id: 'dez_peladas', titulo: '10 peladas', descricao: 'Já jogou 10 peladas', desbloqueada: peladasJogadas >= 10 },
+    { id: 'avaliacao_cinco', titulo: 'Cinco estrelas', descricao: 'Recebeu uma avaliação 5 estrelas', desbloqueada: temAvaliacaoCinco },
+    { id: 'brabo_que_comanda', titulo: 'O Brabo que Comanda', descricao: `Comandou ${BRABO_THRESHOLD} peladas sem perrengue de última hora`, desbloqueada: brabo >= BRABO_THRESHOLD },
+  ];
+
   return NextResponse.json({
     profile,
     stats: { peladasConfirmadas, peladasComoCapitao, notaMedia, totalAvaliacoes },
     historico,
+    conquistas,
   });
 }
