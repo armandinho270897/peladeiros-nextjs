@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useArenas } from '@/lib/useArenas';
 import { useAuth } from './AuthProvider';
 import TicketButton from './TicketButton';
+import PlayerSearch from './PlayerSearch';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 
@@ -15,6 +16,16 @@ export default function NewGameModal({ onCancel, onCreated }) {
   const [arenaId, setArenaId] = useState('');
   const [local, setLocal] = useState('');
   const [bairro, setBairro] = useState('');
+  const [vagasTotais, setVagasTotais] = useState('');
+  const [jogadores, setJogadores] = useState([]);
+
+  function addJogador(p) {
+    setJogadores((prev) => (prev.some((j) => j.id === p.id) ? prev : [...prev, p]));
+  }
+
+  function removeJogador(id) {
+    setJogadores((prev) => prev.filter((j) => j.id !== id));
+  }
 
   function handleArenaChange(id) {
     setArenaId(id);
@@ -34,10 +45,11 @@ export default function NewGameModal({ onCancel, onCreated }) {
       bairro: bairro.trim(),
       data: f.data.value,
       horario: f.horario.value,
-      vagasTotais: parseInt(f.vagas.value, 10),
+      vagasTotais: parseInt(vagasTotais, 10),
       latitude: coords.lat,
       longitude: coords.lng,
       arenaId: arenaId || null,
+      jogadoresIniciais: jogadores.map((j) => ({ id: j.id, nome: j.nome })),
     };
     const res = await fetch('/api/games', { method: 'POST', body: JSON.stringify(body) });
     const result = await res.json();
@@ -64,7 +76,26 @@ export default function NewGameModal({ onCancel, onCreated }) {
           <div className="pl-field"><label>Bairro</label><input name="bairro" placeholder="Ex: Centro" value={bairro} onChange={(e) => setBairro(e.target.value)} /></div>
           <div className="pl-field"><label>Data</label><input type="date" name="data" /></div>
           <div className="pl-field"><label>Horário</label><input type="time" name="horario" /></div>
-          <div className="pl-field"><label>Vagas totais</label><input type="number" name="vagas" min="1" max="30" /></div>
+          <div className="pl-field"><label>Vagas totais</label><input type="number" name="vagas" min="1" max="30" value={vagasTotais} onChange={(e) => setVagasTotais(e.target.value)} /></div>
+          <div className="pl-field">
+            <label>Quem já vai jogar (opcional)</label>
+            <PlayerSearch onSelect={addJogador} excludeIds={jogadores.map((j) => j.id)} />
+            {jogadores.length > 0 && (
+              <div className="pl-selected-players">
+                {jogadores.map((j) => (
+                  <span key={j.id} className="pl-selected-player-chip">
+                    {j.nome}
+                    <button type="button" onClick={() => removeJogador(j.id)} aria-label={`Remover ${j.nome}`}>×</button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {jogadores.length > 0 && vagasTotais && (
+              <p style={{ fontSize: 11, color: 'var(--paper-dim)', marginTop: 4 }}>
+                {jogadores.length} de {vagasTotais} vaga(s) já preenchida(s)
+              </p>
+            )}
+          </div>
           <div className="pl-field">
             <label>Capitão</label>
             <p style={{ margin: 0, fontSize: 14 }}>{profile?.nome} <span style={{ color: 'var(--paper-dim)', fontSize: 12 }}>(você, logado)</span></p>

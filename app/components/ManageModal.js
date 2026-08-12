@@ -4,6 +4,7 @@ import { getCaptainCode, saveCaptainCode } from '@/lib/captainCodes';
 import { pendentesDe } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
+import PlayerSearch from './PlayerSearch';
 
 export default function ManageModal({ game, onClose, onSaved }) {
   const semOwner = !game.owner_id;
@@ -72,6 +73,16 @@ export default function ManageModal({ game, onClose, onSaved }) {
     reload();
   }
 
+  async function handleAdicionarJogador(p) {
+    setActingId(p.id);
+    const res = await fetch(`/api/games/${game.id}/adicionar-jogador`, { method: 'POST', body: JSON.stringify({ userId: p.id, codigo }) });
+    const result = await res.json();
+    setActingId(null);
+    if (!res.ok) { setError(result.error); return; }
+    setError('');
+    reload();
+  }
+
   if (!unlocked) {
     return (
       <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -96,6 +107,14 @@ export default function ManageModal({ game, onClose, onSaved }) {
     <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="pl-modal">
         <h3>Editar pelada</h3>
+
+        <div className="pl-field">
+          <label>Adicionar jogador</label>
+          <PlayerSearch
+            onSelect={handleAdicionarJogador}
+            excludeIds={(gameData.confirmacoes || []).map((c) => c.user_id).filter(Boolean)}
+          />
+        </div>
 
         {pendentes.length > 0 && (
           <div className="pl-pending-section">

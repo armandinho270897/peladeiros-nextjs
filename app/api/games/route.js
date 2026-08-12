@@ -32,7 +32,7 @@ export async function POST(request) {
   if (!profile) return NextResponse.json({ error: 'Complete seu perfil antes de criar uma pelada.' }, { status: 400 });
 
   const body = await request.json();
-  const { local, bairro, data, horario, vagasTotais, latitude, longitude, arenaId } = body;
+  const { local, bairro, data, horario, vagasTotais, latitude, longitude, arenaId, jogadoresIniciais } = body;
 
   if (!local || !bairro || !data || !horario || !vagasTotais) {
     return NextResponse.json({ error: 'Dados inválidos. Confere se preencheu tudo.' }, { status: 400 });
@@ -52,6 +52,24 @@ export async function POST(request) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // jogadores adicionados direto na criação entram como aprovado (dentro da
+  // capacidade) ou espera (se estourar) — mesmo critério do fluxo de aprovar.
+  if (Array.isArray(jogadoresIniciais) && jogadoresIniciais.length > 0) {
+    const ids = [...new Set(jogadoresIniciais.map((j) => j.id))].filter((id) => id && id !== user.id);
+    if (ids.length > 0) {
+      const { data: perfis } = await supabase.from('profiles').select('id, nome, whatsapp, bairro').in('id', ids);
+      const rows = (perfis || []).map((p, i) => ({
+        game_id: game.id,
+        user_id: p.id,
+        nome: p.nome,
+        whatsapp: p.whatsapp,
+        bairro: p.bairro,
+        status: i < vagasTotais ? 'aprovado' : 'espera',
+      }));
+      if (rows.length > 0) await supabase.from('confirmacoes').insert(rows);
+    }
+  }
 
   const { codigo: _omit, ...safe } = game;
   return NextResponse.json(safe, { status: 201 });

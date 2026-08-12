@@ -355,4 +355,35 @@ body::after {
 .pl-bell-time { font-size: 10px; color: var(--paper-dim); }
 .pl-bell-item-link { display: block; text-decoration: none; color: inherit; }
 .pl-bell-item-link:hover .pl-bell-item { background: rgba(255,255,255,0.05); }
+
+/* Busca de jogador (criar pelada + gerenciar) */
+.pl-player-search { position: relative; }
+.pl-player-search input {
+  width: 100%; background: var(--ink); border: 1px solid rgba(110,113,120,0.4);
+  color: var(--paper); padding: 10px; border-radius: 3px; font-size: 15px;
+}
+.pl-player-search-results {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 20;
+  background: var(--card-bg); border: 1px solid var(--concrete); border-radius: 4px;
+  max-height: 180px; overflow-y: auto;
+}
+.pl-player-search-item {
+  display: flex; justify-content: space-between; align-items: center; width: 100%;
+  background: none; border: none; color: var(--paper); text-align: left;
+  padding: 8px 10px; font-size: 13px; cursor: pointer;
+}
+.pl-player-search-item:hover { background: rgba(166,255,0,0.08); }
+.pl-player-search-bairro { font-size: 11px; color: var(--paper-dim); }
+
+.pl-selected-players { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pl-selected-player-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.4); border-radius: 12px;
+  padding: 3px 4px 3px 10px; font-size: 12px; color: var(--paper);
+}
+.pl-selected-player-chip button {
+  background: none; border: none; color: var(--paper-dim); cursor: pointer;
+  font-size: 15px; line-height: 1; padding: 0 4px;
+}
+.pl-selected-player-chip button:hover { color: var(--tag-red); }
 .pl-inapp-banner button:hover { opacity: 1; }
