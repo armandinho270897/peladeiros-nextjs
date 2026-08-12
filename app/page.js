@@ -203,11 +203,11 @@ export default function Home() {
       ) : (
         <>
           {hoje.length > 0 && <>
-            <div style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontFamily: 'var(--font-display)', color: 'var(--neon)', textTransform: 'uppercase' }}>Rolando hoje</div>
+            <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontFamily: 'var(--font-display)', color: 'var(--neon)', textTransform: 'uppercase' }}>Rolando hoje</div>
             <div className="pl-list">{hoje.map(renderCard)}</div>
           </>}
           {proximas.length > 0 && <>
-            <div style={{ maxWidth: 640, margin: '22px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Próximas peladas</div>
+            <div className="pl-section-title" style={{ maxWidth: 640, margin: '22px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Próximas peladas</div>
             <div className="pl-list">{proximas.map(renderCard)}</div>
           </>}
         </>
