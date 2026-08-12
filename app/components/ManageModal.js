@@ -118,7 +118,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
 
         {pendentes.length > 0 && (
           <div className="pl-pending-section">
-            <div className="pl-pending-title">Solicitações pendentes</div>
+            <div className="pl-pending-title pl-section-title">Solicitações pendentes</div>
             {pendentes.map((p) => (
               <div key={p.id} className="pl-pending-row">
                 <Avatar nome={p.nome} size={30} />

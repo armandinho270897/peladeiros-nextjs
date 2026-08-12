@@ -23,14 +23,46 @@ body {
   font-family: var(--font-body);
 }
 
-/* Contorno neon fixo ao redor de toda a tela — identidade visual, único e fixo */
+/* Textura de ruído/concreto no fundo preto — sutil, não compete com o conteúdo */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Contorno neon fixo ao redor de toda a tela — identidade visual, único e fixo, com glow real */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   border: 3px solid var(--neon);
+  box-shadow: inset 0 0 18px rgba(166,255,0,0.25), 0 0 14px rgba(166,255,0,0.3);
   pointer-events: none;
   z-index: 9998;
+}
+
+/* Divisória "rasgada" sob títulos de seção — zigue-zague em vez de linha reta */
+.pl-section-title {
+  position: relative;
+  padding-bottom: 10px;
+}
+.pl-section-title::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 6px;
+  background: var(--concrete);
+  opacity: 0.5;
+  clip-path: polygon(
+    0% 0%, 4% 100%, 9% 20%, 14% 100%, 19% 10%, 24% 100%, 29% 15%, 34% 100%,
+    39% 5%, 44% 100%, 49% 20%, 54% 100%, 59% 10%, 64% 100%, 69% 15%, 74% 100%,
+    79% 5%, 84% 100%, 89% 20%, 94% 100%, 100% 0%, 100% 100%, 0% 100%
+  );
 }
 
 .pl-header {
@@ -84,7 +116,7 @@ body::after {
 .pl-info .meta { font-size: 13px; color: var(--paper-dim); margin: 2px 0; }
 .pl-bairro-tag { font-family: var(--font-tag); font-size: 13px; color: var(--paper); background: var(--concrete); padding: 1px 8px; border-radius: 2px; }
 
-.pl-flip { font-family: var(--font-display); font-size: 28px; background: var(--ink); color: var(--neon); min-width: 44px; text-align: center; padding: 3px 6px; border-radius: 3px; border: 1.5px solid var(--neon); }
+.pl-flip { font-family: var(--font-display); font-size: 28px; background: var(--ink); color: var(--neon); min-width: 44px; text-align: center; padding: 3px 6px; border-radius: 3px; border: 1.5px solid var(--neon); box-shadow: 0 0 10px rgba(166,255,0,0.35); }
 .pl-flip.lotado { color: var(--tag-red); border-color: var(--tag-red); }
 
 /* Pulso no contador de vagas ao confirmar */
@@ -129,7 +161,8 @@ body::after {
   margin: 4px 6px 4px 0;
   cursor: pointer;
   overflow: visible;
-  transition: transform 150ms ease, opacity 150ms ease;
+  box-shadow: 0 0 14px rgba(166,255,0,0.3);
+  transition: transform 150ms ease, opacity 150ms ease, box-shadow 150ms ease;
 }
 .pl-ticket:active { transform: scale(0.96); }
 .pl-ticket:disabled { opacity: 0.6; cursor: default; transform: none; }
