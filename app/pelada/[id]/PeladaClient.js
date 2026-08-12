@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { aprovadosDe, shareUrl } from '@/lib/gameUtils';
+import { useJustLotou } from '@/lib/useJustLotou';
 import { useAuth } from '../../components/AuthProvider';
 import { useToast } from '../../components/ToastProvider';
 import GameCard from '../../components/GameCard';
@@ -20,6 +21,7 @@ export default function PeladaClient({ id }) {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [modal, setModal] = useState(null);
+  const justLotaram = useJustLotou(game, loading);
 
   const loadGame = useCallback(async () => {
     setLoading(true);
@@ -86,6 +88,7 @@ export default function PeladaClient({ id }) {
           onConfirm={handleConfirmClick}
           onShare={shareGame}
           onCancelPresenca={(confirmacaoId, g) => setModal({ type: 'cancelar', confirmacaoId, game: g })}
+          justLotou={!!justLotaram[game?.id]}
         />
       </div>
 
