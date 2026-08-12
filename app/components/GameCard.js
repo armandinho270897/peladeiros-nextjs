@@ -1,9 +1,10 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { fmtDate, aprovadosDe, esperaDe, pendentesDe } from '@/lib/gameUtils';
+import { fmtDate, aprovadosDe, esperaDe, pendentesDe, todayISO } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
+import Confetti from './Confetti';
 
 function ConfirmadoAvatar({ nome, notaMedia, bench }) {
   return (
@@ -26,7 +27,7 @@ function ConfirmadoAvatar({ nome, notaMedia, bench }) {
   );
 }
 
-export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca }) {
+export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, justLotou }) {
   const g = game;
   const d = fmtDate(g.data);
   const confirmados = aprovadosDe(g);
@@ -44,14 +45,33 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
   useEffect(() => {
     if (prevRestantes.current !== restantes) {
       setPulse(true);
-      const t = setTimeout(() => setPulse(false), 350);
       prevRestantes.current = restantes;
-      return () => clearTimeout(t);
+      const t1 = setTimeout(() => setPulse(false), 350);
+      return () => clearTimeout(t1);
     }
   }, [restantes]);
 
+  const ehHoje = g.data === todayISO();
+  const [agora, setAgora] = useState(() => Date.now());
+  useEffect(() => {
+    if (!ehHoje) return;
+    const id = setInterval(() => setAgora(Date.now()), 60000);
+    return () => clearInterval(id);
+  }, [ehHoje]);
+
+  const contagem = (() => {
+    if (!ehHoje) return null;
+    const inicio = new Date(`${g.data}T${g.horario}`).getTime();
+    const diff = inicio - agora;
+    if (diff <= 0) return 'Rolando agora';
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return h > 0 ? `Começa em ${h}h${String(m).padStart(2, '0')}min` : `Começa em ${m}min`;
+  })();
+
   return (
     <div className="pl-card">
+      {justLotou && <Confetti />}
       {lotado && <div className="pl-stamp">Lotado</div>}
       {podeEditar && (
         <button className="pl-edit-link" onClick={() => onEdit(g)}>
@@ -62,7 +82,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
       <div className="pl-date"><div className="dow">{d.dow}</div><div className="dom">{d.dom}</div></div>
       <div className="pl-info">
         <h3>{g.local}</h3>
-        <p className="meta">{g.horario}</p>
+        <p className="meta">{contagem || g.horario}</p>
         <span className="pl-bairro-tag">{g.bairro}</span>
         <p className="meta"><CaptainIcon /> Capitão: <b>{g.capitao}</b></p>
         {confirmados.length > 0 && (

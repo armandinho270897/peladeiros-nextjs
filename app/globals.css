@@ -360,6 +360,19 @@ body::after {
 .pl-field-zone-empty { font-size: 10px; text-transform: uppercase; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; }
 .pl-field-reservas { display: flex; align-items: center; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 .pl-field-reservas-label { font-size: 11px; color: var(--paper-dim); text-transform: uppercase; margin-right: 4px; }
+
+/* Confete ao lotar — CSS puro, sem lib nova */
+.pl-confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 5; border-radius: inherit; }
+.pl-confetti-piece {
+  position: absolute; top: -10px; width: 6px; height: 10px;
+  animation-name: pl-confetti-fall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+@keyframes pl-confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(220px) rotate(360deg); opacity: 0; }
+}
 .pl-pending-actions { display: flex; align-items: center; gap: 6px; }
 .pl-pending-actions .pl-btn-secondary { flex: none; padding: 4px 6px 8px; font-size: 12px; }
 .pl-pending-actions .pl-ticket { margin: 0; }

@@ -6,6 +6,7 @@ import { useGames } from '@/lib/useGames';
 import { useArenas } from '@/lib/useArenas';
 import { todayISO, aprovadosDe, shareUrl, haversineKm } from '@/lib/gameUtils';
 import { getRadiusPref, saveRadiusPref } from '@/lib/radiusPref';
+import { useJustLotou } from '@/lib/useJustLotou';
 import { useAuth } from './components/AuthProvider';
 import { useToast } from './components/ToastProvider';
 import GameCard from './components/GameCard';
@@ -25,6 +26,7 @@ export default function Home() {
   const { showToast } = useToast();
   const { games, loading, loadGames } = useGames();
   const { arenas, loadArenas } = useArenas();
+  const justLotaram = useJustLotou(games, loading);
   const [modal, setModal] = useState(null); // 'new' | 'new-arena' | {type:'confirm', game} | {type:'manage', game}
   const [viewMode, setViewMode] = useState('lista'); // 'lista' | 'mapa'
   const [bairroFiltro, setBairroFiltro] = useState('');
@@ -126,6 +128,7 @@ export default function Home() {
         onConfirm={(game) => setModal({ type: 'confirm', game })}
         onShare={shareGame}
         onCancelPresenca={(confirmacaoId, game) => setModal({ type: 'cancelar', confirmacaoId, game })}
+        justLotou={!!justLotaram[g.id]}
       />
     );
   }
