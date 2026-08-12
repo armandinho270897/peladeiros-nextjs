@@ -104,6 +104,15 @@ export default function ManageModal({ game, onClose, onSaved }) {
   const pendentes = pendentesDe(gameData);
   const aguardandoConfirmacao = aguardandoConfirmacaoDe(gameData);
 
+  function prazoRestante(prazoConfirmacao) {
+    if (!prazoConfirmacao) return null;
+    const diff = new Date(prazoConfirmacao).getTime() - Date.now();
+    if (diff <= 0) return 'prazo vencendo';
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return h > 0 ? `expira em ${h}h${String(m).padStart(2, '0')}min` : `expira em ${m}min`;
+  }
+
   return (
     <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="pl-modal">
@@ -128,7 +137,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
                   <div className="pl-pending-meta">
                     {p.bairro && <span>{p.bairro}</span>}
                     {p.posicao && <span>{POSICAO_LABEL[p.posicao] || p.posicao}</span>}
-                    {p.nota_media != null && <span>★{p.nota_media.toFixed(1)}</span>}
+                    {p.moral != null && <span>★{p.moral.toFixed(1)} moral</span>}
                     <span>{p.peladas_jogadas} pelada{p.peladas_jogadas === 1 ? '' : 's'} jogada{p.peladas_jogadas === 1 ? '' : 's'}</span>
                   </div>
                 </div>
@@ -152,6 +161,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
                   <div className="pl-pending-meta">
                     {p.bairro && <span>{p.bairro}</span>}
                     {p.posicao && <span>{POSICAO_LABEL[p.posicao] || p.posicao}</span>}
+                    {prazoRestante(p.prazo_confirmacao) && <span>{prazoRestante(p.prazo_confirmacao)}</span>}
                   </div>
                 </div>
               </div>
