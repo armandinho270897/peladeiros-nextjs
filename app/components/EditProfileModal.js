@@ -21,6 +21,7 @@ export default function EditProfileModal({ onClose, onSaved }) {
         nome: f.nome.value.trim(),
         whatsapp: f.whatsapp.value.trim(),
         bairro: f.bairro.value.trim() || null,
+        posicao: f.posicao.value || null,
       })
       .eq('id', user.id);
     setLoading(false);
@@ -37,6 +38,17 @@ export default function EditProfileModal({ onClose, onSaved }) {
           <div className="pl-field"><label>Nome</label><input name="nome" defaultValue={profile?.nome} required /></div>
           <div className="pl-field"><label>WhatsApp</label><input name="whatsapp" defaultValue={profile?.whatsapp} required /></div>
           <div className="pl-field"><label>Bairro (opcional)</label><input name="bairro" defaultValue={profile?.bairro || ''} /></div>
+          <div className="pl-field">
+            <label>Posição (opcional)</label>
+            <select className="pl-select" name="posicao" defaultValue={profile?.posicao || ''} style={{ width: '100%' }}>
+              <option value="">Não informar</option>
+              <option value="goleiro">Goleiro</option>
+              <option value="zagueiro">Zagueiro</option>
+              <option value="meio">Meio</option>
+              <option value="atacante">Atacante</option>
+              <option value="qualquer">Qualquer posição</option>
+            </select>
+          </div>
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
             <button type="button" className="pl-btn-secondary" onClick={onClose}>Cancelar</button>

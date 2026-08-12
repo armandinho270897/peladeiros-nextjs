@@ -23,6 +23,16 @@ body {
   font-family: var(--font-body);
 }
 
+/* Contorno neon fixo ao redor de toda a tela — identidade visual, único e fixo */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  border: 3px solid var(--neon);
+  pointer-events: none;
+  z-index: 9998;
+}
+
 .pl-header {
   padding: 26px 20px 34px;
   border-bottom: 3px solid var(--concrete);
