@@ -18,6 +18,7 @@ import CancelPresencaModal from './components/CancelPresencaModal';
 import NotificationBell from './components/NotificationBell';
 import TicketButton from './components/TicketButton';
 import EmptyFieldIcon from './components/EmptyFieldIcon';
+import HeaderWatermark from './components/HeaderWatermark';
 
 const MapViewPins = dynamic(() => import('./components/MapViewPins'), { ssr: false });
 
@@ -136,6 +137,7 @@ export default function Home() {
   return (
     <div>
       <div className="pl-header">
+        <HeaderWatermark />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
           <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
           {profile && (

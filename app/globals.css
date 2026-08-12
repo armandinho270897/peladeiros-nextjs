@@ -65,10 +65,28 @@ body::after {
   );
 }
 
+/* Fade-in entre telas — aplicado pelo app/template.js, que remonta a cada navegação */
+@keyframes pl-page-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.pl-page-fade { animation: pl-page-fade-in 280ms ease; }
+
 .pl-header {
+  position: relative;
   padding: 26px 20px 34px;
   border-bottom: 3px solid var(--concrete);
+  overflow: hidden;
 }
+.pl-header-watermark {
+  position: absolute;
+  top: -20px;
+  right: -30px;
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: 0;
+}
+.pl-header > *:not(.pl-header-watermark) { position: relative; z-index: 1; }
 .pl-brand { display: flex; align-items: center; gap: 12px; }
 .pl-brand-text { font-family: var(--font-display); font-size: 30px; text-transform: uppercase; }
 .pl-brand-text span { color: var(--neon); }
@@ -89,7 +107,7 @@ body::after {
 .pl-tab.active { background: var(--neon); color: var(--ink); border-color: var(--neon); }
 
 .pl-toolbar { display: flex; gap: 10px; max-width: 640px; margin: 12px auto 0; padding: 0 16px; align-items: center; flex-wrap: wrap; }
-.pl-select { background: var(--card-bg); border: 1px solid rgba(110,113,120,0.4); color: var(--paper); padding: 8px 10px; border-radius: 3px; font-size: 13px; }
+.pl-select { background: var(--card-bg); border: 1.5px solid rgba(110,113,120,0.5); color: var(--paper); padding: 8px 10px; border-radius: 3px; font-size: 13px; transition: border-color 150ms ease, box-shadow 150ms ease; }
 .pl-toggle-map { background: transparent; border: 1.5px solid var(--concrete); color: var(--neon); padding: 8px 12px; border-radius: 3px; cursor: pointer; font-size: 13px; margin-left: auto; }
 
 .pl-list { padding: 14px 16px 0; max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
@@ -261,7 +279,24 @@ body::after {
 .pl-modal h3 { font-family: var(--font-display); color: var(--paper); text-transform: uppercase; }
 .pl-field { margin-bottom: 12px; }
 .pl-field label { display: block; font-size: 11px; text-transform: uppercase; color: var(--paper-dim); margin-bottom: 5px; }
-.pl-field input { width: 100%; background: var(--ink); border: 1px solid rgba(110,113,120,0.4); color: var(--paper); padding: 10px; border-radius: 3px; font-size: 15px; }
+.pl-field input, .pl-field select, .pl-field textarea {
+  width: 100%;
+  background: var(--ink);
+  border: 1.5px solid rgba(110,113,120,0.5);
+  color: var(--paper);
+  padding: 10px;
+  border-radius: 3px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.pl-field textarea { resize: vertical; min-height: 70px; }
+.pl-field input:focus, .pl-field select:focus, .pl-field textarea:focus,
+.pl-select:focus {
+  outline: none;
+  border-color: var(--neon);
+  box-shadow: 0 0 0 1px var(--neon), 0 0 10px rgba(166,255,0,0.25);
+}
 .pl-modal-actions { display: flex; gap: 10px; margin-top: 16px; align-items: stretch; }
 .pl-error { color: var(--tag-red); font-size: 12px; }
 
