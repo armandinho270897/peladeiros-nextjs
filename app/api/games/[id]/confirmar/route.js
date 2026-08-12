@@ -34,11 +34,11 @@ export async function POST(request, { params }) {
     .maybeSingle();
 
   if (existente) {
-    if (existente.status === 'rejeitado') {
-      // solicitação rejeitada não é banimento — deixa a pessoa pedir de novo
+    if (existente.status === 'rejeitado' || existente.status === 'cancelado') {
+      // rejeitado/cancelado não é banimento — deixa a pessoa pedir de novo
       const { data: revivida, error: reviveError } = await supabase
         .from('confirmacoes')
-        .update({ status: 'pendente' })
+        .update({ status: 'pendente', cancelado_em: null })
         .eq('id', existente.id)
         .select()
         .single();

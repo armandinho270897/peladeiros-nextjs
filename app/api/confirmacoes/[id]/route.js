@@ -30,7 +30,9 @@ export async function DELETE(request, { params }) {
   const autorizado = await authorizeCancel(confirmacao, codigo);
   if (!autorizado) return NextResponse.json({ error: 'Você não pode cancelar essa presença.' }, { status: 403 });
 
-  await supabase.from('confirmacoes').delete().eq('id', id);
+  // Mantém a linha (status 'cancelado') em vez de apagar — sem histórico
+  // não dá pra calcular selo do capitão nem Moral depois.
+  await supabase.from('confirmacoes').update({ status: 'cancelado', cancelado_em: new Date().toISOString() }).eq('id', id);
 
   if (confirmacao.status === 'aprovado' || confirmacao.status === 'aguardando_confirmacao') {
     await promoverEsperaComConfirmacao(confirmacao.game_id, 1);

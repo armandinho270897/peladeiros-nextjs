@@ -6,11 +6,11 @@ import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
 import Confetti from './Confetti';
 
-function ConfirmadoAvatar({ nome, notaMedia, bench }) {
+function ConfirmadoAvatar({ nome, moral, bench }) {
   return (
     <div style={{ position: 'relative' }} className={bench ? 'pl-bench-avatar' : ''}>
       <Avatar nome={nome} size={26} />
-      {notaMedia != null && (
+      {moral != null && (
         <div
           style={{
             position: 'absolute', bottom: -4, right: -4,
@@ -20,7 +20,7 @@ function ConfirmadoAvatar({ nome, notaMedia, bench }) {
             border: '1.5px solid var(--card-bg)',
           }}
         >
-          ★{notaMedia.toFixed(1)}
+          ★{moral.toFixed(1)}
         </div>
       )}
     </div>
@@ -70,6 +70,24 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
     return h > 0 ? `Começa em ${h}h${String(m).padStart(2, '0')}min` : `Começa em ${m}min`;
   })();
 
+  // Contagem regressiva do prazo pra confirmar a vaga — dá pro jogador uma
+  // noção real de urgência, em vez de só o botão parado.
+  const [agoraPrazo, setAgoraPrazo] = useState(() => Date.now());
+  useEffect(() => {
+    if (!minhaVagaAguardandoConfirmacao) return;
+    const id = setInterval(() => setAgoraPrazo(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, [minhaVagaAguardandoConfirmacao]);
+
+  const contagemPrazo = (() => {
+    if (!minhaVagaAguardandoConfirmacao || !minhaConfirmacao?.prazo_confirmacao) return null;
+    const diff = new Date(minhaConfirmacao.prazo_confirmacao).getTime() - agoraPrazo;
+    if (diff <= 0) return 'Prazo vencendo...';
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return h > 0 ? `Confirma em até ${h}h${String(m).padStart(2, '0')}min` : `Confirma em até ${m}min`;
+  })();
+
   return (
     <div className="pl-card">
       {justLotou && <Confetti />}
@@ -89,7 +107,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         {confirmados.length > 0 && (
           <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
             {confirmados.slice(0, 6).map((c) => (
-              <ConfirmadoAvatar key={c.id} nome={c.nome} notaMedia={c.nota_media} />
+              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} />
             ))}
             {confirmados.length > 6 && (
               <div style={{ fontSize: 11, color: 'var(--paper-dim)', alignSelf: 'center' }}>+{confirmados.length - 6}</div>
@@ -100,7 +118,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
           <div className="pl-bench">
             <span className="pl-bench-label">Banco:</span>
             {espera.slice(0, 6).map((c) => (
-              <ConfirmadoAvatar key={c.id} nome={c.nome} notaMedia={c.nota_media} bench />
+              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} bench />
             ))}
             {espera.length > 6 && <span style={{ fontSize: 11, color: 'var(--concrete)' }}>+{espera.length - 6}</span>}
           </div>
@@ -114,6 +132,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         ) : minhaVagaAguardandoConfirmacao ? (
           <>
             <p className="pl-aguardando">Aprovado — falta você confirmar</p>
+            {contagemPrazo && <p className="pl-prazo-confirmacao">{contagemPrazo}</p>}
             <TicketButton compact onClick={() => onConfirmarVaga(minhaConfirmacao.id)}>
               Confirmar minha vaga
             </TicketButton>
