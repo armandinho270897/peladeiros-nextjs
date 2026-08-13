@@ -36,7 +36,7 @@ export async function POST(request) {
   if (!profile) return NextResponse.json({ error: 'Complete seu perfil antes de criar uma pelada.' }, { status: 400 });
 
   const body = await request.json();
-  const { local, bairro, data, horario, vagasTotais, latitude, longitude, arenaId, jogadoresIniciais } = body;
+  const { local, bairro, data, horario, vagasTotais, latitude, longitude, arenaId, jogadoresIniciais, tipo, nivel, valor, regras } = body;
 
   if (!local || !bairro || !data || !horario || !vagasTotais) {
     return NextResponse.json({ error: 'Dados inválidos. Confere se preencheu tudo.' }, { status: 400 });
@@ -51,6 +51,10 @@ export async function POST(request) {
       latitude: latitude ?? null,
       longitude: longitude ?? null,
       arena_id: arenaId ?? null,
+      tipo: tipo ?? null,
+      nivel: nivel ?? null,
+      valor: valor ?? null,
+      regras: regras ?? null,
     })
     .select()
     .single();

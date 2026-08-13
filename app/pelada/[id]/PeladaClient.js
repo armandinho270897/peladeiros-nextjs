@@ -101,6 +101,20 @@ export default function PeladaClient({ id }) {
         />
       </div>
 
+      {(game.tipo || game.nivel || game.valor || game.regras) && (
+        <div className="pl-list" style={{ paddingTop: 0 }}>
+          <div className="pl-card" style={{ display: 'block' }}>
+            <div className="pl-pending-title pl-section-title">Detalhes</div>
+            <div style={{ fontSize: 13, color: 'var(--paper-dim)', lineHeight: 1.7 }}>
+              {game.tipo && <div>Tipo: {game.tipo}</div>}
+              {game.nivel && <div>Nível: {game.nivel}</div>}
+              {game.valor != null && <div>Valor: R$ {Number(game.valor).toFixed(2)} por pessoa</div>}
+              {game.regras && <div>Regras: {game.regras}</div>}
+            </div>
+          </div>
+        </div>
+      )}
+
       <EscalacaoField game={game} />
 
       {modal?.type === 'confirm' && (
