@@ -5,18 +5,59 @@ import { useArenas } from '@/lib/useArenas';
 import { useAuth } from './AuthProvider';
 import TicketButton from './TicketButton';
 import PlayerSearch from './PlayerSearch';
+import GameCard from './GameCard';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
+
+const STEPS = ['Local', 'Quando', 'Detalhes', 'Quem já vai', 'Revisão'];
+const DIAS_SEMANA = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+
+function toISODate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function addDays(base, days) {
+  const d = new Date(base);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+function nextWeekday(base, targetDow) {
+  const d = new Date(base);
+  const diff = (targetDow - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+  return d;
+}
+
+function WizardProgress({ current }) {
+  return (
+    <div className="pl-wizard-progress">
+      {STEPS.map((label, i) => (
+        <div key={label} className={`pl-wizard-step ${i === current ? 'active' : ''} ${i < current ? 'done' : ''}`}>
+          <div className="pl-wizard-dot">{i < current ? '✓' : i + 1}</div>
+          <span className="pl-wizard-label">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function NewGameModal({ onCancel, onCreated }) {
   const { profile } = useAuth();
   const { arenas } = useArenas();
+  const [step, setStep] = useState(0);
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
   const [coords, setCoords] = useState({ lat: null, lng: null });
   const [arenaId, setArenaId] = useState('');
   const [local, setLocal] = useState('');
   const [bairro, setBairro] = useState('');
+  const [data, setData] = useState('');
+  const [horario, setHorario] = useState('');
+  const [tipo, setTipo] = useState('');
+  const [nivel, setNivel] = useState('');
   const [vagasTotais, setVagasTotais] = useState('');
+  const [valor, setValor] = useState('');
+  const [regras, setRegras] = useState('');
   const [jogadores, setJogadores] = useState([]);
 
   // convidados sem conta têm id: null — usa uma key própria por entrada pra
@@ -26,7 +67,6 @@ export default function NewGameModal({ onCancel, onCreated }) {
     const key = p.id || `convidado-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     setJogadores((prev) => (p.id && prev.some((j) => j.id === p.id) ? prev : [...prev, { ...p, key }]));
   }
-
   function removeJogador(key) {
     setJogadores((prev) => prev.filter((j) => j.key !== key));
   }
@@ -41,93 +81,206 @@ export default function NewGameModal({ onCancel, onCreated }) {
     setCoords({ lat: arena.latitude != null ? Number(arena.latitude) : null, lng: arena.longitude != null ? Number(arena.longitude) : null });
   }
 
-  async function handleCreate(e) {
-    e.preventDefault();
-    const f = e.target;
+  const stepErrors = [
+    !local.trim() || !bairro.trim() ? 'Preenche o local e o bairro.' : '',
+    !data || !horario ? 'Escolhe a data e o horário.' : '',
+    !vagasTotais || Number(vagasTotais) < 1 ? 'Quantas vagas a pelada tem?' : '',
+    '',
+    '',
+  ];
+
+  function goNext() {
+    if (stepErrors[step]) { setError(stepErrors[step]); return; }
+    setError('');
+    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+  }
+  function goBack() {
+    setError('');
+    setStep((s) => Math.max(s - 1, 0));
+  }
+
+  async function handlePublish() {
+    setSubmitting(true);
     const body = {
       local: local.trim(),
       bairro: bairro.trim(),
-      data: f.data.value,
-      horario: f.horario.value,
+      data,
+      horario,
       vagasTotais: parseInt(vagasTotais, 10),
       latitude: coords.lat,
       longitude: coords.lng,
       arenaId: arenaId || null,
+      tipo: tipo || null,
+      nivel: nivel || null,
+      valor: valor ? parseFloat(valor) : null,
+      regras: regras.trim() || null,
       jogadoresIniciais: jogadores.map((j) => ({ id: j.id, nome: j.nome })),
     };
     const res = await fetch('/api/games', { method: 'POST', body: JSON.stringify(body) });
     const result = await res.json();
+    setSubmitting(false);
     if (!res.ok) { setError(result.error); return; }
     setError('');
     onCreated(result);
   }
 
+  const previewGame = {
+    id: 'preview',
+    local: local || 'Local da pelada',
+    bairro: bairro || 'Bairro',
+    data: data || toISODate(new Date()),
+    horario: horario || '00:00',
+    vagas_totais: parseInt(vagasTotais, 10) || jogadores.length || 1,
+    capitao: profile?.nome || '',
+    confirmacoes: jogadores.map((j) => ({ id: j.key, user_id: j.id, nome: j.nome, status: 'aprovado' })),
+  };
+
   return (
     <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onCancel()}>
       <div className="pl-modal">
         <h3>Nova pelada</h3>
-        <form onSubmit={handleCreate}>
-          {arenas.length > 0 && (
+        <WizardProgress current={step} />
+
+        {step === 0 && (
+          <div>
+            {arenas.length > 0 && (
+              <div className="pl-field">
+                <label>Vincular a uma arena existente (opcional)</label>
+                <select className="pl-select" style={{ width: '100%' }} value={arenaId} onChange={(e) => handleArenaChange(e.target.value)}>
+                  <option value="">Nenhuma — local livre</option>
+                  {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome} ({a.bairro})</option>)}
+                </select>
+              </div>
+            )}
+            <div className="pl-field"><label>Local</label><input placeholder="Ex: Quadra do Zé" value={local} onChange={(e) => setLocal(e.target.value)} /></div>
+            <div className="pl-field"><label>Bairro</label><input placeholder="Ex: Centro" value={bairro} onChange={(e) => setBairro(e.target.value)} /></div>
             <div className="pl-field">
-              <label>Vincular a uma arena existente (opcional)</label>
-              <select className="pl-select" style={{ width: '100%' }} value={arenaId} onChange={(e) => handleArenaChange(e.target.value)}>
-                <option value="">Nenhuma — local livre</option>
-                {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome} ({a.bairro})</option>)}
-              </select>
+              <label>Local no mapa (opcional) — busque o endereço ou arraste o mapa</label>
+              <LocationPickerMap
+                lat={coords.lat}
+                lng={coords.lng}
+                onPick={(lat, lng) => setCoords({ lat, lng })}
+                onAddressResolved={({ local: l, bairro: b }) => {
+                  if (l) setLocal(l);
+                  if (b) setBairro(b);
+                }}
+              />
+              {coords.lat != null && (
+                <div style={{ marginTop: 6, fontSize: 12, color: 'var(--paper-dim)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>📍 {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</span>
+                  <button type="button" className="pl-share-btn" onClick={() => setCoords({ lat: null, lng: null })}>Limpar</button>
+                </div>
+              )}
             </div>
-          )}
-          <div className="pl-field"><label>Local</label><input name="local" placeholder="Ex: Quadra do Zé" value={local} onChange={(e) => setLocal(e.target.value)} /></div>
-          <div className="pl-field"><label>Bairro</label><input name="bairro" placeholder="Ex: Centro" value={bairro} onChange={(e) => setBairro(e.target.value)} /></div>
-          <div className="pl-field"><label>Data</label><input type="date" name="data" /></div>
-          <div className="pl-field"><label>Horário</label><input type="time" name="horario" /></div>
-          <div className="pl-field"><label>Vagas totais</label><input type="number" name="vagas" min="1" max="30" value={vagasTotais} onChange={(e) => setVagasTotais(e.target.value)} /></div>
-          <div className="pl-field">
-            <label>Quem já vai jogar (opcional)</label>
-            <PlayerSearch onSelect={addJogador} excludeIds={jogadores.map((j) => j.id)} />
-            {jogadores.length > 0 && (
-              <div className="pl-selected-players">
-                {jogadores.map((j) => (
-                  <span key={j.key} className="pl-selected-player-chip">
-                    {j.nome}{!j.id && <span style={{ color: 'var(--gold)' }}> (convidado)</span>}
-                    <button type="button" onClick={() => removeJogador(j.key)} aria-label={`Remover ${j.nome}`}>×</button>
-                  </span>
+          </div>
+        )}
+
+        {step === 1 && (
+          <div>
+            <div className="pl-field">
+              <label>Data</label>
+              <div className="pl-date-shortcuts">
+                <button type="button" onClick={() => setData(toISODate(new Date()))}>Hoje</button>
+                <button type="button" onClick={() => setData(toISODate(addDays(new Date(), 1)))}>Amanhã</button>
+                {DIAS_SEMANA.map((label, dow) => (
+                  <button key={label} type="button" onClick={() => setData(toISODate(nextWeekday(new Date(), dow)))}>{label}</button>
                 ))}
               </div>
-            )}
-            {jogadores.length > 0 && vagasTotais && (
-              <p style={{ fontSize: 11, color: 'var(--paper-dim)', marginTop: 4 }}>
-                {jogadores.length} de {vagasTotais} vaga(s) já preenchida(s)
-              </p>
-            )}
+              <input type="date" value={data} onChange={(e) => setData(e.target.value)} style={{ marginTop: 8 }} />
+            </div>
+            <div className="pl-field"><label>Horário</label><input type="time" value={horario} onChange={(e) => setHorario(e.target.value)} /></div>
           </div>
-          <div className="pl-field">
-            <label>Capitão</label>
-            <p style={{ margin: 0, fontSize: 14 }}>{profile?.nome} <span style={{ color: 'var(--paper-dim)', fontSize: 12 }}>(você, logado)</span></p>
+        )}
+
+        {step === 2 && (
+          <div>
+            <div className="pl-field">
+              <label>Tipo de jogo (opcional)</label>
+              <select className="pl-select" style={{ width: '100%' }} value={tipo} onChange={(e) => setTipo(e.target.value)}>
+                <option value="">Não informar</option>
+                <option value="Futebol de campo">Futebol de campo</option>
+                <option value="Society">Society</option>
+                <option value="Futsal">Futsal</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+            <div className="pl-field">
+              <label>Nível (opcional)</label>
+              <select className="pl-select" style={{ width: '100%' }} value={nivel} onChange={(e) => setNivel(e.target.value)}>
+                <option value="">Não informar</option>
+                <option value="Iniciante">Iniciante</option>
+                <option value="Intermediário">Intermediário</option>
+                <option value="Avançado">Avançado</option>
+                <option value="Qualquer nível">Qualquer nível</option>
+              </select>
+            </div>
+            <div className="pl-field"><label>Vagas totais</label><input type="number" min="1" max="30" value={vagasTotais} onChange={(e) => setVagasTotais(e.target.value)} /></div>
+            <div className="pl-field"><label>Valor por pessoa em R$ (opcional)</label><input type="number" min="0" step="0.5" value={valor} onChange={(e) => setValor(e.target.value)} /></div>
+            <div className="pl-field"><label>Regras (opcional)</label><textarea rows={3} value={regras} onChange={(e) => setRegras(e.target.value)} placeholder="Ex: goleiro fixo, times de 5, sem cartão amarelo..." /></div>
           </div>
-          <div className="pl-field">
-            <label>Local no mapa (opcional) — busque o endereço ou arraste o mapa</label>
-            <LocationPickerMap
-              lat={coords.lat}
-              lng={coords.lng}
-              onPick={(lat, lng) => setCoords({ lat, lng })}
-              onAddressResolved={({ local: l, bairro: b }) => {
-                if (l) setLocal(l);
-                if (b) setBairro(b);
-              }}
-            />
-            {coords.lat != null && (
-              <div style={{ marginTop: 6, fontSize: 12, color: 'var(--paper-dim)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>📍 {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</span>
-                <button type="button" className="pl-share-btn" onClick={() => setCoords({ lat: null, lng: null })}>Limpar</button>
+        )}
+
+        {step === 3 && (
+          <div>
+            <div className="pl-field">
+              <label>Quem já vai jogar (opcional)</label>
+              <PlayerSearch onSelect={addJogador} excludeIds={jogadores.map((j) => j.id)} />
+              {jogadores.length > 0 && (
+                <div className="pl-selected-players">
+                  {jogadores.map((j) => (
+                    <span key={j.key} className="pl-selected-player-chip">
+                      {j.nome}{!j.id && <span style={{ color: 'var(--gold)' }}> (convidado)</span>}
+                      <button type="button" onClick={() => removeJogador(j.key)} aria-label={`Remover ${j.nome}`}>×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {jogadores.length > 0 && vagasTotais && (
+                <p style={{ fontSize: 11, color: 'var(--paper-dim)', marginTop: 4 }}>
+                  {jogadores.length} de {vagasTotais} vaga(s) já preenchida(s)
+                </p>
+              )}
+            </div>
+            <div className="pl-field">
+              <label>Capitão</label>
+              <p style={{ margin: 0, fontSize: 14 }}>{profile?.nome} <span style={{ color: 'var(--paper-dim)', fontSize: 12 }}>(você, logado)</span></p>
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div>
+            <p className="pl-hint">Confere como vai ficar antes de publicar:</p>
+            <div style={{ pointerEvents: 'none' }}>
+              <GameCard game={previewGame} currentUserId={null} onEdit={() => {}} onConfirm={() => {}} onShare={() => {}} onCancelPresenca={() => {}} onConfirmarVaga={() => {}} justLotou={false} />
+            </div>
+            {(tipo || nivel || valor || regras) && (
+              <div className="pl-field" style={{ marginTop: 12 }}>
+                <label>Detalhes</label>
+                <div style={{ fontSize: 13, color: 'var(--paper-dim)', lineHeight: 1.6 }}>
+                  {tipo && <div>Tipo: {tipo}</div>}
+                  {nivel && <div>Nível: {nivel}</div>}
+                  {valor && <div>Valor: R$ {Number(valor).toFixed(2)} por pessoa</div>}
+                  {regras && <div>Regras: {regras}</div>}
+                </div>
               </div>
             )}
           </div>
-          {error && <p className="pl-error">{error}</p>}
-          <div className="pl-modal-actions">
+        )}
+
+        {error && <p className="pl-error">{error}</p>}
+        <div className="pl-modal-actions">
+          {step === 0 ? (
             <button type="button" className="pl-btn-secondary" onClick={onCancel}>Cancelar</button>
-            <TicketButton type="submit">Criar</TicketButton>
-          </div>
-        </form>
+          ) : (
+            <button type="button" className="pl-btn-secondary" onClick={goBack}>Voltar</button>
+          )}
+          {step < STEPS.length - 1 ? (
+            <TicketButton onClick={goNext}>Avançar</TicketButton>
+          ) : (
+            <TicketButton onClick={handlePublish} disabled={submitting}>{submitting ? 'Publicando...' : 'Publicar'}</TicketButton>
+          )}
+        </div>
       </div>
     </div>
   );
