@@ -521,6 +521,14 @@ body::before {
 .pl-player-search-item:hover { background: rgba(166,255,0,0.08); }
 .pl-player-search-bairro { font-size: 11px; color: var(--paper-dim); }
 
+/* Picker de local no mapa (pino fixo no centro, mapa se move por baixo) */
+.pl-location-map-wrap { position: relative; margin-top: 8px; }
+.pl-location-center-pin {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%);
+  z-index: 10; pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
 .pl-selected-players { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .pl-selected-player-chip {
   display: inline-flex; align-items: center; gap: 4px;

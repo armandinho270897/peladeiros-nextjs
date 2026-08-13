@@ -101,8 +101,16 @@ export default function NewGameModal({ onCancel, onCreated }) {
             <p style={{ margin: 0, fontSize: 14 }}>{profile?.nome} <span style={{ color: 'var(--paper-dim)', fontSize: 12 }}>(você, logado)</span></p>
           </div>
           <div className="pl-field">
-            <label>Local no mapa (opcional) — toque no mapa para marcar</label>
-            <LocationPickerMap lat={coords.lat} lng={coords.lng} onPick={(lat, lng) => setCoords({ lat, lng })} />
+            <label>Local no mapa (opcional) — busque o endereço ou arraste o mapa</label>
+            <LocationPickerMap
+              lat={coords.lat}
+              lng={coords.lng}
+              onPick={(lat, lng) => setCoords({ lat, lng })}
+              onAddressResolved={({ local: l, bairro: b }) => {
+                if (l) setLocal(l);
+                if (b) setBairro(b);
+              }}
+            />
             {coords.lat != null && (
               <div style={{ marginTop: 6, fontSize: 12, color: 'var(--paper-dim)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>📍 {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</span>
