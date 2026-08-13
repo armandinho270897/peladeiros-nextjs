@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { todayISO, LIMITE_EM_CIMA_DA_HORA_MS } from '@/lib/gameUtils';
+import { notaMediaPonderada } from '@/lib/moral';
 
 // Peladas em que o mesmo capitão comandou sem cancelamento de última hora
 // (ninguém que tinha aprovado cancelou a menos de 3h do início) — critério
@@ -43,14 +44,12 @@ export async function GET() {
   const [{ count: peladasConfirmadas }, { count: peladasComoCapitao }, { data: avaliacoesRecebidas }, { data: minhasConfirmacoes }] = await Promise.all([
     supabase.from('confirmacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'aprovado'),
     supabase.from('games').select('id', { count: 'exact', head: true }).eq('owner_id', user.id),
-    supabase.from('avaliacoes').select('nota').eq('avaliado_id', user.id),
+    supabase.from('avaliacoes').select('nota, tipo').eq('avaliado_id', user.id),
     supabase.from('confirmacoes').select('game_id, presente').eq('user_id', user.id).eq('status', 'aprovado'),
   ]);
 
   const totalAvaliacoes = (avaliacoesRecebidas || []).length;
-  const notaMedia = totalAvaliacoes > 0
-    ? avaliacoesRecebidas.reduce((s, a) => s + a.nota, 0) / totalAvaliacoes
-    : null;
+  const notaMedia = notaMediaPonderada(avaliacoesRecebidas);
 
   const presencaPorGameId = {};
   for (const c of minhasConfirmacoes || []) presencaPorGameId[c.game_id] = c.presente;
@@ -60,7 +59,7 @@ export async function GET() {
   if (gameIds.length > 0) {
     const { data: games } = await supabase
       .from('games')
-      .select('id, local, bairro, data, horario, capitao, encerrada_em')
+      .select('id, local, bairro, data, horario, capitao, encerrada_em, owner_id')
       .in('id', gameIds)
       .lt('data', today)
       .order('data', { ascending: false })
