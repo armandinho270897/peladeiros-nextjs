@@ -57,7 +57,7 @@ export default function PerfilPage() {
       </div>
 
       <div className="pl-perfil-header">
-        <Avatar nome={profile.nome} size={80} ring />
+        <Avatar nome={profile.nome} size={80} ring fotoUrl={profile.foto_url} />
         <div className="pl-perfil-info">
           <h2>{profile.nome}</h2>
           <p>{profile.bairro || 'Bairro não informado'}</p>
