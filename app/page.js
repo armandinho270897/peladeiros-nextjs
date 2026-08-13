@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useGames } from '@/lib/useGames';
 import { useArenas } from '@/lib/useArenas';
-import { todayISO, aprovadosDe, shareUrl, haversineKm } from '@/lib/gameUtils';
+import { todayISO, aprovadosDe, shareUrl, haversineKm, fmtDate } from '@/lib/gameUtils';
 import { getRadiusPref, saveRadiusPref } from '@/lib/radiusPref';
 import { useJustLotou } from '@/lib/useJustLotou';
 import { useAuth } from './components/AuthProvider';
@@ -22,8 +22,33 @@ import HeaderWatermark from './components/HeaderWatermark';
 
 const MapViewPins = dynamic(() => import('./components/MapViewPins'), { ssr: false });
 
+function amanhaISO(hojeISO) {
+  const [y, m, d] = hojeISO.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + 1);
+  return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+}
+
+function NextGameHero({ game }) {
+  if (!game) return null;
+  const d = fmtDate(game.data);
+  return (
+    <div className="pl-next-game-wrap">
+      <div className="pl-next-game-title">🟢 Sua próxima pelada</div>
+      <div className="pl-next-game-card">
+        <h3>{game.local}</h3>
+        <p className="pl-next-game-meta">{d.dow} {d.dom} · {game.horario} · {game.bairro}</p>
+        <p className="pl-next-game-status">✓ Presença confirmada</p>
+        <Link href={`/pelada/${game.id}`} className="pl-ticket pl-ticket-compact" style={{ textDecoration: 'none' }}>
+          <span className="pl-ticket-label">Ver detalhes</span>
+          <span className="pl-ticket-stub" aria-hidden="true">⚽</span>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile } = useAuth();
   const { showToast } = useToast();
   const { games, loading, loadGames } = useGames();
   const { arenas, loadArenas } = useArenas();
@@ -36,10 +61,24 @@ export default function Home() {
   const [raioKm, setRaioKm] = useState(10);
   const [minhaLocalizacao, setMinhaLocalizacao] = useState(null);
   const [erroLocalizacao, setErroLocalizacao] = useState('');
+  const [dataChip, setDataChip] = useState(''); // '' | 'hoje' | 'amanha'
+  const [tipoChip, setTipoChip] = useState(''); // '' | 'Futebol de campo' | 'Futsal'
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
 
   useEffect(() => {
     const salvo = getRadiusPref();
     if (salvo) setRaioKm(salvo);
+  }, []);
+
+  // Bottom nav manda pra cá com ?criar=1 ou ?mapa=1 pra disparar ações que
+  // hoje só existem nesta tela (sem inventar rota nova).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('criar') === '1') setModal('new');
+    if (params.get('mapa') === '1') setViewMode('mapa');
+    if (params.has('criar') || params.has('mapa')) {
+      window.history.replaceState(null, '', '/');
+    }
   }, []);
 
   function toggleRaio() {
@@ -60,6 +99,11 @@ export default function Home() {
     const km = Number(e.target.value);
     setRaioKm(km);
     saveRadiusPref(km);
+  }
+
+  function distanciaDe(g) {
+    if (!minhaLocalizacao || g.latitude == null || g.longitude == null) return null;
+    return haversineKm(minhaLocalizacao.lat, minhaLocalizacao.lng, Number(g.latitude), Number(g.longitude));
   }
 
   function shareGame(g) {
@@ -97,6 +141,7 @@ export default function Home() {
   }
 
   const today = todayISO();
+  const amanha = amanhaISO(today);
   const upcoming = useMemo(
     () => games.filter((g) => g.data >= today).sort((a, b) => (a.data + a.horario).localeCompare(b.data + b.horario)),
     [games, today]
@@ -109,10 +154,15 @@ export default function Home() {
 
   const filtradas = useMemo(() => {
     let list = upcoming;
-    if (bairroFiltro) list = list.filter((g) => g.bairro === bairroFiltro);
     if (tab === 'minhas') {
-      list = list.filter((g) => aprovadosDe(g).some((c) => c.user_id === user?.id));
+      // Aba "Minhas peladas" mostra tudo que o usuário confirmou, sem os
+      // chips de filtro (que só fazem sentido navegando "Peladas").
+      return list.filter((g) => aprovadosDe(g).some((c) => c.user_id === user?.id));
     }
+    if (bairroFiltro) list = list.filter((g) => g.bairro === bairroFiltro);
+    if (dataChip === 'hoje') list = list.filter((g) => g.data === today);
+    if (dataChip === 'amanha') list = list.filter((g) => g.data === amanha);
+    if (tipoChip) list = list.filter((g) => g.tipo === tipoChip);
     if (raioAtivo && minhaLocalizacao) {
       list = list.filter(
         (g) =>
@@ -122,10 +172,15 @@ export default function Home() {
       );
     }
     return list;
-  }, [upcoming, bairroFiltro, tab, user, raioAtivo, minhaLocalizacao, raioKm]);
+  }, [upcoming, bairroFiltro, tab, user, dataChip, amanha, today, tipoChip, raioAtivo, minhaLocalizacao, raioKm]);
 
   const hoje = filtradas.filter((g) => g.data === today);
   const proximas = filtradas.filter((g) => g.data !== today);
+
+  const proximaMinhaPelada = tab === 'minhas' ? filtradas[0] : null;
+  const listaMinhasRestante = tab === 'minhas' ? filtradas.slice(1) : filtradas;
+  const hojeMinhas = listaMinhasRestante.filter((g) => g.data === today);
+  const proximasMinhas = listaMinhasRestante.filter((g) => g.data !== today);
 
   function renderCard(g) {
     return (
@@ -139,30 +194,33 @@ export default function Home() {
         onCancelPresenca={(confirmacaoId, game) => setModal({ type: 'cancelar', confirmacaoId, game })}
         onConfirmarVaga={handleConfirmarVaga}
         justLotou={!!justLotaram[g.id]}
+        distanciaKm={distanciaDe(g)}
       />
     );
   }
+
+  const secaoHoje = tab === 'minhas' ? hojeMinhas : hoje;
+  const secaoProximas = tab === 'minhas' ? proximasMinhas : proximas;
 
   return (
     <div>
       <div className="pl-header">
         <HeaderWatermark />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+        <div className="pl-header-row">
           <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
           {profile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--paper-dim)' }}>
+            <div className="pl-header-user">
               <NotificationBell />
-              <Link href="/perfil" style={{ color: 'var(--paper-dim)', textDecoration: 'none' }}>
+              <Link href="/perfil" className="pl-header-user-link">
                 <span style={{ textDecoration: 'underline', textUnderlineOffset: 2 }}>{profile.nome}</span>
               </Link>
-              <button className="pl-share-btn" onClick={signOut}>Sair</button>
             </div>
           )}
         </div>
         <p className="pl-tagline">achou o campo, chamou o povo, bateu bola</p>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
+        <div className="pl-header-actions">
           <TicketButton onClick={() => setModal('new')}>Criar pelada</TicketButton>
-          <TicketButton onClick={() => setModal('new-arena')}>Cadastrar arena</TicketButton>
+          <button className="pl-link-muted" onClick={() => setModal('new-arena')}>Cadastrar arena</button>
         </div>
       </div>
 
@@ -171,29 +229,48 @@ export default function Home() {
         <button className={`pl-tab ${tab === 'minhas' ? 'active' : ''}`} onClick={() => setTab('minhas')}>Minhas peladas</button>
       </div>
 
-      <div className="pl-toolbar">
-        <select className="pl-select" value={bairroFiltro} onChange={(e) => setBairroFiltro(e.target.value)}>
-          <option value="">Todos os bairros</option>
-          {bairros.map((b) => <option key={b} value={b}>{b}</option>)}
-        </select>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button className="pl-toggle-map" onClick={toggleRaio}>
-            {raioAtivo ? `📍 Até ${raioKm}km` : '📍 Perto de mim'}
-          </button>
-          {raioAtivo && (
-            <input
-              type="range" min="1" max="50" value={raioKm}
-              onChange={handleRaioChange}
-              style={{ width: 90 }}
-              aria-label="Raio em quilômetros"
-            />
+      {tab === 'minhas' ? (
+        !loading && <NextGameHero game={proximaMinhaPelada} />
+      ) : (
+        <>
+          <div className="pl-hero-title-row">
+            <h2 className="pl-hero-title">⚽ Peladas perto de você</h2>
+            <span className="pl-hero-count">
+              {filtradas.length} pelada{filtradas.length === 1 ? '' : 's'} encontrada{filtradas.length === 1 ? '' : 's'}
+            </span>
+          </div>
+
+          <div className="pl-chips-row">
+            <button className={`pl-chip ${dataChip === 'hoje' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'hoje' ? '' : 'hoje')}>Hoje</button>
+            <button className={`pl-chip ${dataChip === 'amanha' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'amanha' ? '' : 'amanha')}>Amanhã</button>
+            <button className={`pl-chip ${raioAtivo ? 'active' : ''}`} onClick={toggleRaio}>📍 Perto</button>
+            <button className={`pl-chip ${tipoChip === 'Futebol de campo' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de campo' ? '' : 'Futebol de campo')}>Futebol</button>
+            <button className={`pl-chip ${tipoChip === 'Futsal' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futsal' ? '' : 'Futsal')}>Futsal</button>
+            <button className={`pl-chip pl-chip-filtros ${filtrosAbertos ? 'active' : ''}`} onClick={() => setFiltrosAbertos((v) => !v)}>⚙ Filtros</button>
+          </div>
+          {erroLocalizacao && <div style={{ maxWidth: 640, margin: '4px auto 0', padding: '0 16px', fontSize: 11, color: 'var(--tag-red)' }}>{erroLocalizacao}</div>}
+
+          {filtrosAbertos && (
+            <div className="pl-filters-panel-outer">
+              <div className="pl-filters-panel">
+                <select className="pl-select" value={bairroFiltro} onChange={(e) => setBairroFiltro(e.target.value)}>
+                  <option value="">Todos os bairros</option>
+                  {bairros.map((b) => <option key={b} value={b}>{b}</option>)}
+                </select>
+                {raioAtivo && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--paper-dim)' }}>
+                    Raio: {raioKm}km
+                    <input type="range" min="1" max="50" value={raioKm} onChange={handleRaioChange} style={{ width: 90 }} aria-label="Raio em quilômetros" />
+                  </label>
+                )}
+                <button className="pl-toggle-map" style={{ marginLeft: 0 }} onClick={() => setViewMode(viewMode === 'lista' ? 'mapa' : 'lista')}>
+                  {viewMode === 'lista' ? '🗺️ Ver no mapa' : '📋 Ver lista'}
+                </button>
+              </div>
+            </div>
           )}
-        </div>
-        <button className="pl-toggle-map" onClick={() => setViewMode(viewMode === 'lista' ? 'mapa' : 'lista')}>
-          {viewMode === 'lista' ? '🗺️ Ver no mapa' : '📋 Ver lista'}
-        </button>
-        {erroLocalizacao && <span style={{ fontSize: 11, color: 'var(--tag-red)' }}>{erroLocalizacao}</span>}
-      </div>
+        </>
+      )}
 
       {loading ? (
         <div className="pl-list">
@@ -211,15 +288,15 @@ export default function Home() {
           </h3>
           <p>{tab === 'minhas' ? 'Confirme presença numa pelada pra ela aparecer aqui.' : 'Seja o primeiro a chamar o povo pro campo essa semana.'}</p>
         </div>
-      ) : (
+      ) : (tab === 'minhas' && listaMinhasRestante.length === 0) ? null : (
         <>
-          {hoje.length > 0 && <>
+          {secaoHoje.length > 0 && <>
             <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontFamily: 'var(--font-display)', color: 'var(--neon)', textTransform: 'uppercase' }}>Rolando hoje</div>
-            <div className="pl-list">{hoje.map(renderCard)}</div>
+            <div className="pl-list">{secaoHoje.map(renderCard)}</div>
           </>}
-          {proximas.length > 0 && <>
-            <div className="pl-section-title" style={{ maxWidth: 640, margin: '22px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Próximas peladas</div>
-            <div className="pl-list">{proximas.map(renderCard)}</div>
+          {secaoProximas.length > 0 && <>
+            <div className="pl-section-title" style={{ maxWidth: 640, margin: '22px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>{tab === 'minhas' ? 'Outras peladas confirmadas' : 'Próximas peladas'}</div>
+            <div className="pl-list">{secaoProximas.map(renderCard)}</div>
           </>}
         </>
       )}

@@ -15,7 +15,7 @@ function tempoRelativo(iso) {
   return `há ${d}d`;
 }
 
-export default function NotificationBell() {
+export default function NotificationBell({ variant = 'header' }) {
   const { user } = useAuth();
   const [supabase] = useState(() => createClient());
   const [notificacoes, setNotificacoes] = useState([]);
@@ -60,15 +60,27 @@ export default function NotificationBell() {
 
   const naoLidas = notificacoes.filter((n) => !n.lida).length;
 
+  const isBottomNav = variant === 'bottomnav';
+
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
-      <button className="pl-bell-btn" onClick={toggleOpen} aria-label="Notificações">
-        🔔
-        {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}
-      </button>
+      {isBottomNav ? (
+        <button className="pl-bottom-nav-item" onClick={toggleOpen} aria-label="Notificações">
+          <span className="pl-bottom-nav-icon">
+            🔔
+            {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}
+          </span>
+          Avisos
+        </button>
+      ) : (
+        <button className="pl-bell-btn" onClick={toggleOpen} aria-label="Notificações">
+          🔔
+          {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}
+        </button>
+      )}
 
       {open && (
-        <div className="pl-bell-panel">
+        <div className={`pl-bell-panel ${isBottomNav ? 'upward' : ''}`}>
           <div className="pl-bell-panel-title">Notificações</div>
           {notificacoes.length === 0 ? (
             <p style={{ padding: '8px 4px', fontSize: 13, color: 'var(--paper-dim)' }}>Nada por aqui ainda.</p>
