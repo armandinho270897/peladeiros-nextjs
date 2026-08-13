@@ -27,7 +27,15 @@ function ConfirmadoAvatar({ nome, moral, bench }) {
   );
 }
 
-export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou }) {
+// Status de vagas mais informativo que só o número — cor conforme urgência
+// (verde = tranquilo, dourado = últimas vagas, vermelho = lotada).
+function statusVagas(restantes, lotado) {
+  if (lotado) return { label: '🔴 Lotada', className: 'lotada' };
+  if (restantes <= 3) return { label: `🔥 Últimas ${restantes} vaga${restantes === 1 ? '' : 's'}`, className: 'ultimas' };
+  return { label: `🟢 Aberta · ${restantes} vagas`, className: 'aberta' };
+}
+
+export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou, distanciaKm }) {
   const g = game;
   const d = fmtDate(g.data);
   const confirmados = aprovadosDe(g);
@@ -35,6 +43,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
   const pendentes = pendentesDe(g);
   const restantes = Math.max(0, g.vagas_totais - ocupandoVagaDe(g).length);
   const lotado = restantes === 0;
+  const status = statusVagas(restantes, lotado);
   const podeEditar = !g.owner_id || g.owner_id === currentUserId;
   const minhaConfirmacao = (g.confirmacoes || []).find((c) => c.user_id === currentUserId);
   const aguardandoAprovacao = minhaConfirmacao?.status === 'pendente';
@@ -92,61 +101,85 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
     <div className="pl-card">
       {justLotou && <Confetti />}
       {lotado && <div className="pl-stamp">Lotado</div>}
-      {podeEditar && (
-        <button className="pl-edit-link" onClick={() => onEdit(g)}>
-          Editar
-          {pendentes.length > 0 && <span className="pl-pending-badge">{pendentes.length}</span>}
-        </button>
-      )}
-      <div className="pl-date"><div className="dow">{d.dow}</div><div className="dom">{d.dom}</div></div>
-      <div className="pl-info">
-        <h3>{g.local}</h3>
-        <p className="meta">{contagem || g.horario}</p>
-        <span className="pl-bairro-tag">{g.bairro}</span>
-        <p className="meta"><CaptainIcon /> Capitão: <b>{g.capitao}</b></p>
-        {confirmados.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-            {confirmados.slice(0, 6).map((c) => (
-              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} />
-            ))}
-            {confirmados.length > 6 && (
-              <div style={{ fontSize: 11, color: 'var(--paper-dim)', alignSelf: 'center' }}>+{confirmados.length - 6}</div>
-            )}
+
+      <div className="pl-card-top">
+        <div className="pl-date"><div className="dow">{d.dow}</div><div className="dom">{d.dom}</div></div>
+        <div className="pl-card-heading">
+          <h3>{g.local}</h3>
+          <div>
+            <span className="pl-bairro-tag">{g.bairro}</span>
+            {g.tipo && <span className="pl-tipo-tag">{g.tipo}</span>}
           </div>
-        )}
-        {espera.length > 0 && (
-          <div className="pl-bench">
-            <span className="pl-bench-label">Banco:</span>
-            {espera.slice(0, 6).map((c) => (
-              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} bench />
-            ))}
-            {espera.length > 6 && <span style={{ fontSize: 11, color: 'var(--concrete)' }}>+{espera.length - 6}</span>}
-          </div>
+        </div>
+        <div className="pl-card-top-right">
+          <div className={`pl-status-badge ${status.className} ${pulse ? 'pl-flip-pulse' : ''}`}>{status.label}</div>
+          {podeEditar && (
+            <button className="pl-edit-link-inline" onClick={() => onEdit(g)}>
+              Editar
+              {pendentes.length > 0 && <span className="pl-pending-badge">{pendentes.length}</span>}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="pl-card-subline">
+        <span>{contagem || g.horario}</span>
+        {distanciaKm != null && (
+          <>
+            <span className="dot">·</span>
+            <span className="pl-distancia">📍 {distanciaKm.toFixed(1).replace('.', ',')} km</span>
+          </>
         )}
       </div>
-      <div style={{ textAlign: 'center' }}>
-        <div className={`pl-flip ${lotado ? 'lotado' : ''} ${pulse ? 'pl-flip-pulse' : ''}`}>{lotado ? 'X' : restantes}</div>
-        <div style={{ fontSize: 10, color: 'var(--paper-dim)' }}>{lotado ? 'lotado' : 'vagas'}</div>
-        {aguardandoAprovacao ? (
-          <p className="pl-aguardando">Aguardando aprovação do capitão</p>
-        ) : minhaVagaAguardandoConfirmacao ? (
-          <>
-            <p className="pl-aguardando">Aprovado — falta você confirmar</p>
-            {contagemPrazo && <p className="pl-prazo-confirmacao">{contagemPrazo}</p>}
-            <TicketButton compact onClick={() => onConfirmarVaga(minhaConfirmacao.id)}>
-              Confirmar minha vaga
+
+      <p className="meta" style={{ margin: '2px 0 0' }}><CaptainIcon /> Capitão: {g.capitao}</p>
+
+      {confirmados.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+          {confirmados.slice(0, 6).map((c) => (
+            <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} />
+          ))}
+          {confirmados.length > 6 && (
+            <div style={{ fontSize: 11, color: 'var(--paper-dim)', alignSelf: 'center' }}>+{confirmados.length - 6}</div>
+          )}
+        </div>
+      )}
+      {espera.length > 0 && (
+        <div className="pl-bench">
+          <span className="pl-bench-label">Banco:</span>
+          {espera.slice(0, 6).map((c) => (
+            <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} bench />
+          ))}
+          {espera.length > 6 && <span style={{ fontSize: 11, color: 'var(--concrete)' }}>+{espera.length - 6}</span>}
+        </div>
+      )}
+
+      <div className="pl-card-bottom">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {aguardandoAprovacao ? (
+            <p className="pl-aguardando">Aguardando aprovação do capitão</p>
+          ) : minhaVagaAguardandoConfirmacao ? (
+            <>
+              <p className="pl-aguardando">Aprovado — falta você confirmar</p>
+              {contagemPrazo && <p className="pl-prazo-confirmacao">{contagemPrazo}</p>}
+              <TicketButton compact onClick={() => onConfirmarVaga(minhaConfirmacao.id)}>
+                Confirmar minha vaga
+              </TicketButton>
+            </>
+          ) : minhaPresencaAprovada ? (
+            <div className="pl-inside-wrap">
+              <span className="pl-inside-badge">✓ Você está dentro</span>
+              <button className="pl-link-danger-small" onClick={() => onCancelPresenca(minhaConfirmacao.id, g)}>
+                Cancelar presença
+              </button>
+            </div>
+          ) : (
+            <TicketButton compact onClick={() => onConfirm(g)}>
+              {lotado ? 'Entrar no banco' : 'Confirmar'}
             </TicketButton>
-          </>
-        ) : minhaPresencaAprovada ? (
-          <button className="pl-btn-secondary pl-btn-danger" onClick={() => onCancelPresenca(minhaConfirmacao.id, g)}>
-            Cancelar presença
-          </button>
-        ) : (
-          <TicketButton compact onClick={() => onConfirm(g)}>
-            {lotado ? 'Entrar no banco' : 'Confirmar'}
-          </TicketButton>
-        )}
-        <button className="pl-share-btn" onClick={() => onShare(g)}>Compartilhar</button>
+          )}
+        </div>
+        <button className="pl-icon-btn" onClick={() => onShare(g)} aria-label="Compartilhar">🔗</button>
       </div>
     </div>
   );

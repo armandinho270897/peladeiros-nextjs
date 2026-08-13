@@ -10,6 +10,7 @@ import ConquistasBadges from '../components/ConquistasBadges';
 import TicketButton from '../components/TicketButton';
 import { fmtDate } from '@/lib/gameUtils';
 import { useToast } from '../components/ToastProvider';
+import { useAuth } from '../components/AuthProvider';
 
 export default function PerfilPage() {
   const [data, setData] = useState(null);
@@ -17,6 +18,7 @@ export default function PerfilPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [avaliarGame, setAvaliarGame] = useState(null);
   const { showToast } = useToast();
+  const { signOut } = useAuth();
 
   async function load() {
     setLoading(true);
@@ -61,9 +63,10 @@ export default function PerfilPage() {
         <div className="pl-perfil-info">
           <h2>{profile.nome}</h2>
           <p>{profile.bairro || 'Bairro não informado'}</p>
-          <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
+          <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
             <button className="pl-share-btn" onClick={() => setEditOpen(true)}>Editar perfil</button>
             <Link href="/configuracoes" className="pl-share-btn" style={{ textDecoration: 'none' }}>Notificações</Link>
+            <button className="pl-share-btn" onClick={signOut}>Sair</button>
           </div>
         </div>
       </div>
