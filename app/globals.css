@@ -16,11 +16,21 @@
 
 * { box-sizing: border-box; }
 
+/* Trava o "elástico" de overscroll (puxar além do topo/fim da página) — sem
+   isso, em iOS/alguns Android o conteúdo desliza visualmente pra fora da
+   borda neon (que é fixa e não acompanha o bounce) por uma fração de
+   segundo, deixando o topo aparentemente "sem moldura" enquanto rola. */
+html {
+  background: var(--ink);
+  overscroll-behavior-y: none;
+}
+
 body {
   margin: 0;
   background: var(--ink);
   color: var(--paper);
   font-family: var(--font-body);
+  overscroll-behavior-y: none;
 }
 
 /* Textura de ruído/concreto no fundo preto — sutil, não compete com o conteúdo */
