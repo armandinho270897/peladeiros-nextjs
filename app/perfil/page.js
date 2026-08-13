@@ -81,6 +81,12 @@ export default function PerfilPage() {
           <div className="num">{stats.notaMedia != null ? stats.notaMedia.toFixed(1) : '—'}</div>
           <div className="label">{stats.notaMedia != null ? `Nota média (${stats.totalAvaliacoes})` : 'Ainda sem avaliações'}</div>
         </div>
+        {stats.totalPeladasPassadas > 0 && (
+          <div className="pl-stat">
+            <div className="num">{stats.peladasJogadas}/{stats.totalPeladasPassadas}</div>
+            <div className="label">Compareceu</div>
+          </div>
+        )}
       </div>
 
       <div className="pl-section-title" style={{ maxWidth: 640, margin: '0 auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Conquistas</div>
@@ -105,9 +111,14 @@ export default function PerfilPage() {
                   <p className="meta">{g.horario}</p>
                   <span className="pl-bairro-tag">{g.bairro}</span>
                   <p className="meta"><CaptainIcon /> Capitão: <b>{g.capitao}</b></p>
+                  {g.presente === false && <p className="meta" style={{ color: 'var(--tag-red)' }}>Falta registrada</p>}
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <TicketButton compact onClick={() => setAvaliarGame(g)}>Avaliar jogadores</TicketButton>
+                  {g.encerrada_em ? (
+                    <TicketButton compact onClick={() => setAvaliarGame(g)}>Avaliar jogadores</TicketButton>
+                  ) : (
+                    <p className="pl-aguardando">Aguardando o capitão encerrar</p>
+                  )}
                 </div>
               </div>
             );

@@ -10,8 +10,18 @@ import GameCard from '../../components/GameCard';
 import ConfirmModal from '../../components/ConfirmModal';
 import ManageModal from '../../components/ManageModal';
 import CancelPresencaModal from '../../components/CancelPresencaModal';
+import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
 import EscalacaoField from '../../components/EscalacaoField';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
+
+// Só quem pode editar a pelada (capitão) vê o botão, e só depois que o
+// horário já passou e ela ainda não foi encerrada.
+function podeEncerrar(game, user) {
+  if (!game || game.encerrada_em) return false;
+  const podeEditar = !game.owner_id || game.owner_id === user?.id;
+  if (!podeEditar) return false;
+  return new Date(`${game.data}T${game.horario}`).getTime() <= Date.now();
+}
 
 export default function PeladaClient({ id }) {
   const router = useRouter();
@@ -101,6 +111,14 @@ export default function PeladaClient({ id }) {
         />
       </div>
 
+      {podeEncerrar(game, user) && (
+        <div className="pl-list" style={{ paddingTop: 0 }}>
+          <button type="button" className="pl-btn-secondary" style={{ width: '100%' }} onClick={() => setModal({ type: 'encerrar', game })}>
+            Encerrar partida
+          </button>
+        </div>
+      )}
+
       {(game.tipo || game.nivel || game.valor || game.regras) && (
         <div className="pl-list" style={{ paddingTop: 0 }}>
           <div className="pl-card" style={{ display: 'block' }}>
@@ -131,6 +149,14 @@ export default function PeladaClient({ id }) {
           game={modal.game}
           onClose={() => setModal(null)}
           onCancelled={() => { setModal(null); loadGame(); showToast('Presença cancelada.'); }}
+        />
+      )}
+
+      {modal?.type === 'encerrar' && (
+        <EncerrarPartidaModal
+          game={modal.game}
+          onClose={() => setModal(null)}
+          onEncerrada={() => { setModal(null); loadGame(); showToast('Partida encerrada! Avaliações liberadas.'); }}
         />
       )}
     </div>
