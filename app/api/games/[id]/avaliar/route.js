@@ -38,10 +38,13 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'Nada pra avaliar.' }, { status: 400 });
   }
 
-  const { data: game } = await supabase.from('games').select('data').eq('id', gameId).single();
+  const { data: game } = await supabase.from('games').select('data, encerrada_em').eq('id', gameId).single();
   if (!game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
   if (game.data >= todayISO()) {
     return NextResponse.json({ error: 'Só dá pra avaliar depois que a pelada acontecer.' }, { status: 400 });
+  }
+  if (!game.encerrada_em) {
+    return NextResponse.json({ error: 'O capitão ainda não encerrou essa pelada — avaliações liberam depois disso.' }, { status: 400 });
   }
 
   const { data: aprovados } = await supabase

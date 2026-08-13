@@ -44,7 +44,7 @@ export async function GET() {
     supabase.from('confirmacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'aprovado'),
     supabase.from('games').select('id', { count: 'exact', head: true }).eq('owner_id', user.id),
     supabase.from('avaliacoes').select('nota').eq('avaliado_id', user.id),
-    supabase.from('confirmacoes').select('game_id').eq('user_id', user.id).eq('status', 'aprovado'),
+    supabase.from('confirmacoes').select('game_id, presente').eq('user_id', user.id).eq('status', 'aprovado'),
   ]);
 
   const totalAvaliacoes = (avaliacoesRecebidas || []).length;
@@ -52,20 +52,26 @@ export async function GET() {
     ? avaliacoesRecebidas.reduce((s, a) => s + a.nota, 0) / totalAvaliacoes
     : null;
 
+  const presencaPorGameId = {};
+  for (const c of minhasConfirmacoes || []) presencaPorGameId[c.game_id] = c.presente;
+
   const gameIds = (minhasConfirmacoes || []).map((c) => c.game_id);
   let historico = [];
   if (gameIds.length > 0) {
     const { data: games } = await supabase
       .from('games')
-      .select('id, local, bairro, data, horario, capitao')
+      .select('id, local, bairro, data, horario, capitao, encerrada_em')
       .in('id', gameIds)
       .lt('data', today)
       .order('data', { ascending: false })
       .order('horario', { ascending: false });
-    historico = games || [];
+    // presente=null (pelada ainda não encerrada, sem julgamento do capitão)
+    // conta como presença — mesmo benefício da dúvida de lib/ratings.js
+    historico = (games || []).map((g) => ({ ...g, presente: presencaPorGameId[g.id] ?? null }));
   }
 
-  const peladasJogadas = historico.length;
+  const totalPeladasPassadas = historico.length;
+  const peladasJogadas = historico.filter((g) => g.presente !== false).length;
   const brabo = await peladasBoasComoCapitao(user.id, today);
   const temAvaliacaoCinco = (avaliacoesRecebidas || []).some((a) => a.nota === 5);
 
@@ -79,7 +85,7 @@ export async function GET() {
 
   return NextResponse.json({
     profile,
-    stats: { peladasConfirmadas, peladasComoCapitao, notaMedia, totalAvaliacoes },
+    stats: { peladasConfirmadas, peladasComoCapitao, notaMedia, totalAvaliacoes, peladasJogadas, totalPeladasPassadas },
     historico,
     conquistas,
   });
