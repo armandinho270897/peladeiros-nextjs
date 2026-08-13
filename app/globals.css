@@ -520,6 +520,7 @@ body::before {
 }
 .pl-player-search-item:hover { background: rgba(166,255,0,0.08); }
 .pl-player-search-bairro { font-size: 11px; color: var(--paper-dim); }
+.pl-player-search-guest { color: var(--gold); border-top: 1px solid rgba(110,113,120,0.3); }
 
 /* Picker de local no mapa (pino fixo no centro, mapa se move por baixo) */
 .pl-location-map-wrap { position: relative; margin-top: 8px; }

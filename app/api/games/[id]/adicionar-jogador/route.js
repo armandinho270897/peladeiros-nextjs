@@ -11,17 +11,14 @@ export async function POST(request, { params }) {
   }
 
   const { id } = params;
-  const { userId, codigo } = await request.json().catch(() => ({}));
-  if (!userId) return NextResponse.json({ error: 'Selecione um jogador.' }, { status: 400 });
+  const { userId, nome: nomeConvidado, codigo } = await request.json().catch(() => ({}));
+  if (!userId && !nomeConvidado?.trim()) return NextResponse.json({ error: 'Selecione um jogador ou digite um nome.' }, { status: 400 });
 
   const auth = await authorizeGameOwner(id, codigo);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const { data: game } = await supabase.from('games').select('vagas_totais').eq('id', id).single();
   if (!game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
-
-  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro').eq('id', userId).maybeSingle();
-  if (!profile) return NextResponse.json({ error: 'Jogador não encontrado.' }, { status: 404 });
 
   const { count } = await supabase
     .from('confirmacoes')
@@ -31,9 +28,24 @@ export async function POST(request, { params }) {
 
   const novoStatus = count >= game.vagas_totais ? 'espera' : 'aprovado';
 
+  let resultado, error;
+
+  // convidado sem conta: sempre uma linha nova (sem user_id pra vincular a um cadastro)
+  if (!userId) {
+    ({ data: resultado, error } = await supabase
+      .from('confirmacoes')
+      .insert({ game_id: id, user_id: null, nome: nomeConvidado.trim(), whatsapp: '', bairro: null, status: novoStatus })
+      .select()
+      .single());
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(resultado, { status: 201 });
+  }
+
+  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro').eq('id', userId).maybeSingle();
+  if (!profile) return NextResponse.json({ error: 'Jogador não encontrado.' }, { status: 404 });
+
   const { data: existente } = await supabase.from('confirmacoes').select('id').eq('game_id', id).eq('user_id', userId).maybeSingle();
 
-  let resultado, error;
   if (existente) {
     ({ data: resultado, error } = await supabase.from('confirmacoes').update({ status: novoStatus }).eq('id', existente.id).select().single());
   } else {

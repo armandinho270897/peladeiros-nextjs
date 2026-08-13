@@ -59,20 +59,33 @@ export async function POST(request) {
 
   // jogadores adicionados direto na criação entram como aprovado (dentro da
   // capacidade) ou espera (se estourar) — mesmo critério do fluxo de aprovar.
+  // Convidados sem conta (só nome, sem id) entram do mesmo jeito, sem user_id.
   if (Array.isArray(jogadoresIniciais) && jogadoresIniciais.length > 0) {
-    const ids = [...new Set(jogadoresIniciais.map((j) => j.id))].filter((id) => id && id !== user.id);
-    if (ids.length > 0) {
-      const { data: perfis } = await supabase.from('profiles').select('id, nome, whatsapp, bairro').in('id', ids);
-      const rows = (perfis || []).map((p, i) => ({
-        game_id: game.id,
-        user_id: p.id,
-        nome: p.nome,
-        whatsapp: p.whatsapp,
-        bairro: p.bairro,
-        status: i < vagasTotais ? 'aprovado' : 'espera',
-      }));
-      if (rows.length > 0) await supabase.from('confirmacoes').insert(rows);
+    const idsRegistrados = [...new Set(jogadoresIniciais.map((j) => j.id).filter((id) => id && id !== user.id))];
+    const { data: perfis } = idsRegistrados.length > 0
+      ? await supabase.from('profiles').select('id, nome, whatsapp, bairro').in('id', idsRegistrados)
+      : { data: [] };
+    const perfilPorId = {};
+    for (const p of perfis || []) perfilPorId[p.id] = p;
+
+    // mantém a ordem escolhida na tela (importa pra decidir quem entra aprovado vs espera)
+    const rows = [];
+    let i = 0;
+    for (const j of jogadoresIniciais) {
+      if (j.id === user.id) continue;
+      const status = i < vagasTotais ? 'aprovado' : 'espera';
+      if (j.id) {
+        const p = perfilPorId[j.id];
+        if (!p) continue;
+        rows.push({ game_id: game.id, user_id: p.id, nome: p.nome, whatsapp: p.whatsapp, bairro: p.bairro, status });
+      } else if (j.nome?.trim()) {
+        rows.push({ game_id: game.id, user_id: null, nome: j.nome.trim(), whatsapp: '', bairro: null, status });
+      } else {
+        continue;
+      }
+      i++;
     }
+    if (rows.length > 0) await supabase.from('confirmacoes').insert(rows);
   }
 
   // avisa quem tem o mesmo bairro no perfil que tem pelada nova por perto

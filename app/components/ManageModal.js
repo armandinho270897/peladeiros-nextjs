@@ -74,8 +74,8 @@ export default function ManageModal({ game, onClose, onSaved }) {
   }
 
   async function handleAdicionarJogador(p) {
-    setActingId(p.id);
-    const res = await fetch(`/api/games/${game.id}/adicionar-jogador`, { method: 'POST', body: JSON.stringify({ userId: p.id, codigo }) });
+    setActingId(p.id || p.nome);
+    const res = await fetch(`/api/games/${game.id}/adicionar-jogador`, { method: 'POST', body: JSON.stringify({ userId: p.id, nome: p.nome, codigo }) });
     const result = await res.json();
     setActingId(null);
     if (!res.ok) { setError(result.error); return; }

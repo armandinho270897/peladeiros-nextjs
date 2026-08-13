@@ -19,12 +19,16 @@ export default function NewGameModal({ onCancel, onCreated }) {
   const [vagasTotais, setVagasTotais] = useState('');
   const [jogadores, setJogadores] = useState([]);
 
+  // convidados sem conta têm id: null — usa uma key própria por entrada pra
+  // não colidir entre vários convidados (senão remover/deduplicar por id
+  // afetaria todos os convidados de uma vez, já que compartilham id: null)
   function addJogador(p) {
-    setJogadores((prev) => (prev.some((j) => j.id === p.id) ? prev : [...prev, p]));
+    const key = p.id || `convidado-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setJogadores((prev) => (p.id && prev.some((j) => j.id === p.id) ? prev : [...prev, { ...p, key }]));
   }
 
-  function removeJogador(id) {
-    setJogadores((prev) => prev.filter((j) => j.id !== id));
+  function removeJogador(key) {
+    setJogadores((prev) => prev.filter((j) => j.key !== key));
   }
 
   function handleArenaChange(id) {
@@ -83,9 +87,9 @@ export default function NewGameModal({ onCancel, onCreated }) {
             {jogadores.length > 0 && (
               <div className="pl-selected-players">
                 {jogadores.map((j) => (
-                  <span key={j.id} className="pl-selected-player-chip">
-                    {j.nome}
-                    <button type="button" onClick={() => removeJogador(j.id)} aria-label={`Remover ${j.nome}`}>×</button>
+                  <span key={j.key} className="pl-selected-player-chip">
+                    {j.nome}{!j.id && <span style={{ color: 'var(--gold)' }}> (convidado)</span>}
+                    <button type="button" onClick={() => removeJogador(j.key)} aria-label={`Remover ${j.nome}`}>×</button>
                   </span>
                 ))}
               </div>
