@@ -27,7 +27,7 @@ body {
 body::before {
   content: '';
   position: fixed;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   pointer-events: none;
   z-index: 0;
   opacity: 0.05;
@@ -35,11 +35,16 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Contorno neon fixo ao redor de toda a tela — identidade visual, único e fixo, com glow real */
-body::after {
-  content: '';
+/* Contorno neon ao redor de toda a tela — elemento real (não pseudo-elemento)
+   porque alguns navegadores mobile/WebView renderizam ::after com
+   position:fixed de forma instável durante resize/scroll. Usa top/right/
+   bottom/left explícitos em vez do atalho "inset" — alguns navegadores
+   mobile mais antigos não suportam o atalho e descartam a declaração
+   inteira, o que faz o elemento (sem largura/altura, position:fixed sem
+   offsets) colapsar num quadradinho fixo em vez de cobrir a tela. */
+.pl-app-border {
   position: fixed;
-  inset: 0;
+  top: 0; right: 0; bottom: 0; left: 0;
   border: 3px solid var(--neon);
   box-shadow: inset 0 0 18px rgba(166,255,0,0.25), 0 0 14px rgba(166,255,0,0.3);
   pointer-events: none;
@@ -93,7 +98,7 @@ body::after {
 .pl-tagline { font-family: var(--font-tag); color: var(--neon); font-size: 15px; }
 
 .pl-splash {
-  position: fixed; inset: 0; z-index: 9999;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 9999;
   background: var(--ink);
   display: flex; align-items: center; justify-content: center;
   opacity: 1;
@@ -161,7 +166,7 @@ body::after {
 }
 .pl-stamp::before {
   content: '';
-  position: absolute; inset: -4px;
+  position: absolute; top: -4px; right: -4px; bottom: -4px; left: -4px;
   border: 1px solid var(--tag-red);
   border-radius: 8px;
   opacity: 0.35;
@@ -274,7 +279,7 @@ body::after {
 .pl-bench-label { font-size: 10px; text-transform: uppercase; color: var(--concrete); margin-right: 2px; }
 .pl-bench-avatar { filter: grayscale(45%); opacity: 0.85; }
 
-.pl-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 50; }
+.pl-overlay { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 50; }
 .pl-modal { background: var(--card-bg); border: 2px solid var(--concrete); border-radius: 8px; padding: 22px; width: 100%; max-width: 440px; max-height: 88vh; overflow-y: auto; }
 .pl-modal h3 { font-family: var(--font-display); color: var(--paper); text-transform: uppercase; }
 .pl-field { margin-bottom: 12px; }
@@ -456,7 +461,7 @@ body::after {
 .pl-field-reservas-label { font-size: 11px; color: var(--paper-dim); text-transform: uppercase; margin-right: 4px; }
 
 /* Confete ao lotar — CSS puro, sem lib nova */
-.pl-confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 5; border-radius: inherit; }
+.pl-confetti { position: absolute; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; pointer-events: none; z-index: 5; border-radius: inherit; }
 .pl-confetti-piece {
   position: absolute; top: -10px; width: 6px; height: 10px;
   animation-name: pl-confetti-fall;
