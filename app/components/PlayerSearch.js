@@ -27,10 +27,16 @@ export default function PlayerSearch({ onSelect, excludeIds = [], placeholder = 
     setResultados([]);
   }
 
+  function handleAddGuest() {
+    handleSelect({ id: null, nome: query.trim() });
+  }
+
+  const podeAdicionarConvidado = query.trim().length >= 2;
+
   return (
     <div className="pl-player-search">
       <input type="text" value={query} onChange={handleChange} placeholder={placeholder} autoComplete="off" />
-      {resultados.length > 0 && (
+      {(resultados.length > 0 || podeAdicionarConvidado) && (
         <div className="pl-player-search-results">
           {resultados.map((p) => (
             <button type="button" key={p.id} className="pl-player-search-item" onClick={() => handleSelect(p)}>
@@ -38,6 +44,11 @@ export default function PlayerSearch({ onSelect, excludeIds = [], placeholder = 
               {p.bairro && <span className="pl-player-search-bairro">{p.bairro}</span>}
             </button>
           ))}
+          {podeAdicionarConvidado && (
+            <button type="button" className="pl-player-search-item pl-player-search-guest" onClick={handleAddGuest}>
+              <span>Adicionar &ldquo;{query.trim()}&rdquo; sem conta</span>
+            </button>
+          )}
         </div>
       )}
     </div>
