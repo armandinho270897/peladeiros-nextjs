@@ -18,15 +18,16 @@ function LoginForm() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-      },
+    // Rota própria (Resend, via API HTTP) em vez de supabase.auth.signInWithOtp
+    // — o e-mail nativo do Supabase trava em 2/hora no plano gratuito.
+    const res = await fetch('/api/auth/magic-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim(), next }),
     });
+    const result = await res.json().catch(() => ({}));
     setLoading(false);
-    if (error) { setError('Não consegui enviar o link. Confere o e-mail e tenta de novo.'); return; }
+    if (!res.ok) { setError(result.error || 'Não consegui enviar o link. Confere o e-mail e tenta de novo.'); return; }
     setSent(true);
   }
 
@@ -46,7 +47,7 @@ function LoginForm() {
     <div className="pl-authpage">
       <div className="pl-authcard">
         <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
-        <p className="pl-tagline">achou o campo, chamou o povo, bateu bola</p>
+        <p className="pl-tagline">Vem pro fut, vem.</p>
 
         {sent ? (
           <>
