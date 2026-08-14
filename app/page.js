@@ -19,6 +19,7 @@ import NotificationBell from './components/NotificationBell';
 import TicketButton from './components/TicketButton';
 import EmptyFieldIcon from './components/EmptyFieldIcon';
 import HeaderWatermark from './components/HeaderWatermark';
+import Avatar from './components/Avatar';
 
 const MapViewPins = dynamic(() => import('./components/MapViewPins'), { ssr: false });
 
@@ -210,13 +211,18 @@ export default function Home() {
           <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
           {profile && (
             <div className="pl-header-user">
-              <NotificationBell />
-              <Link href="/perfil" className="pl-header-user-link">
-                <span style={{ textDecoration: 'underline', textUnderlineOffset: 2 }}>{profile.nome}</span>
+              {/* Sino some no mobile — a navegação inferior já tem "Avisos". No
+                  desktop (sem navegação inferior) continua sendo o único acesso. */}
+              <span className="pl-header-bell"><NotificationBell /></span>
+              <Link href="/perfil" className="pl-header-user-link" aria-label="Ver perfil">
+                <Avatar nome={profile.nome} size={28} fotoUrl={profile.foto_url} />
               </Link>
             </div>
           )}
         </div>
+      </div>
+
+      <div className="pl-page-intro">
         <p className="pl-tagline">achou o campo, chamou o povo, bateu bola</p>
         <div className="pl-header-actions">
           <TicketButton onClick={() => setModal('new')}>Criar pelada</TicketButton>

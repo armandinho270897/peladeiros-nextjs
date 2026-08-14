@@ -9,13 +9,13 @@ import Confetti from './Confetti';
 function ConfirmadoAvatar({ nome, moral, bench }) {
   return (
     <div style={{ position: 'relative' }} className={bench ? 'pl-bench-avatar' : ''}>
-      <Avatar nome={nome} size={26} />
+      <Avatar nome={nome} size={24} />
       {moral != null && (
         <div
           style={{
             position: 'absolute', bottom: -4, right: -4,
             background: 'var(--gold)', color: 'var(--ink)',
-            fontSize: 9, fontWeight: 700, borderRadius: 8,
+            fontSize: 9, fontWeight: 700, borderRadius: 'var(--radius-pill)',
             padding: '1px 4px', lineHeight: 1.3,
             border: '1.5px solid var(--card-bg)',
           }}
@@ -27,8 +27,8 @@ function ConfirmadoAvatar({ nome, moral, bench }) {
   );
 }
 
-// Status de vagas mais informativo que só o número — cor conforme urgência
-// (verde = tranquilo, dourado = últimas vagas, vermelho = lotada).
+// Status de vagas mais informativo que só o número. "Aberta"/"Lotada" são
+// estados neutros (cinza); só "últimas vagas" usa o dourado de urgência.
 function statusVagas(restantes, lotado) {
   if (lotado) return { label: '🔴 Lotada', className: 'lotada' };
   if (restantes <= 3) return { label: `🔥 Últimas ${restantes} vaga${restantes === 1 ? '' : 's'}`, className: 'ultimas' };
@@ -102,16 +102,14 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
       {justLotou && <Confetti />}
       {lotado && <div className="pl-stamp">Lotado</div>}
 
-      <div className="pl-card-top">
+      {/* Linha 1 — essencial, alto contraste: local + dia/hora + vagas */}
+      <div className="pl-card-line1">
         <div className="pl-date"><div className="dow">{d.dow}</div><div className="dom">{d.dom}</div></div>
-        <div className="pl-card-heading">
+        <div className="pl-card-line1-main">
           <h3>{g.local}</h3>
-          <div>
-            <span className="pl-bairro-tag">{g.bairro}</span>
-            {g.tipo && <span className="pl-tipo-tag">{g.tipo}</span>}
-          </div>
+          <span className="pl-card-when">{contagem || g.horario}</span>
         </div>
-        <div className="pl-card-top-right">
+        <div className="pl-card-line1-side">
           <div className={`pl-status-badge ${status.className} ${pulse ? 'pl-flip-pulse' : ''}`}>{status.label}</div>
           {podeEditar && (
             <button className="pl-edit-link-inline" onClick={() => onEdit(g)}>
@@ -122,64 +120,70 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         </div>
       </div>
 
-      <div className="pl-card-subline">
-        <span>{contagem || g.horario}</span>
+      {/* Linha 2 — secundário: tipo de jogo, bairro, distância */}
+      <div className="pl-card-line2">
+        {g.tipo && <span className="pl-tipo-tag">{g.tipo}</span>}
+        <span className="pl-bairro-tag">{g.bairro}</span>
         {distanciaKm != null && (
-          <>
-            <span className="dot">·</span>
-            <span className="pl-distancia">📍 {distanciaKm.toFixed(1).replace('.', ',')} km</span>
-          </>
+          <span className="pl-distancia">📍 {distanciaKm.toFixed(1).replace('.', ',')} km</span>
         )}
       </div>
 
-      <p className="meta" style={{ margin: '2px 0 0' }}><CaptainIcon /> Capitão: {g.capitao}</p>
-
-      {confirmados.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
-          {confirmados.slice(0, 6).map((c) => (
-            <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} />
-          ))}
-          {confirmados.length > 6 && (
-            <div style={{ fontSize: 11, color: 'var(--paper-dim)', alignSelf: 'center' }}>+{confirmados.length - 6}</div>
-          )}
-        </div>
-      )}
-      {espera.length > 0 && (
-        <div className="pl-bench">
-          <span className="pl-bench-label">Banco:</span>
-          {espera.slice(0, 6).map((c) => (
-            <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} bench />
-          ))}
-          {espera.length > 6 && <span style={{ fontSize: 11, color: 'var(--concrete)' }}>+{espera.length - 6}</span>}
-        </div>
-      )}
-
-      <div className="pl-card-bottom">
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {aguardandoAprovacao ? (
-            <p className="pl-aguardando">Aguardando aprovação do capitão</p>
-          ) : minhaVagaAguardandoConfirmacao ? (
-            <>
-              <p className="pl-aguardando">Aprovado — falta você confirmar</p>
-              {contagemPrazo && <p className="pl-prazo-confirmacao">{contagemPrazo}</p>}
-              <TicketButton compact onClick={() => onConfirmarVaga(minhaConfirmacao.id)}>
-                Confirmar minha vaga
-              </TicketButton>
-            </>
-          ) : minhaPresencaAprovada ? (
-            <div className="pl-inside-wrap">
-              <span className="pl-inside-badge">✓ Você está dentro</span>
-              <button className="pl-link-danger-small" onClick={() => onCancelPresenca(minhaConfirmacao.id, g)}>
-                Cancelar presença
-              </button>
-            </div>
-          ) : (
-            <TicketButton compact onClick={() => onConfirm(g)}>
-              {lotado ? 'Entrar no banco' : 'Confirmar'}
+      {/* Linha 3 — status de participação em destaque, ou o botão de ação */}
+      <div className="pl-card-line3">
+        {aguardandoAprovacao ? (
+          <p className="pl-aguardando">Aguardando aprovação do capitão</p>
+        ) : minhaVagaAguardandoConfirmacao ? (
+          <>
+            <p className="pl-aguardando">Aprovado — falta você confirmar</p>
+            {contagemPrazo && <p className="pl-prazo-confirmacao">{contagemPrazo}</p>}
+            <TicketButton compact onClick={() => onConfirmarVaga(minhaConfirmacao.id)}>
+              Confirmar minha vaga
             </TicketButton>
+          </>
+        ) : minhaPresencaAprovada ? (
+          <span className="pl-inside-badge">✓ Você está dentro</span>
+        ) : (
+          <TicketButton compact onClick={() => onConfirm(g)}>
+            {lotado ? 'Entrar no banco' : 'Confirmar'}
+          </TicketButton>
+        )}
+      </div>
+
+      {/* Rodapé discreto — capitão, avaliações, cancelar, compartilhar */}
+      <div className="pl-card-footer">
+        <div className="pl-card-footer-row">
+          <p className="pl-card-capitao"><CaptainIcon /> {g.capitao}</p>
+          {minhaPresencaAprovada && (
+            <button className="pl-link-danger-small" onClick={() => onCancelPresenca(minhaConfirmacao.id, g)}>
+              Cancelar presença
+            </button>
           )}
         </div>
-        <button className="pl-icon-btn" onClick={() => onShare(g)} aria-label="Compartilhar">🔗</button>
+
+        {confirmados.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {confirmados.slice(0, 6).map((c) => (
+              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} />
+            ))}
+            {confirmados.length > 6 && (
+              <div style={{ fontSize: 11, color: 'var(--paper-dim)', alignSelf: 'center' }}>+{confirmados.length - 6}</div>
+            )}
+          </div>
+        )}
+        {espera.length > 0 && (
+          <div className="pl-bench">
+            <span className="pl-bench-label">Banco:</span>
+            {espera.slice(0, 6).map((c) => (
+              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} bench />
+            ))}
+            {espera.length > 6 && <span style={{ fontSize: 11, color: 'var(--concrete)' }}>+{espera.length - 6}</span>}
+          </div>
+        )}
+
+        <div className="pl-card-share-row">
+          <button className="pl-icon-btn" onClick={() => onShare(g)} aria-label="Compartilhar">🔗</button>
+        </div>
       </div>
     </div>
   );
