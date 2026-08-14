@@ -8,7 +8,7 @@ import { ToastProvider } from './components/ToastProvider';
 export const metadata = {
   metadataBase: new URL('https://peladeiros-nextjs.vercel.app'),
   title: 'Peladeiros',
-  description: 'Achou o campo, chamou o povo, bateu bola.',
+  description: 'Vem pro fut, vem.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

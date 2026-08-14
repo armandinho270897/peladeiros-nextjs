@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
+import BellIcon from './BellIcon';
 
 function tempoRelativo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -67,14 +68,14 @@ export default function NotificationBell({ variant = 'header' }) {
       {isBottomNav ? (
         <button className="pl-bottom-nav-item" onClick={toggleOpen} aria-label="Notificações">
           <span className="pl-bottom-nav-icon">
-            🔔
+            <BellIcon />
             {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}
           </span>
           Avisos
         </button>
       ) : (
         <button className="pl-bell-btn" onClick={toggleOpen} aria-label="Notificações">
-          🔔
+          <BellIcon size={18} />
           {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}
         </button>
       )}
