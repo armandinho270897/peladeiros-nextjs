@@ -1,5 +1,5 @@
 'use client';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
@@ -10,9 +10,16 @@ function CompletarPerfilForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '/';
-  const { user, loading: authLoading, refreshProfile } = useAuth();
+  const { user, profile, loading: authLoading, refreshProfile } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Defesa extra: se o perfil já existe (ex: reabriu a aba depois de já ter
+  // salvo, ou o estado do AuthProvider tava desatualizado quando a página
+  // montou), não mostra o formulário de novo — só segue pra frente.
+  useEffect(() => {
+    if (!authLoading && profile) router.replace(next);
+  }, [authLoading, profile, next, router]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -28,7 +35,18 @@ function CompletarPerfilForm() {
       bairro: f.bairro.value.trim() || null,
     });
     setLoading(false);
-    if (error) { setError('Não consegui salvar. Tenta de novo.'); return; }
+    if (error) {
+      // "duplicate key" (23505) = o perfil já foi salvo antes (ex: clique
+      // duplo, ou reenvio depois de rede lenta) — não é erro de verdade
+      // pro usuário, só segue pra frente em vez de travar ele aqui.
+      if (error.code === '23505') {
+        await refreshProfile();
+        router.push(next);
+        return;
+      }
+      setError(error.message || 'Não consegui salvar. Tenta de novo.');
+      return;
+    }
     await refreshProfile();
     router.push(next);
   }
