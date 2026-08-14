@@ -22,6 +22,10 @@ export default function ConfiguracoesPage() {
   const { showToast } = useToast();
   const [prefs, setPrefs] = useState(() => profile?.notif_prefs || {});
   const [saving, setSaving] = useState(false);
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [erroSenha, setErroSenha] = useState('');
+  const [salvandoSenha, setSalvandoSenha] = useState(false);
 
   if (authLoading || !profile) {
     return (
@@ -44,6 +48,25 @@ export default function ConfiguracoesPage() {
     if (error) { showToast('Não consegui salvar. Tenta de novo.'); return; }
     await refreshProfile();
     showToast('Preferências salvas!');
+  }
+
+  // Pra quem entrou por link mágico/Google antes de hoje e nunca teve
+  // senha — define uma agora, enquanto a sessão atual ainda tá ativa, sem
+  // precisar de e-mail nenhum. updateUser funciona com qualquer sessão
+  // válida, não importa como a pessoa logou originalmente.
+  async function handleSalvarSenha(e) {
+    e.preventDefault();
+    setErroSenha('');
+    if (novaSenha.length < 6) { setErroSenha('A senha precisa ter pelo menos 6 caracteres.'); return; }
+    if (novaSenha !== confirmarSenha) { setErroSenha('As senhas não são iguais.'); return; }
+    setSalvandoSenha(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({ password: novaSenha });
+    setSalvandoSenha(false);
+    if (error) { setErroSenha(error.message || 'Não consegui salvar a senha. Tenta de novo.'); return; }
+    setNovaSenha('');
+    setConfirmarSenha('');
+    showToast('Senha definida! Já pode entrar com e-mail e senha da próxima vez.');
   }
 
   return (
@@ -70,6 +93,27 @@ export default function ConfiguracoesPage() {
         <div style={{ marginTop: 18 }}>
           <TicketButton onClick={handleSave} disabled={saving}>{saving ? 'Salvando...' : 'Salvar preferências'}</TicketButton>
         </div>
+      </div>
+
+      <div className="pl-section-title" style={{ maxWidth: 640, margin: '28px auto 0', padding: '0 16px', fontFamily: 'var(--font-display)', color: 'var(--paper)', textTransform: 'uppercase' }}>
+        Senha
+      </div>
+      <div style={{ maxWidth: 640, margin: '14px auto 0', padding: '0 16px 24px' }}>
+        <p style={{ fontSize: 13, color: 'var(--paper-dim)', marginTop: 0 }}>
+          Entrou por link mágico ou Google? Define uma senha aqui pra poder entrar direto com e-mail e senha da próxima vez.
+        </p>
+        <form onSubmit={handleSalvarSenha}>
+          <div className="pl-field">
+            <label>Nova senha</label>
+            <input type="password" required minLength={6} value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} placeholder="••••••" />
+          </div>
+          <div className="pl-field">
+            <label>Confirmar senha</label>
+            <input type="password" required minLength={6} value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} placeholder="••••••" />
+          </div>
+          {erroSenha && <p className="pl-error">{erroSenha}</p>}
+          <TicketButton type="submit" disabled={salvandoSenha}>{salvandoSenha ? 'Salvando...' : 'Definir senha'}</TicketButton>
+        </form>
       </div>
     </div>
   );
