@@ -9,6 +9,8 @@ import EmptyFieldIcon from './EmptyFieldIcon';
 const DEFAULT_CENTER = [-14.235, -51.9253];
 const DEFAULT_ZOOM = 4;
 
+const ACESSO_LABEL = { publico: 'Público', privado: 'Privado', nao_confirmado: 'Acesso não confirmado' };
+
 export default function MapViewPins({ games, arenas = [], onConfirm }) {
   const jogosComCoordenadas = games.filter((g) => g.latitude != null && g.longitude != null);
   const arenasComCoordenadas = arenas.filter((a) => a.latitude != null && a.longitude != null);
@@ -44,6 +46,7 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
                   <div style={{ textTransform: 'capitalize' }}>{a.tipo}</div>
                   <div>{a.endereco}</div>
                   <div>{a.bairro}</div>
+                  {a.acesso && <div>{ACESSO_LABEL[a.acesso] || a.acesso}</div>}
                 </div>
               </Popup>
             </Marker>

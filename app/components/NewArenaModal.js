@@ -5,7 +5,7 @@ import TicketButton from './TicketButton';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 
-const TIPOS = ['quadra escolar', 'arena', 'quadra pública', 'rua'];
+const TIPOS = ['quadra escolar', 'arena', 'quadra pública', 'rua', 'campo', 'estádio'];
 
 export default function NewArenaModal({ onCancel, onCreated }) {
   const [error, setError] = useState('');

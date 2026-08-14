@@ -2,7 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
-const TIPOS_VALIDOS = ['quadra escolar', 'arena', 'quadra pública', 'rua'];
+const TIPOS_VALIDOS = ['quadra escolar', 'arena', 'quadra pública', 'rua', 'campo', 'estádio'];
 
 export async function GET() {
   const { data: arenas, error } = await supabase
