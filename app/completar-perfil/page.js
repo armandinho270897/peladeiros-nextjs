@@ -1,16 +1,15 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
 import TicketButton from '../components/TicketButton';
 import LoadingBall from '../components/LoadingBall';
 
 function CompletarPerfilForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '/';
-  const { user, profile, loading: authLoading, refreshProfile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -18,8 +17,8 @@ function CompletarPerfilForm() {
   // salvo, ou o estado do AuthProvider tava desatualizado quando a página
   // montou), não mostra o formulário de novo — só segue pra frente.
   useEffect(() => {
-    if (!authLoading && profile) router.replace(next);
-  }, [authLoading, profile, next, router]);
+    if (!authLoading && profile) window.location.href = next;
+  }, [authLoading, profile, next]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -34,21 +33,24 @@ function CompletarPerfilForm() {
       whatsapp: f.whatsapp.value.trim(),
       bairro: f.bairro.value.trim() || null,
     });
-    setLoading(false);
+    // Navegação completa (não router.push) daqui pra frente — o router
+    // cache do Next às vezes serve uma versão de "/" que ainda não viu o
+    // perfil recém-criado, e a pessoa fica presa nesta tela achando que
+    // não salvou (mesmo o insert tendo funcionado). Isso é o que causou o
+    // usuário a tentar de novo e esbarrar no "duplicate key" abaixo.
     if (error) {
       // "duplicate key" (23505) = o perfil já foi salvo antes (ex: clique
       // duplo, ou reenvio depois de rede lenta) — não é erro de verdade
       // pro usuário, só segue pra frente em vez de travar ele aqui.
       if (error.code === '23505') {
-        await refreshProfile();
-        router.push(next);
+        window.location.href = next;
         return;
       }
+      setLoading(false);
       setError(error.message || 'Não consegui salvar. Tenta de novo.');
       return;
     }
-    await refreshProfile();
-    router.push(next);
+    window.location.href = next;
   }
 
   return (
