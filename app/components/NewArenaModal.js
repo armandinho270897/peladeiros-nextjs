@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { createClient } from '@/lib/supabase-browser';
+import { useAuth } from './AuthProvider';
 import TicketButton from './TicketButton';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
@@ -8,12 +10,37 @@ const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: fa
 const TIPOS = ['quadra escolar', 'arena', 'quadra pública', 'rua', 'campo', 'estádio'];
 
 export default function NewArenaModal({ onCancel, onCreated }) {
+  const { user } = useAuth();
   const [error, setError] = useState('');
   const [coords, setCoords] = useState({ lat: null, lng: null });
+  const [fotoFile, setFotoFile] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  function handleFotoChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFotoFile(file);
+    setFotoPreview(URL.createObjectURL(file));
+  }
 
   async function handleCreate(e) {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     const f = e.target;
+    const supabase = createClient();
+
+    let fotoUrl = null;
+    if (fotoFile) {
+      const ext = fotoFile.name.split('.').pop() || 'jpg';
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('arena-fotos').upload(path, fotoFile);
+      if (uploadError) { setError('Não consegui enviar a foto. Tenta de novo.'); setLoading(false); return; }
+      const { data: urlData } = supabase.storage.from('arena-fotos').getPublicUrl(path);
+      fotoUrl = urlData.publicUrl;
+    }
+
     const body = {
       nome: f.nome.value.trim(),
       endereco: f.endereco.value.trim(),
@@ -21,9 +48,11 @@ export default function NewArenaModal({ onCancel, onCreated }) {
       tipo: f.tipo.value,
       latitude: coords.lat,
       longitude: coords.lng,
+      fotoUrl,
     };
     const res = await fetch('/api/arenas', { method: 'POST', body: JSON.stringify(body) });
     const result = await res.json();
+    setLoading(false);
     if (!res.ok) { setError(result.error); return; }
     setError('');
     onCreated(result);
@@ -33,7 +62,22 @@ export default function NewArenaModal({ onCancel, onCreated }) {
     <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onCancel()}>
       <div className="pl-modal">
         <h3>Cadastrar arena</h3>
+        <p style={{ fontSize: 12, color: 'var(--paper-dim)', marginTop: 0 }}>
+          Sua arena entra numa fila de aprovação antes de aparecer no mapa pra todo mundo.
+        </p>
         <form onSubmit={handleCreate}>
+          <div className="pl-field">
+            <label>Foto (opcional)</label>
+            {fotoPreview ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <img src={fotoPreview} alt="" style={{ width: 56, height: 56, borderRadius: 'var(--radius-md)', objectFit: 'cover' }} />
+                <label htmlFor="foto-arena-input" className="pl-share-btn" style={{ cursor: 'pointer' }}>Trocar foto</label>
+              </div>
+            ) : (
+              <label htmlFor="foto-arena-input" className="pl-share-btn" style={{ cursor: 'pointer', display: 'inline-block' }}>Adicionar foto</label>
+            )}
+            <input id="foto-arena-input" type="file" accept="image/*" onChange={handleFotoChange} style={{ display: 'none' }} />
+          </div>
           <div className="pl-field"><label>Nome</label><input name="nome" placeholder="Ex: Quadra do Zé" /></div>
           <div className="pl-field"><label>Endereço</label><input name="endereco" placeholder="Ex: Rua Tal, 123" /></div>
           <div className="pl-field"><label>Bairro</label><input name="bairro" placeholder="Ex: Centro" /></div>
@@ -56,7 +100,7 @@ export default function NewArenaModal({ onCancel, onCreated }) {
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
             <button type="button" className="pl-btn-secondary" onClick={onCancel}>Cancelar</button>
-            <TicketButton type="submit">Cadastrar</TicketButton>
+            <TicketButton type="submit" disabled={loading}>{loading ? 'Enviando...' : 'Cadastrar'}</TicketButton>
           </div>
         </form>
       </div>
