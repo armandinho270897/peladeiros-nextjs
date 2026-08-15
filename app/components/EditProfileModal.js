@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
+import { MODALIDADES, POSICOES_POR_MODALIDADE, POSICAO_LABEL } from '@/lib/gameUtils';
 
 export default function EditProfileModal({ onClose, onSaved }) {
   const { user, profile, refreshProfile } = useAuth();
@@ -11,6 +12,8 @@ export default function EditProfileModal({ onClose, onSaved }) {
   const [loading, setLoading] = useState(false);
   const [fotoFile, setFotoFile] = useState(null);
   const [fotoPreview, setFotoPreview] = useState(profile?.foto_url || null);
+  const [modalidade, setModalidade] = useState(profile?.modalidade_principal || '');
+  const [posicoes, setPosicoes] = useState(profile?.posicoes || []);
 
   function handleFotoChange(e) {
     const file = e.target.files?.[0];
@@ -19,10 +22,31 @@ export default function EditProfileModal({ onClose, onSaved }) {
     setFotoPreview(URL.createObjectURL(file));
   }
 
+  function handleModalidadeChange(e) {
+    setModalidade(e.target.value);
+    // troca de modalidade invalida as posições escolhidas antes (podiam
+    // ser de outro esporte, ex: "fixo" de futsal não existe em campo)
+    setPosicoes([]);
+  }
+
+  function togglePosicao(slug) {
+    setPosicoes((prev) => {
+      if (prev.includes(slug)) return prev.filter((p) => p !== slug);
+      if (prev.length >= 2) return prev;
+      return [...prev, slug];
+    });
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    if (modalidade && posicoes.length === 0) {
+      setError('Escolhe pelo menos 1 posição pra essa modalidade.');
+      return;
+    }
+
+    setLoading(true);
     const f = e.target;
     const supabase = createClient();
 
@@ -42,7 +66,8 @@ export default function EditProfileModal({ onClose, onSaved }) {
         nome: f.nome.value.trim(),
         whatsapp: f.whatsapp.value.trim(),
         bairro: f.bairro.value.trim() || null,
-        posicao: f.posicao.value || null,
+        modalidade_principal: modalidade || null,
+        posicoes: modalidade ? posicoes : null,
         idade: f.idade.value ? parseInt(f.idade.value, 10) : null,
         altura_cm: f.altura.value ? parseInt(f.altura.value, 10) : null,
         peso_kg: f.peso.value ? parseFloat(f.peso.value) : null,
@@ -76,16 +101,40 @@ export default function EditProfileModal({ onClose, onSaved }) {
           <div className="pl-field"><label>WhatsApp</label><input name="whatsapp" defaultValue={profile?.whatsapp} required /></div>
           <div className="pl-field"><label>Bairro (opcional)</label><input name="bairro" defaultValue={profile?.bairro || ''} /></div>
           <div className="pl-field">
-            <label>Posição (opcional)</label>
-            <select className="pl-select" name="posicao" defaultValue={profile?.posicao || ''} style={{ width: '100%' }}>
+            <label>Modalidade principal (opcional)</label>
+            <select className="pl-select" value={modalidade} onChange={handleModalidadeChange} style={{ width: '100%' }}>
               <option value="">Não informar</option>
-              <option value="goleiro">Goleiro</option>
-              <option value="zagueiro">Zagueiro</option>
-              <option value="meio">Meio</option>
-              <option value="atacante">Atacante</option>
-              <option value="qualquer">Qualquer posição</option>
+              {MODALIDADES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
             </select>
           </div>
+          {modalidade && (
+            <div className="pl-field">
+              <label>Posições (escolha 1 ou 2)</label>
+              {POSICOES_POR_MODALIDADE[modalidade].map(({ categoria, opcoes }) => (
+                <div key={categoria} className="pl-posicoes-categoria">
+                  <span className="pl-posicoes-categoria-label">{categoria}</span>
+                  <div className="pl-posicoes-chips">
+                    {opcoes.map((slug) => {
+                      const selecionada = posicoes.includes(slug);
+                      const desabilitada = !selecionada && posicoes.length >= 2;
+                      return (
+                        <button
+                          key={slug}
+                          type="button"
+                          className={`pl-chip ${selecionada ? 'active' : ''}`}
+                          disabled={desabilitada}
+                          style={desabilitada ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+                          onClick={() => togglePosicao(slug)}
+                        >
+                          {POSICAO_LABEL[slug]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="pl-field">
             <label>Pé dominante (opcional)</label>
             <select className="pl-select" name="pe_dominante" defaultValue={profile?.pe_dominante || ''} style={{ width: '100%' }}>

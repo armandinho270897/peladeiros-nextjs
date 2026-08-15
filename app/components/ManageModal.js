@@ -14,6 +14,15 @@ export default function ManageModal({ game, onClose, onSaved }) {
   const [error, setError] = useState('');
   const [gameData, setGameData] = useState(game);
   const [actingId, setActingId] = useState(null);
+  const [respostas, setRespostas] = useState({});
+
+  function setResposta(id, valor) {
+    setRespostas((prev) => ({ ...prev, [id]: valor }));
+  }
+
+  function posicoesLabel(p) {
+    return (p.posicoes || []).map((s) => POSICAO_LABEL[s] || s).join(' / ');
+  }
 
   const reload = useCallback(async () => {
     const res = await fetch(`/api/games/${game.id}`);
@@ -55,21 +64,23 @@ export default function ManageModal({ game, onClose, onSaved }) {
 
   async function handleAprovar(id) {
     setActingId(id);
-    const res = await fetch(`/api/confirmacoes/${id}/aprovar`, { method: 'POST', body: JSON.stringify({ codigo }) });
+    const res = await fetch(`/api/confirmacoes/${id}/aprovar`, { method: 'POST', body: JSON.stringify({ codigo, mensagemCapitao: respostas[id] || '' }) });
     const result = await res.json();
     setActingId(null);
     if (!res.ok) { setError(result.error); return; }
     setError('');
+    setResposta(id, '');
     reload();
   }
 
   async function handleRejeitar(id) {
     setActingId(id);
-    const res = await fetch(`/api/confirmacoes/${id}/rejeitar`, { method: 'POST', body: JSON.stringify({ codigo }) });
+    const res = await fetch(`/api/confirmacoes/${id}/rejeitar`, { method: 'POST', body: JSON.stringify({ codigo, mensagemCapitao: respostas[id] || '' }) });
     const result = await res.json();
     setActingId(null);
     if (!res.ok) { setError(result.error); return; }
     setError('');
+    setResposta(id, '');
     reload();
   }
 
@@ -136,10 +147,19 @@ export default function ManageModal({ game, onClose, onSaved }) {
                   <div className="pl-pending-nome">{p.nome}</div>
                   <div className="pl-pending-meta">
                     {p.bairro && <span>{p.bairro}</span>}
-                    {p.posicao && <span>{POSICAO_LABEL[p.posicao] || p.posicao}</span>}
+                    {p.posicoes?.length > 0 && <span>{posicoesLabel(p)}</span>}
                     {p.moral != null && <span>★{p.moral.toFixed(1)} moral</span>}
                     <span>{p.peladas_jogadas} pelada{p.peladas_jogadas === 1 ? '' : 's'} jogada{p.peladas_jogadas === 1 ? '' : 's'}</span>
                   </div>
+                  {p.mensagem && <p className="pl-pending-msg">"{p.mensagem}"</p>}
+                  <input
+                    type="text"
+                    className="pl-pending-resposta-input"
+                    placeholder="Mensagem pro jogador (opcional)"
+                    maxLength={200}
+                    value={respostas[p.id] || ''}
+                    onChange={(e) => setResposta(p.id, e.target.value)}
+                  />
                 </div>
                 <div className="pl-pending-actions">
                   <button type="button" className="pl-btn-secondary" disabled={actingId === p.id} onClick={() => handleRejeitar(p.id)}>Rejeitar</button>
@@ -160,7 +180,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
                   <div className="pl-pending-nome">{p.nome}</div>
                   <div className="pl-pending-meta">
                     {p.bairro && <span>{p.bairro}</span>}
-                    {p.posicao && <span>{POSICAO_LABEL[p.posicao] || p.posicao}</span>}
+                    {p.posicoes?.length > 0 && <span>{posicoesLabel(p)}</span>}
                     {prazoRestante(p.prazo_confirmacao) && <span>{prazoRestante(p.prazo_confirmacao)}</span>}
                   </div>
                 </div>
