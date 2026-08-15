@@ -10,7 +10,9 @@ export async function POST(request, { params }) {
   }
 
   const { id } = params;
-  const { codigo } = await request.json().catch(() => ({}));
+  const { codigo, mensagemCapitao } = await request.json().catch(() => ({}));
+  const recadoCapitao = mensagemCapitao?.trim().slice(0, 200) || '';
+  const sufixoRecado = recadoCapitao ? ` Recado do capitão: "${recadoCapitao}"` : '';
 
   const { data: confirmacao } = await supabase.from('confirmacoes').select('id, game_id, status, user_id').eq('id', id).single();
   if (!confirmacao) return NextResponse.json({ error: 'Solicitação não encontrada.' }, { status: 404 });
@@ -35,7 +37,7 @@ export async function POST(request, { params }) {
       userId: confirmacao.user_id,
       tipo: 'solicitacao_rejeitada',
       gameId: confirmacao.game_id,
-      mensagem: `Sua solicitação em ${game?.local || 'uma pelada'} não foi aprovada dessa vez.`,
+      mensagem: `Sua solicitação em ${game?.local || 'uma pelada'} não foi aprovada dessa vez.${sufixoRecado}`,
     });
   }
 

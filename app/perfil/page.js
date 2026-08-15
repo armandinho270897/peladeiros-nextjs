@@ -8,7 +8,7 @@ import CaptainIcon from '../components/CaptainIcon';
 import EmptyFieldIcon from '../components/EmptyFieldIcon';
 import ConquistasBadges from '../components/ConquistasBadges';
 import TicketButton from '../components/TicketButton';
-import { fmtDate } from '@/lib/gameUtils';
+import { fmtDate, MODALIDADE_LABEL, POSICAO_LABEL } from '@/lib/gameUtils';
 import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../components/AuthProvider';
 
@@ -63,6 +63,12 @@ export default function PerfilPage() {
         <div className="pl-perfil-info">
           <h2>{profile.nome}</h2>
           <p>{profile.bairro || 'Bairro não informado'}</p>
+          {profile.modalidade_principal && (
+            <p className="meta">
+              {MODALIDADE_LABEL[profile.modalidade_principal]}
+              {profile.posicoes?.length > 0 && ` · ${profile.posicoes.map((s) => POSICAO_LABEL[s] || s).join(' / ')}`}
+            </p>
+          )}
           <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
             <button className="pl-share-btn" onClick={() => setEditOpen(true)}>Editar perfil</button>
             <Link href="/configuracoes" className="pl-share-btn" style={{ textDecoration: 'none' }}>Notificações</Link>

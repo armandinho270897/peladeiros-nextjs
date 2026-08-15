@@ -16,6 +16,9 @@ export async function POST(request, { params }) {
   const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro').eq('id', user.id).maybeSingle();
   if (!profile) return NextResponse.json({ error: 'Complete seu perfil antes de confirmar presença.' }, { status: 400 });
 
+  const { mensagem } = await request.json().catch(() => ({}));
+  const mensagemLimpa = mensagem?.trim().slice(0, 200) || null;
+
   const { id } = params;
 
   const { data: game, error: gameError } = await supabase
@@ -38,7 +41,7 @@ export async function POST(request, { params }) {
       // rejeitado/cancelado não é banimento — deixa a pessoa pedir de novo
       const { data: revivida, error: reviveError } = await supabase
         .from('confirmacoes')
-        .update({ status: 'pendente', cancelado_em: null })
+        .update({ status: 'pendente', cancelado_em: null, mensagem: mensagemLimpa })
         .eq('id', existente.id)
         .select()
         .single();
@@ -58,7 +61,7 @@ export async function POST(request, { params }) {
 
   const { data: confirmacao, error } = await supabase
     .from('confirmacoes')
-    .insert({ game_id: id, user_id: user.id, nome: profile.nome, whatsapp: profile.whatsapp, bairro: profile.bairro ?? null, status: 'pendente' })
+    .insert({ game_id: id, user_id: user.id, nome: profile.nome, whatsapp: profile.whatsapp, bairro: profile.bairro ?? null, status: 'pendente', mensagem: mensagemLimpa })
     .select()
     .single();
 

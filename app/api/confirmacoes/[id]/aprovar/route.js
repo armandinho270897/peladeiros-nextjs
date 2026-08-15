@@ -47,7 +47,9 @@ export async function POST(request, { params }) {
   }
 
   const { id } = params;
-  const { codigo } = await request.json().catch(() => ({}));
+  const { codigo, mensagemCapitao } = await request.json().catch(() => ({}));
+  const recadoCapitao = mensagemCapitao?.trim().slice(0, 200) || '';
+  const sufixoRecado = recadoCapitao ? ` Recado do capitão: "${recadoCapitao}"` : '';
 
   const { data: confirmacao } = await supabase.from('confirmacoes').select('id, game_id, status, user_id').eq('id', id).single();
   if (!confirmacao) return NextResponse.json({ error: 'Solicitação não encontrada.' }, { status: 404 });
@@ -84,7 +86,7 @@ export async function POST(request, { params }) {
         userId: confirmacao.user_id,
         tipo: 'aprovado_aguardando_confirmacao',
         gameId: confirmacao.game_id,
-        mensagem: `Sua presença em ${game.local} foi aprovada! Confirma sua vaga em até 2h ou ela passa pro próximo do banco.`,
+        mensagem: `Sua presença em ${game.local} foi aprovada! Confirma sua vaga em até 2h ou ela passa pro próximo do banco.${sufixoRecado}`,
       });
       await cancelarConflitosDeHorario(confirmacao.user_id, { id: confirmacao.game_id, ...game });
     } else {
@@ -92,7 +94,7 @@ export async function POST(request, { params }) {
         userId: confirmacao.user_id,
         tipo: 'vaga_liberada_espera',
         gameId: confirmacao.game_id,
-        mensagem: `Você foi aprovado em ${game.local}, mas sem vaga por enquanto — entrou no banco de reservas.`,
+        mensagem: `Você foi aprovado em ${game.local}, mas sem vaga por enquanto — entrou no banco de reservas.${sufixoRecado}`,
       });
     }
   }

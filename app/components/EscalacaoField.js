@@ -1,12 +1,17 @@
 'use client';
-import { aprovadosDe } from '@/lib/gameUtils';
+import { aprovadosDe, POSICAO_ZONA } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 
-const ZONAS = ['atacante', 'meio', 'zagueiro', 'goleiro'];
-const ZONA_LABEL = { atacante: 'Ataque', meio: 'Meio', zagueiro: 'Zaga', goleiro: 'Gol' };
+// Zona ampla de exibição (agrupa as categorias de todas as modalidades em
+// 4 baldes visuais) — "Meio-campo" cai em "meio", qualquer coisa de
+// goleiro cai em "goleiro", etc.
+const ZONAS = ['ataque', 'meio', 'defesa', 'goleiro'];
+const ZONA_LABEL = { ataque: 'Ataque', meio: 'Meio', defesa: 'Zaga', goleiro: 'Gol' };
+const CATEGORIA_PARA_ZONA = { Ataque: 'ataque', 'Meio-campo': 'meio', Defesa: 'defesa', Goleiro: 'goleiro' };
 
-// Representação leve do time em campo, agrupando aprovados por posição.
-// Só estético/identidade — não é um tático de verdade.
+// Representação leve do time em campo, agrupando aprovados pela primeira
+// posição escolhida no perfil (quem tem 2, a escalação usa só a
+// principal). Só estético/identidade — não é um tático de verdade.
 export default function EscalacaoField({ game }) {
   const aprovados = aprovadosDe(game);
   if (aprovados.length === 0) return null;
@@ -14,8 +19,10 @@ export default function EscalacaoField({ game }) {
   const porZona = {};
   const reservas = [];
   for (const c of aprovados) {
-    if (ZONAS.includes(c.posicao)) {
-      (porZona[c.posicao] ||= []).push(c);
+    const posicaoPrincipal = c.posicoes?.[0];
+    const zona = posicaoPrincipal ? CATEGORIA_PARA_ZONA[POSICAO_ZONA[posicaoPrincipal]] : null;
+    if (zona) {
+      (porZona[zona] ||= []).push(c);
     } else {
       reservas.push(c);
     }
