@@ -7,6 +7,7 @@ import { useArenas } from '@/lib/useArenas';
 import { todayISO, aprovadosDe, shareUrl, haversineKm } from '@/lib/gameUtils';
 import { getRadiusPref, saveRadiusPref } from '@/lib/radiusPref';
 import { useJustLotou } from '@/lib/useJustLotou';
+import { ADMIN_USER_ID } from '@/lib/adminConfig';
 import { useAuth } from '../components/AuthProvider';
 import { useToast } from '../components/ToastProvider';
 import GameCard from '../components/GameCard';
@@ -85,7 +86,7 @@ export default function PeladasPage() {
   function handleArenaCreated() {
     setModal(null);
     loadArenas();
-    showToast('Arena cadastrada!');
+    showToast('Arena enviada! Aparece no mapa depois de aprovada.');
   }
 
   function handleConfirmed() {
@@ -159,7 +160,12 @@ export default function PeladasPage() {
       <div className="pl-header">
         <div className="pl-header-row">
           <Link href="/" className="pl-link-muted" style={{ fontSize: 13 }}>← Início</Link>
-          <button className="pl-link-muted" onClick={() => setModal('new-arena')}>Cadastrar arena</button>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+            {user?.id === ADMIN_USER_ID && (
+              <Link href="/admin/arenas" className="pl-link-muted">🔒 Aprovar arenas</Link>
+            )}
+            <button className="pl-link-muted" onClick={() => setModal('new-arena')}>Cadastrar arena</button>
+          </div>
         </div>
       </div>
 
