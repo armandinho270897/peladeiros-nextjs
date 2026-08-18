@@ -780,6 +780,25 @@ body::before {
 .pl-selected-player-chip button:hover { color: var(--tag-red); }
 .pl-inapp-banner button:hover { opacity: 1; }
 
+.pl-install-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card-bg); color: var(--paper); border-bottom: 1px solid var(--neon-dim);
+  font-size: 12px; line-height: 1.4;
+  padding: 8px 14px;
+}
+.pl-install-banner span { flex: 1; }
+.pl-install-banner b { color: var(--neon); }
+.pl-install-banner-btn {
+  background: var(--neon); color: var(--ink); border: none;
+  font-size: 12px; font-weight: 700; padding: 6px 12px;
+  border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap; flex-shrink: 0;
+}
+.pl-install-banner > button[aria-label="Fechar aviso"] {
+  background: none; border: none; color: var(--paper);
+  font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px; opacity: 0.75; flex-shrink: 0;
+}
+.pl-install-banner > button[aria-label="Fechar aviso"]:hover { opacity: 1; }
+
 /* "Sua próxima pelada" — card único de destaque no topo da aba Minhas peladas */
 .pl-next-game-wrap { max-width: 640px; margin: 16px auto 0; padding: 0 16px; }
 .pl-next-game-title {
