@@ -44,7 +44,7 @@ export default function EncerrarPartidaModal({ game, onClose, onEncerrada }) {
             {aprovados.map((c) => (
               <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                 <input type="checkbox" checked={!!presentes[c.id]} onChange={() => toggle(c.id)} style={{ width: 20, height: 20, accentColor: 'var(--neon)' }} />
-                <Avatar nome={c.nome} size={28} />
+                <Avatar nome={c.nome} size={28} fotoUrl={c.foto_url} />
                 <span style={{ fontSize: 14 }}>{c.nome}</span>
               </label>
             ))}

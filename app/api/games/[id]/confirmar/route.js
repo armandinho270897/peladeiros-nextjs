@@ -52,6 +52,7 @@ export async function POST(request, { params }) {
           tipo: 'solicitacao_pendente',
           gameId: id,
           mensagem: `${profile.nome} pediu pra entrar na sua pelada em ${game.local}.`,
+          atorUserId: user.id,
         });
       }
       return NextResponse.json(revivida, { status: 201 });
@@ -79,6 +80,7 @@ export async function POST(request, { params }) {
       tipo: 'solicitacao_pendente',
       gameId: id,
       mensagem: `${profile.nome} pediu pra entrar na sua pelada em ${game.local}.`,
+      atorUserId: user.id,
     });
   }
 

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import BellIcon from './BellIcon';
+import Avatar from './Avatar';
 
 function tempoRelativo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -20,6 +21,7 @@ export default function NotificationBell({ variant = 'header' }) {
   const { user } = useAuth();
   const [supabase] = useState(() => createClient());
   const [notificacoes, setNotificacoes] = useState([]);
+  const [atores, setAtores] = useState({});
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
@@ -32,6 +34,14 @@ export default function NotificationBell({ variant = 'header' }) {
       .order('created_at', { ascending: false })
       .limit(30);
     setNotificacoes(data || []);
+
+    // busca separada (não dá pra embedar via FK — ator_user_id referencia
+    // auth.users, não profiles) só pra quem tem foto/nome pra mostrar.
+    const atorIds = [...new Set((data || []).map((n) => n.ator_user_id).filter(Boolean))];
+    if (atorIds.length > 0) {
+      const { data: perfis } = await supabase.from('profiles').select('id, nome, foto_url').in('id', atorIds);
+      setAtores(Object.fromEntries((perfis || []).map((p) => [p.id, p])));
+    }
   }, [supabase, user]);
 
   useEffect(() => { load(); }, [load]);
@@ -87,10 +97,16 @@ export default function NotificationBell({ variant = 'header' }) {
             <p style={{ padding: '8px 4px', fontSize: 13, color: 'var(--paper-dim)' }}>Nada por aqui ainda.</p>
           ) : (
             notificacoes.map((n) => {
+              const ator = n.ator_user_id ? atores[n.ator_user_id] : null;
               const conteudo = (
                 <div className={`pl-bell-item ${n.lida ? '' : 'unread'}`}>
-                  <p>{n.mensagem}</p>
-                  <span className="pl-bell-time">{tempoRelativo(n.created_at)}</span>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    {ator && <Avatar nome={ator.nome} fotoUrl={ator.foto_url} size={26} />}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p>{n.mensagem}</p>
+                      <span className="pl-bell-time">{tempoRelativo(n.created_at)}</span>
+                    </div>
+                  </div>
                 </div>
               );
               return n.game_id ? (
