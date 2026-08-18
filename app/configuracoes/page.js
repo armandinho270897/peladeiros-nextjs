@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
 import { useToast } from '../components/ToastProvider';
 import TicketButton from '../components/TicketButton';
+import PasswordField from '../components/PasswordField';
 
 const TIPOS = [
   { id: 'solicitacao_pendente', label: 'Alguém pediu pra entrar na sua pelada' },
@@ -103,14 +104,8 @@ export default function ConfiguracoesPage() {
           Entrou por link mágico ou Google? Define uma senha aqui pra poder entrar direto com e-mail e senha da próxima vez.
         </p>
         <form onSubmit={handleSalvarSenha}>
-          <div className="pl-field">
-            <label>Nova senha</label>
-            <input type="password" required minLength={6} value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} placeholder="••••••" />
-          </div>
-          <div className="pl-field">
-            <label>Confirmar senha</label>
-            <input type="password" required minLength={6} value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} placeholder="••••••" />
-          </div>
+          <PasswordField label="Nova senha" required minLength={6} value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} autoComplete="new-password" />
+          <PasswordField label="Confirmar senha" required minLength={6} value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} autoComplete="new-password" />
           {erroSenha && <p className="pl-error">{erroSenha}</p>}
           <TicketButton type="submit" disabled={salvandoSenha}>{salvandoSenha ? 'Salvando...' : 'Definir senha'}</TicketButton>
         </form>

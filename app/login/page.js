@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import TicketButton from '../components/TicketButton';
+import PasswordField from '../components/PasswordField';
 
 // Traduz os erros mais comuns do supabase-js pra mensagem em português —
 // o resto (raro) cai no fallback genérico, mas nunca fica sem feedback.
@@ -21,22 +22,27 @@ function traduzErroSenha(error) {
 // ativas de quem entrou por esses métodos antes continuam valendo; quem
 // precisar logar de novo define uma senha em Perfil > Configurações.
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '/';
   const authError = searchParams.get('authError');
-  const [criandoConta, setCriandoConta] = useState(false);
+  const redefinida = searchParams.get('redefinida');
+  const [modo, setModo] = useState('entrar'); // 'entrar' | 'criar' | 'esqueci'
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
-  const [error, setError] = useState(authError ? 'Sua sessão expirou. Entra de novo abaixo.' : '');
+  const [error, setError] = useState(
+    authError ? 'Sua sessão expirou. Entra de novo abaixo.' : redefinida ? 'Senha redefinida! Entra com a senha nova.' : ''
+  );
+  const [credenciaisInvalidas, setCredenciaisInvalidas] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pedidoEnviado, setPedidoEnviado] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setCredenciaisInvalidas(false);
 
-    if (criandoConta) {
+    if (modo === 'criar') {
       if (senha.length < 6) { setError('A senha precisa ter pelo menos 6 caracteres.'); return; }
       if (senha !== confirmarSenha) { setError('As senhas não são iguais.'); return; }
     }
@@ -44,7 +50,7 @@ function LoginForm() {
     setLoading(true);
     const supabase = createClient();
 
-    if (criandoConta) {
+    if (modo === 'criar') {
       // Sem confirmação por e-mail (desligada no painel do Supabase) — a
       // conta já vem com sessão ativa, sem depender de nenhum envio.
       const { data, error } = await supabase.auth.signUp({ email: email.trim(), password: senha });
@@ -61,15 +67,75 @@ function LoginForm() {
     }
 
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha });
-    if (error) { setLoading(false); setError(traduzErroSenha(error)); return; }
+    if (error) {
+      setLoading(false);
+      setError(traduzErroSenha(error));
+      // A Supabase não distingue "e-mail não existe" de "senha errada" (evita
+      // vazar quais e-mails têm conta) — em vez de adivinhar, oferece o
+      // caminho de criar conta junto do erro, pra quem só ainda não se cadastrou.
+      if ((error.message || '').includes('Invalid login credentials')) setCredenciaisInvalidas(true);
+      return;
+    }
     window.location.href = next;
   }
 
-  function trocarModo(criar) {
-    setCriandoConta(criar);
+  async function handleEsqueciSenha(e) {
+    e.preventDefault();
     setError('');
+    setLoading(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/auth/callback/complete?next=/redefinir-senha`,
+    });
+    setLoading(false);
+    if (error) {
+      setError('Não conseguimos enviar agora. Tenta de novo em alguns minutos.');
+      return;
+    }
+    setPedidoEnviado(true);
+  }
+
+  function trocarModo(novoModo) {
+    setModo(novoModo);
+    setError('');
+    setCredenciaisInvalidas(false);
     setSenha('');
     setConfirmarSenha('');
+    setPedidoEnviado(false);
+  }
+
+  if (modo === 'esqueci') {
+    return (
+      <div className="pl-authpage">
+        <div className="pl-authcard">
+          <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
+          <p className="pl-tagline">Vem pro fut, vem.</p>
+
+          {pedidoEnviado ? (
+            <>
+              <h3 style={{ marginBottom: 6 }}>Verifica seu e-mail</h3>
+              <p className="pl-hint">Se {email.trim()} tiver uma conta, mandamos um link pra redefinir a senha.</p>
+              <TicketButton type="button" style={{ width: '100%', marginTop: 8 }} onClick={() => trocarModo('entrar')}>Voltar pro login</TicketButton>
+            </>
+          ) : (
+            <>
+              <p className="pl-hint">Esqueceu a senha? Manda seu e-mail que a gente envia um link pra redefinir.</p>
+              <form onSubmit={handleEsqueciSenha}>
+                <div className="pl-field">
+                  <label>E-mail</label>
+                  <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" />
+                </div>
+                {error && <p className="pl-error">{error}</p>}
+                <TicketButton type="submit" style={{ width: '100%' }} disabled={loading}>
+                  {loading ? 'Enviando...' : 'Enviar link'}
+                </TicketButton>
+              </form>
+              <button type="button" className="pl-share-btn" style={{ marginTop: 10 }} onClick={() => trocarModo('entrar')}>Voltar pro login</button>
+            </>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -79,29 +145,32 @@ function LoginForm() {
         <p className="pl-tagline">Vem pro fut, vem.</p>
 
         <div className="pl-tabs" style={{ margin: '16px 0', padding: 0, maxWidth: 'none' }}>
-          <button type="button" className={`pl-tab ${!criandoConta ? 'active' : ''}`} onClick={() => trocarModo(false)}>Entrar</button>
-          <button type="button" className={`pl-tab ${criandoConta ? 'active' : ''}`} onClick={() => trocarModo(true)}>Criar conta</button>
+          <button type="button" className={`pl-tab ${modo === 'entrar' ? 'active' : ''}`} onClick={() => trocarModo('entrar')}>Entrar</button>
+          <button type="button" className={`pl-tab ${modo === 'criar' ? 'active' : ''}`} onClick={() => trocarModo('criar')}>Criar conta</button>
         </div>
 
-        <p className="pl-hint">{criandoConta ? 'Cria sua conta com e-mail e senha.' : 'Entra com seu e-mail e senha.'}</p>
+        <p className="pl-hint">{modo === 'criar' ? 'Cria sua conta com e-mail e senha.' : 'Entra com seu e-mail e senha.'}</p>
         <form onSubmit={handleSubmit}>
           <div className="pl-field">
             <label>E-mail</label>
             <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" />
           </div>
-          <div className="pl-field">
-            <label>Senha</label>
-            <input type="password" required minLength={6} value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="••••••" />
-          </div>
-          {criandoConta && (
-            <div className="pl-field">
-              <label>Confirmar senha</label>
-              <input type="password" required minLength={6} value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} placeholder="••••••" />
-            </div>
+          <PasswordField label="Senha" required minLength={6} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete={modo === 'criar' ? 'new-password' : 'current-password'} />
+          {modo === 'criar' && (
+            <PasswordField label="Confirmar senha" required minLength={6} value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} autoComplete="new-password" />
+          )}
+          {modo === 'entrar' && (
+            <button type="button" className="pl-share-btn" style={{ marginTop: -4 }} onClick={() => trocarModo('esqueci')}>Esqueci minha senha</button>
           )}
           {error && <p className="pl-error">{error}</p>}
+          {credenciaisInvalidas && (
+            <p className="pl-hint" style={{ marginTop: -6 }}>
+              Ainda não tem conta?{' '}
+              <button type="button" className="pl-share-btn" style={{ display: 'inline', padding: 0, margin: 0 }} onClick={() => trocarModo('criar')}>Criar conta</button>
+            </p>
+          )}
           <TicketButton type="submit" style={{ width: '100%' }} disabled={loading}>
-            {loading ? (criandoConta ? 'Criando...' : 'Entrando...') : (criandoConta ? 'Criar conta' : 'Entrar')}
+            {loading ? (modo === 'criar' ? 'Criando...' : 'Entrando...') : (modo === 'criar' ? 'Criar conta' : 'Entrar')}
           </TicketButton>
         </form>
       </div>
