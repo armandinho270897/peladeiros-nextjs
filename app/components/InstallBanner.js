@@ -1,20 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { isInstallBannerDismissed, dismissInstallBanner } from '@/lib/installBanner';
-
-function isIOS() {
-  if (typeof navigator === 'undefined') return false;
-  const ua = navigator.userAgent;
-  const iOSDevice = /iPad|iPhone|iPod/.test(ua);
-  // iPadOS 13+ se identifica como Mac no user-agent, mas tem touch — um Mac de verdade não tem.
-  const iPadOS13 = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
-  return iOSDevice || iPadOS13;
-}
-
-function isStandalone() {
-  if (typeof window === 'undefined') return false;
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-}
+import { isInstallBannerDismissed, dismissInstallBanner, useInstallPrompt } from '@/lib/installBanner';
 
 // Banner discreto de instalação — some pra sempre depois de dispensado
 // (localStorage) e nunca aparece se o app já estiver rodando instalado.
@@ -22,41 +8,25 @@ function isStandalone() {
 // instalar); iPhone/Safari não expõe esse evento, então cai em instrução
 // por texto (não tem outro jeito na plataforma).
 export default function InstallBanner() {
-  const [platform, setPlatform] = useState(null); // null | 'android' | 'ios'
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const { platform, install } = useInstallPrompt();
+  const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
-    if (isStandalone() || isInstallBannerDismissed()) return;
-
-    if (isIOS()) {
-      setPlatform('ios');
-      return;
-    }
-
-    function onBeforeInstallPrompt(e) {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setPlatform('android');
-    }
-    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+    setDismissed(isInstallBannerDismissed());
   }, []);
 
   function handleDismiss() {
-    setPlatform(null);
+    setDismissed(true);
     dismissInstallBanner();
   }
 
   async function handleInstall() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
-    setPlatform(null);
+    await install();
     dismissInstallBanner();
+    setDismissed(true);
   }
 
-  if (!platform) return null;
+  if (dismissed || !platform || platform === 'installed') return null;
 
   return (
     <div className="pl-install-banner">
