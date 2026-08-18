@@ -6,6 +6,7 @@ import { useAuth } from '../components/AuthProvider';
 import { useToast } from '../components/ToastProvider';
 import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
+import InstallButton from '../components/InstallButton';
 
 const TIPOS = [
   { id: 'solicitacao_pendente', label: 'Alguém pediu pra entrar na sua pelada' },
@@ -94,6 +95,16 @@ export default function ConfiguracoesPage() {
         <div style={{ marginTop: 18 }}>
           <TicketButton onClick={handleSave} disabled={saving}>{saving ? 'Salvando...' : 'Salvar preferências'}</TicketButton>
         </div>
+      </div>
+
+      <div className="pl-section-title" style={{ maxWidth: 640, margin: '28px auto 0', padding: '0 16px', fontFamily: 'var(--font-display)', color: 'var(--paper)', textTransform: 'uppercase' }}>
+        App
+      </div>
+      <div style={{ maxWidth: 640, margin: '14px auto 0', padding: '0 16px 4px' }}>
+        <p style={{ fontSize: 13, color: 'var(--paper-dim)', marginTop: 0 }}>
+          Instala o Peladeiros no seu celular pra acessar direto da tela inicial.
+        </p>
+        <InstallButton />
       </div>
 
       <div className="pl-section-title" style={{ maxWidth: 640, margin: '28px auto 0', padding: '0 16px', fontFamily: 'var(--font-display)', color: 'var(--paper)', textTransform: 'uppercase' }}>
