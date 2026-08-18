@@ -166,7 +166,7 @@ function LoginForm() {
           {credenciaisInvalidas && (
             <p className="pl-hint" style={{ marginTop: -6 }}>
               Ainda não tem conta?{' '}
-              <button type="button" className="pl-share-btn" style={{ display: 'inline', padding: 0, margin: 0 }} onClick={() => trocarModo('criar')}>Criar conta</button>
+              <button type="button" className="pl-inline-link" onClick={() => trocarModo('criar')}>Criar conta</button>
             </p>
           )}
           <TicketButton type="submit" style={{ width: '100%' }} disabled={loading}>
