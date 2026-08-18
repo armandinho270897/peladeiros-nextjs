@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import BellIcon from './BellIcon';
 import Avatar from './Avatar';
+import BolaParadaIcon from './BolaParadaIcon';
 
 function tempoRelativo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -94,7 +95,10 @@ export default function NotificationBell({ variant = 'header' }) {
         <div className={`pl-bell-panel ${isBottomNav ? 'upward' : ''}`}>
           <div className="pl-bell-panel-title">Notificações</div>
           {notificacoes.length === 0 ? (
-            <p style={{ padding: '8px 4px', fontSize: 13, color: 'var(--paper-dim)' }}>Nada por aqui ainda.</p>
+            <div style={{ padding: '10px 4px', textAlign: 'center' }}>
+              <BolaParadaIcon width={56} />
+              <p style={{ fontSize: 13, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Nada por aqui ainda.</p>
+            </div>
           ) : (
             notificacoes.map((n) => {
               const ator = n.ator_user_id ? atores[n.ator_user_id] : null;

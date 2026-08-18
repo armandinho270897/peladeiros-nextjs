@@ -4,6 +4,7 @@ import Avatar from './Avatar';
 import StarRating from './StarRating';
 import TicketButton from './TicketButton';
 import LoadingBall from './LoadingBall';
+import BolaParadaIcon from './BolaParadaIcon';
 import { useAuth } from './AuthProvider';
 
 export default function AvaliarModal({ game, onClose, onSaved }) {
@@ -72,7 +73,10 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
         {loading ? (
           <LoadingBall />
         ) : avaliaveis.length === 0 && !mostraCapitao && !mostraGeral ? (
-          <p className="pl-hint">Todo mundo já foi avaliado nessa pelada (ou não tinha ninguém pra avaliar).</p>
+          <div style={{ textAlign: 'center', padding: '10px 0' }}>
+            <BolaParadaIcon width={64} />
+            <p className="pl-hint">Todo mundo já foi avaliado nessa pelada (ou não tinha ninguém pra avaliar).</p>
+          </div>
         ) : (
           <form onSubmit={handleSubmit}>
             {avaliaveis.length > 0 && (
