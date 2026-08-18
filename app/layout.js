@@ -1,6 +1,7 @@
 import './globals.css';
 import SplashScreen from './components/SplashScreen';
 import InAppBrowserBanner from './components/InAppBrowserBanner';
+import InstallBanner from './components/InstallBanner';
 import BottomNav from './components/BottomNav';
 import { AuthProvider } from './components/AuthProvider';
 import { ToastProvider } from './components/ToastProvider';
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
       <body>
         <div className="pl-app-border" aria-hidden="true" />
         <InAppBrowserBanner />
+        <InstallBanner />
         <SplashScreen />
         <ToastProvider>
           <AuthProvider>
