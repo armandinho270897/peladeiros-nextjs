@@ -11,7 +11,7 @@ export async function GET() {
 
   const { data: games, error } = await supabase
     .from('games')
-    .select('*, confirmacoes(*)')
+    .select('*, confirmacoes(*), arenas(nome, foto_url)')
     .order('data', { ascending: true })
     .order('horario', { ascending: true });
 

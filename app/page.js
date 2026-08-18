@@ -7,6 +7,7 @@ import { useJustLotou } from '@/lib/useJustLotou';
 import { useAuth } from './components/AuthProvider';
 import { useToast } from './components/ToastProvider';
 import GameCard from './components/GameCard';
+import NextGameHero from './components/NextGameHero';
 import NewGameModal from './components/NewGameModal';
 import ConfirmModal from './components/ConfirmModal';
 import ManageModal from './components/ManageModal';
@@ -126,8 +127,17 @@ export default function Home() {
         </div>
       ) : (
         <>
-          <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontFamily: 'var(--font-display)', color: 'var(--neon)', textTransform: 'uppercase' }}>{tituloSecao}</div>
-          <div className="pl-list">{destaques.map(renderCard)}</div>
+          <NextGameHero
+            game={destaques[0]}
+            currentUserId={user?.id}
+            onConfirm={(game) => setModal({ type: 'confirm', game })}
+          />
+          {destaques.length > 1 && (
+            <>
+              <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontFamily: 'var(--font-display)', color: 'var(--neon)', textTransform: 'uppercase' }}>{tituloSecao}</div>
+              <div className="pl-list">{destaques.slice(1).map(renderCard)}</div>
+            </>
+          )}
         </>
       )}
 
