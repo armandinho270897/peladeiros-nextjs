@@ -16,6 +16,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import ManageModal from '../components/ManageModal';
 import CancelPresencaModal from '../components/CancelPresencaModal';
 import EmptyFieldIcon from '../components/EmptyFieldIcon';
+import TipoJogoIcon from '../components/TipoJogoIcon';
 
 const MapViewPins = dynamic(() => import('../components/MapViewPins'), { ssr: false });
 
@@ -187,8 +188,10 @@ export default function PeladasPage() {
             <button className={`pl-chip ${dataChip === 'hoje' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'hoje' ? '' : 'hoje')}>Hoje</button>
             <button className={`pl-chip ${dataChip === 'amanha' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'amanha' ? '' : 'amanha')}>Amanhã</button>
             <button className={`pl-chip ${raioAtivo ? 'active' : ''}`} onClick={toggleRaio}>📍 Perto</button>
-            <button className={`pl-chip ${tipoChip === 'Futebol de campo' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de campo' ? '' : 'Futebol de campo')}>Futebol</button>
-            <button className={`pl-chip ${tipoChip === 'Futsal' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futsal' ? '' : 'Futsal')}>Futsal</button>
+            <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futebol de campo' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de campo' ? '' : 'Futebol de campo')}><TipoJogoIcon tipo="Futebol de campo" size={14} /> Futebol</button>
+            <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Society' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Society' ? '' : 'Society')}><TipoJogoIcon tipo="Society" size={14} /> Society</button>
+            <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futsal' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futsal' ? '' : 'Futsal')}><TipoJogoIcon tipo="Futsal" size={14} /> Futsal</button>
+            <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futebol de areia' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de areia' ? '' : 'Futebol de areia')}><TipoJogoIcon tipo="Futebol de areia" size={14} /> Areia</button>
             <button className={`pl-chip pl-chip-filtros ${filtrosAbertos ? 'active' : ''}`} onClick={() => setFiltrosAbertos((v) => !v)}>⚙ Filtros</button>
           </div>
           {erroLocalizacao && <div style={{ maxWidth: 640, margin: '4px auto 0', padding: '0 16px', fontSize: 11, color: 'var(--tag-red)' }}>{erroLocalizacao}</div>}
