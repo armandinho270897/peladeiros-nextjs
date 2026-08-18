@@ -1,9 +1,15 @@
+import ConquistaPrimeiraPeladaIcon from './ConquistaPrimeiraPeladaIcon';
+import ConquistaCincoPeladasIcon from './ConquistaCincoPeladasIcon';
+import ConquistaDezPeladasIcon from './ConquistaDezPeladasIcon';
+import ConquistaAvaliacaoCincoIcon from './ConquistaAvaliacaoCincoIcon';
+import ConquistaBraboQueComandaIcon from './ConquistaBraboQueComandaIcon';
+
 const ICONE = {
-  primeira_pelada: '⚽',
-  cinco_peladas: '🔥',
-  dez_peladas: '💪',
-  avaliacao_cinco: '⭐',
-  brabo_que_comanda: '👑',
+  primeira_pelada: ConquistaPrimeiraPeladaIcon,
+  cinco_peladas: ConquistaCincoPeladasIcon,
+  dez_peladas: ConquistaDezPeladasIcon,
+  avaliacao_cinco: ConquistaAvaliacaoCincoIcon,
+  brabo_que_comanda: ConquistaBraboQueComandaIcon,
 };
 
 export default function ConquistasBadges({ conquistas }) {
@@ -11,12 +17,15 @@ export default function ConquistasBadges({ conquistas }) {
 
   return (
     <div className="pl-conquistas">
-      {conquistas.map((c) => (
-        <div key={c.id} className={`pl-conquista ${c.desbloqueada ? 'desbloqueada' : ''}`} title={c.descricao}>
-          <div className="pl-conquista-icone">{ICONE[c.id] || '🏅'}</div>
-          <div className="pl-conquista-titulo">{c.titulo}</div>
-        </div>
-      ))}
+      {conquistas.map((c) => {
+        const Icone = ICONE[c.id];
+        return (
+          <div key={c.id} className={`pl-conquista ${c.desbloqueada ? 'desbloqueada' : ''}`} title={c.descricao}>
+            <div className="pl-conquista-icone">{Icone ? <Icone size={40} /> : '🏅'}</div>
+            <div className="pl-conquista-titulo">{c.titulo}</div>
+          </div>
+        );
+      })}
     </div>
   );
 }

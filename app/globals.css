@@ -585,7 +585,7 @@ body::before {
   filter: grayscale(1);
 }
 .pl-conquista.desbloqueada { opacity: 1; filter: none; border-color: var(--gold); box-shadow: 0 0 10px rgba(255,197,61,0.25); }
-.pl-conquista-icone { font-size: 22px; }
+.pl-conquista-icone { display: flex; justify-content: center; }
 .pl-conquista-titulo { font-size: 10px; color: var(--paper-dim); text-transform: uppercase; margin-top: 4px; }
 .pl-conquista.desbloqueada .pl-conquista-titulo { color: var(--paper); }
 
