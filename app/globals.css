@@ -41,6 +41,7 @@
   --paper-dim: #B7B7AC;
   --tag-red: #E8362B;
   --gold: #FFC53D;
+  --lilas: #B87FE8;
   --concrete: #6E7178;
   --radius-sm: 3px;
   --radius-md: 6px;
@@ -503,6 +504,15 @@ body::before {
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .pl-field textarea { resize: vertical; min-height: 70px; }
+.pl-password-wrap { position: relative; }
+.pl-password-wrap input { padding-right: 40px; }
+.pl-password-toggle {
+  position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+  background: none; border: none; padding: 4px; margin: 0;
+  color: var(--paper-dim); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.pl-password-toggle:hover { color: var(--paper); }
 .pl-field input:focus, .pl-field select:focus, .pl-field textarea:focus,
 .pl-select:focus {
   outline: none;
