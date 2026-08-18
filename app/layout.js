@@ -1,5 +1,6 @@
 import './globals.css';
 import SplashScreen from './components/SplashScreen';
+import OnboardingOverlay from './components/OnboardingOverlay';
 import InAppBrowserBanner from './components/InAppBrowserBanner';
 import InstallBanner from './components/InstallBanner';
 import BottomNav from './components/BottomNav';
@@ -42,6 +43,7 @@ export default function RootLayout({ children }) {
         <InAppBrowserBanner />
         <InstallBanner />
         <SplashScreen />
+        <OnboardingOverlay />
         <ToastProvider>
           <AuthProvider>
             {children}
