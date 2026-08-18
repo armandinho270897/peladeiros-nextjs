@@ -5,6 +5,7 @@ import Avatar from './Avatar';
 import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
 import Confetti from './Confetti';
+import TipoJogoIcon from './TipoJogoIcon';
 
 function ConfirmadoAvatar({ nome, moral, bench, fotoUrl }) {
   return (
@@ -122,7 +123,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
 
       {/* Linha 2 — secundário: tipo de jogo, bairro, distância */}
       <div className="pl-card-line2">
-        {g.tipo && <span className="pl-tipo-tag">{g.tipo}</span>}
+        {g.tipo && <span className="pl-tipo-tag"><TipoJogoIcon tipo={g.tipo} size={13} /> {g.tipo}</span>}
         <span className="pl-bairro-tag">{g.bairro}</span>
         {distanciaKm != null && (
           <span className="pl-distancia">📍 {distanciaKm.toFixed(1).replace('.', ',')} km</span>

@@ -6,6 +6,7 @@ import { useAuth } from './AuthProvider';
 import TicketButton from './TicketButton';
 import PlayerSearch from './PlayerSearch';
 import GameCard from './GameCard';
+import TipoJogoIcon, { TIPOS_JOGO } from './TipoJogoIcon';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 
@@ -196,13 +197,18 @@ export default function NewGameModal({ onCancel, onCreated }) {
           <div>
             <div className="pl-field">
               <label>Tipo de jogo (opcional)</label>
-              <select className="pl-select" style={{ width: '100%' }} value={tipo} onChange={(e) => setTipo(e.target.value)}>
-                <option value="">Não informar</option>
-                <option value="Futebol de campo">Futebol de campo</option>
-                <option value="Society">Society</option>
-                <option value="Futsal">Futsal</option>
-                <option value="Outro">Outro</option>
-              </select>
+              <div className="pl-tipo-jogo-chips">
+                {TIPOS_JOGO.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`pl-chip pl-tipo-jogo-chip ${tipo === t ? 'active' : ''}`}
+                    onClick={() => setTipo(tipo === t ? '' : t)}
+                  >
+                    <TipoJogoIcon tipo={t} size={16} /> {t}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="pl-field">
               <label>Nível (opcional)</label>

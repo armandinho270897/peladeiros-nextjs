@@ -255,6 +255,9 @@ body::before {
 .pl-posicoes-chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .pl-posicoes-chips .pl-chip { padding: 5px 11px; font-size: 12px; }
 
+.pl-tipo-jogo-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.pl-tipo-jogo-chip { display: inline-flex; align-items: center; gap: 5px; }
+
 .pl-filters-panel-outer { max-width: 640px; margin: 10px auto 0; padding: 0 16px; }
 .pl-filters-panel {
   padding: 12px 14px;
@@ -294,6 +297,7 @@ body::before {
 /* Linha 2 — secundário: tipo de jogo, bairro, distância. Sempre cinza. */
 .pl-card-line2 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .pl-bairro-tag, .pl-tipo-tag { font-family: var(--font-tag); font-size: 12px; color: var(--paper-dim); background: rgba(110,113,120,0.25); padding: 1px 8px; border-radius: var(--radius-sm); display: inline-block; }
+.pl-tipo-tag { display: inline-flex; align-items: center; gap: 4px; }
 .pl-distancia { font-size: 12px; color: var(--paper-dim); }
 
 /* Linha 3 — status de participação em destaque, ou o botão de ação */
