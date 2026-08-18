@@ -79,7 +79,7 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 14 }}>
                 {avaliaveis.map((a) => (
                   <div key={a.user_id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <Avatar nome={a.nome} size={32} />
+                    <Avatar nome={a.nome} size={32} fotoUrl={a.foto_url} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.nome}</div>
                       <StarRating value={notas[a.user_id] || 0} onChange={(n) => setNotas((prev) => ({ ...prev, [a.user_id]: n }))} />

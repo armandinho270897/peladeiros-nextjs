@@ -142,7 +142,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
             <div className="pl-pending-title pl-section-title">Solicitações pendentes</div>
             {pendentes.map((p) => (
               <div key={p.id} className="pl-pending-row">
-                <Avatar nome={p.nome} size={30} />
+                <Avatar nome={p.nome} size={30} fotoUrl={p.foto_url} />
                 <div className="pl-pending-info">
                   <div className="pl-pending-nome">{p.nome}</div>
                   <div className="pl-pending-meta">
@@ -175,7 +175,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
             <div className="pl-pending-title pl-section-title">Aguardando confirmação do jogador</div>
             {aguardandoConfirmacao.map((p) => (
               <div key={p.id} className="pl-pending-row">
-                <Avatar nome={p.nome} size={30} />
+                <Avatar nome={p.nome} size={30} fotoUrl={p.foto_url} />
                 <div className="pl-pending-info">
                   <div className="pl-pending-nome">{p.nome}</div>
                   <div className="pl-pending-meta">

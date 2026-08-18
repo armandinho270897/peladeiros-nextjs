@@ -111,8 +111,8 @@ export default function EditProfileModal({ onClose, onSaved }) {
             <div className="pl-field">
               <label>Posições (escolha 1 ou 2)</label>
               {POSICOES_POR_MODALIDADE[modalidade].map(({ categoria, opcoes }) => (
-                <div key={categoria} className="pl-posicoes-categoria">
-                  <span className="pl-posicoes-categoria-label">{categoria}</span>
+                <div key={categoria || 'sem-categoria'} className="pl-posicoes-categoria">
+                  {categoria && <span className="pl-posicoes-categoria-label">{categoria}</span>}
                   <div className="pl-posicoes-chips">
                     {opcoes.map((slug) => {
                       const selecionada = posicoes.includes(slug);

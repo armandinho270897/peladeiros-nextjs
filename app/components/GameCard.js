@@ -6,10 +6,10 @@ import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
 import Confetti from './Confetti';
 
-function ConfirmadoAvatar({ nome, moral, bench }) {
+function ConfirmadoAvatar({ nome, moral, bench, fotoUrl }) {
   return (
     <div style={{ position: 'relative' }} className={bench ? 'pl-bench-avatar' : ''}>
-      <Avatar nome={nome} size={24} />
+      <Avatar nome={nome} size={24} fotoUrl={fotoUrl} />
       {moral != null && (
         <div
           style={{
@@ -164,7 +164,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         {confirmados.length > 0 && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {confirmados.slice(0, 6).map((c) => (
-              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} />
+              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} fotoUrl={c.foto_url} />
             ))}
             {confirmados.length > 6 && (
               <div style={{ fontSize: 11, color: 'var(--paper-dim)', alignSelf: 'center' }}>+{confirmados.length - 6}</div>
@@ -175,7 +175,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
           <div className="pl-bench">
             <span className="pl-bench-label">Banco:</span>
             {espera.slice(0, 6).map((c) => (
-              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} bench />
+              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} fotoUrl={c.foto_url} bench />
             ))}
             {espera.length > 6 && <span style={{ fontSize: 11, color: 'var(--concrete)' }}>+{espera.length - 6}</span>}
           </div>

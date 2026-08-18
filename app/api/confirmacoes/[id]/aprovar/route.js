@@ -55,7 +55,7 @@ export async function POST(request, { params }) {
   if (!confirmacao) return NextResponse.json({ error: 'Solicitação não encontrada.' }, { status: 404 });
   if (confirmacao.status !== 'pendente') return NextResponse.json({ error: 'Essa solicitação já foi respondida.' }, { status: 409 });
 
-  const { data: game } = await supabase.from('games').select('vagas_totais, local, data, horario').eq('id', confirmacao.game_id).single();
+  const { data: game } = await supabase.from('games').select('vagas_totais, local, data, horario, owner_id').eq('id', confirmacao.game_id).single();
   if (!game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
 
   const auth = await authorizeGameOwner(confirmacao.game_id, codigo);
@@ -87,6 +87,7 @@ export async function POST(request, { params }) {
         tipo: 'aprovado_aguardando_confirmacao',
         gameId: confirmacao.game_id,
         mensagem: `Sua presença em ${game.local} foi aprovada! Confirma sua vaga em até 2h ou ela passa pro próximo do banco.${sufixoRecado}`,
+        atorUserId: game.owner_id,
       });
       await cancelarConflitosDeHorario(confirmacao.user_id, { id: confirmacao.game_id, ...game });
     } else {
@@ -95,6 +96,7 @@ export async function POST(request, { params }) {
         tipo: 'vaga_liberada_espera',
         gameId: confirmacao.game_id,
         mensagem: `Você foi aprovado em ${game.local}, mas sem vaga por enquanto — entrou no banco de reservas.${sufixoRecado}`,
+        atorUserId: game.owner_id,
       });
     }
   }

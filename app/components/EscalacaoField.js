@@ -36,7 +36,7 @@ export default function EscalacaoField({ game }) {
           <div key={zona} className="pl-field-zone">
             {(porZona[zona] || []).map((c) => (
               <div key={c.id} className="pl-field-player">
-                <Avatar nome={c.nome} size={28} />
+                <Avatar nome={c.nome} size={28} fotoUrl={c.foto_url} />
               </div>
             ))}
             {(porZona[zona] || []).length === 0 && (
@@ -48,7 +48,7 @@ export default function EscalacaoField({ game }) {
       {reservas.length > 0 && (
         <div className="pl-field-reservas">
           <span className="pl-field-reservas-label">Reservas:</span>
-          {reservas.map((c) => <Avatar key={c.id} nome={c.nome} size={24} />)}
+          {reservas.map((c) => <Avatar key={c.id} nome={c.nome} size={24} fotoUrl={c.foto_url} />)}
         </div>
       )}
     </div>

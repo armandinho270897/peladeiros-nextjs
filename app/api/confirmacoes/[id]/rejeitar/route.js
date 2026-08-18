@@ -21,7 +21,7 @@ export async function POST(request, { params }) {
   const auth = await authorizeGameOwner(confirmacao.game_id, codigo);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { data: game } = await supabase.from('games').select('local').eq('id', confirmacao.game_id).single();
+  const { data: game } = await supabase.from('games').select('local, owner_id').eq('id', confirmacao.game_id).single();
 
   const { data: atualizada, error } = await supabase
     .from('confirmacoes')
@@ -38,6 +38,7 @@ export async function POST(request, { params }) {
       tipo: 'solicitacao_rejeitada',
       gameId: confirmacao.game_id,
       mensagem: `Sua solicitação em ${game?.local || 'uma pelada'} não foi aprovada dessa vez.${sufixoRecado}`,
+      atorUserId: game?.owner_id,
     });
   }
 
