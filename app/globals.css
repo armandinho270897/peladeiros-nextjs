@@ -178,19 +178,22 @@ body::before {
   .pl-header-bell { display: none; }
 }
 
-/* Ação secundária discreta — texto pequeno, cinza, sem o peso do botão neon */
+/* Ação secundária discreta — texto pequeno, cinza, mas com a mesma borda
+   em degradê das outras ações secundárias (ver .pl-btn-secondary etc). */
 .pl-link-muted {
   color: var(--paper-dim);
   font-size: 12px;
   background: none;
-  border: none;
+  border: 1px solid;
+  border-image: linear-gradient(90deg, var(--neon), var(--lilas)) 1;
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-underline-offset: 3px;
-  padding: 0;
+  text-decoration: none;
+  padding: 5px 10px;
+  display: inline-block;
+  transition: transform 150ms ease, opacity 150ms ease;
 }
 .pl-link-muted:hover { color: var(--paper); }
+.pl-link-muted:active { transform: scale(0.96); }
 
 /* Boas-vindas da página: tagline + ações principais (Criar pelada,
    Cadastrar arena), agora fora do header fixo */

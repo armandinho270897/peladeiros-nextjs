@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
+import { createRecoveryClient } from '@/lib/supabase-recovery';
 import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
 
@@ -83,13 +84,12 @@ function LoginForm() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const supabase = createClient();
-    // Vai por /auth/callback (não direto pra /auth/callback/complete) — o
-    // createBrowserClient usa PKCE por padrão, então esse link chega com
-    // ?code= na query, não #access_token= no fragmento. Só /auth/callback
-    // trata os dois casos (troca o code por sessão, ou cai no fallback de
-    // fragmento se não tiver code nem token_hash); a página /complete só
-    // sabe ler fragmento, por isso um link PKCE sempre dava "expirado" nela.
+    // Cliente à parte (flowType implicit, ver lib/supabase-recovery.js) —
+    // PKCE guarda a code_verifier só no navegador que pediu a redefinição,
+    // então o link falha se aberto em outro navegador/aparelho (comum:
+    // navegador embutido do Instagram, outro celular). Implicit entrega a
+    // sessão dentro do próprio link, funciona em qualquer lugar que abrir.
+    const supabase = createRecoveryClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/auth/callback?next=/redefinir-senha`,
     });
