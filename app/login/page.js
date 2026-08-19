@@ -84,8 +84,14 @@ function LoginForm() {
     setError('');
     setLoading(true);
     const supabase = createClient();
+    // Vai por /auth/callback (não direto pra /auth/callback/complete) — o
+    // createBrowserClient usa PKCE por padrão, então esse link chega com
+    // ?code= na query, não #access_token= no fragmento. Só /auth/callback
+    // trata os dois casos (troca o code por sessão, ou cai no fallback de
+    // fragmento se não tiver code nem token_hash); a página /complete só
+    // sabe ler fragmento, por isso um link PKCE sempre dava "expirado" nela.
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/auth/callback/complete?next=/redefinir-senha`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/redefinir-senha`,
     });
     setLoading(false);
     if (error) {

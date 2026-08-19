@@ -148,7 +148,18 @@ body::before {
 .pl-brand { display: flex; align-items: center; gap: 12px; }
 .pl-brand-text { font-family: var(--font-display); font-size: 22px; text-transform: uppercase; }
 .pl-brand-text span { color: var(--neon); }
-.pl-tagline { font-family: var(--font-tag); color: var(--paper-dim); font-size: 11px; opacity: 0.8; margin: 0; }
+.pl-tagline {
+  font-family: var(--font-tag);
+  font-size: 11px;
+  opacity: 0.8;
+  margin: 0;
+  display: inline-block;
+  background: linear-gradient(90deg, var(--neon), var(--lilas));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
 
 /* Linha única do header: marca + acesso ao perfil (sino + avatar) */
 .pl-header-row {
@@ -211,22 +222,9 @@ body::before {
 }
 .pl-hero-count { font-size: 12px; color: var(--paper-dim); white-space: nowrap; }
 
-/* Link de navegação da Início pra /peladas — é a ação principal da tela
-   (só ela leva pra frente), por isso neon mesmo sendo texto, não botão. */
+/* Link de navegação da Início pra /peladas — visual de ação secundária
+   (borda em degradê, ver regra .pl-btn-secondary/.pl-share-btn/etc mais abaixo). */
 .pl-see-all-wrap { max-width: 640px; margin: 22px auto 32px; padding: 0 16px; text-align: center; }
-.pl-see-all-link {
-  display: inline-block;
-  color: var(--neon);
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  font-size: 14px;
-  text-decoration: none;
-  background-image: var(--pl-underline);
-  background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: 100% 9px;
-  padding: 4px 4px 10px;
-}
 
 .pl-toolbar { display: flex; gap: 10px; max-width: 640px; margin: 12px auto 0; padding: 0 16px; align-items: center; flex-wrap: wrap; }
 .pl-select { background: var(--card-bg); border: 1.5px solid rgba(110,113,120,0.5); color: var(--paper); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 13px; transition: border-color 150ms ease, box-shadow 150ms ease; }
@@ -402,7 +400,7 @@ body::before {
 
 /* Ações secundárias: borda fina em degradê neon→lilás, fundo transparente —
    preserva a hierarquia (o botão primário sólido continua sendo "a" ação). */
-.pl-btn-secondary, .pl-share-btn, .pl-edit-link, .pl-edit-link-inline {
+.pl-btn-secondary, .pl-share-btn, .pl-edit-link, .pl-edit-link-inline, .pl-see-all-link {
   color: var(--neon);
   font-family: var(--font-display);
   text-transform: uppercase;
@@ -413,7 +411,7 @@ body::before {
   text-decoration: none;
   transition: transform 150ms ease, opacity 150ms ease;
 }
-.pl-btn-secondary:active, .pl-share-btn:active, .pl-edit-link:active, .pl-edit-link-inline:active { transform: scale(0.96); }
+.pl-btn-secondary:active, .pl-share-btn:active, .pl-edit-link:active, .pl-edit-link-inline:active, .pl-see-all-link:active { transform: scale(0.96); }
 .pl-btn-secondary:disabled { opacity: 0.6; cursor: default; transform: none; }
 
 .pl-btn-secondary { flex: 1; padding: 10px 8px; font-size: 14px; text-align: center; }
@@ -421,6 +419,7 @@ body::before {
 .pl-share-btn { display: inline-block; margin-top: 10px; padding: 5px 10px; font-size: 11px; text-align: left; }
 .pl-edit-link { position: absolute; top: 10px; right: 12px; padding: 3px 8px; font-size: 11px; }
 .pl-edit-link-inline { padding: 2px 7px; font-size: 10px; white-space: nowrap; }
+.pl-see-all-link { display: inline-block; font-size: 14px; padding: 8px 16px; }
 
 /* Link inline simples (dentro de frase) — sem borda, sem virar botão-caixa. */
 .pl-inline-link {
