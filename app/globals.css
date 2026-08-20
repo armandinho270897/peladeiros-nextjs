@@ -279,9 +279,18 @@ body::before {
   flex-direction: column;
   gap: 6px;
   position: relative;
+  overflow: hidden;
+  isolation: isolate;
   transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
 }
 .pl-card:hover { transform: translateY(-2px); border-color: var(--neon); box-shadow: 0 6px 24px rgba(166,255,0,0.14); }
+
+/* Ilustração de fundo do card — uma por pelada (sorteada de forma
+   determinística pelo id, ver CardIllustration.js), só decoração. z-index
+   negativo + isolation:isolate no .pl-card garante que ela sempre pinta
+   atrás do texto (que não é posicionado), sem precisar tocar em mais nada —
+   inclusive o .pl-stamp de "Lotado", que continua por cima normalmente. */
+.pl-card-illustration { position: absolute; top: 0; right: 0; bottom: 0; pointer-events: none; z-index: -1; }
 
 /* Linha 1 — o essencial, tudo junto e em alto contraste: local, dia/hora,
    vagas. É a única linha que compete visualmente com o card inteiro. */
@@ -403,7 +412,7 @@ body::before {
 
 /* Ações secundárias: borda fina em degradê neon→lilás, fundo transparente —
    preserva a hierarquia (o botão primário sólido continua sendo "a" ação). */
-.pl-btn-secondary, .pl-share-btn, .pl-edit-link, .pl-edit-link-inline, .pl-see-all-link {
+.pl-btn-secondary, .pl-share-btn, .pl-edit-link, .pl-edit-link-inline, .pl-see-all-link, .pl-back-link {
   color: var(--neon);
   font-family: var(--font-display);
   text-transform: uppercase;
@@ -412,10 +421,22 @@ body::before {
   border: 1px solid;
   border-image: linear-gradient(90deg, var(--neon), var(--lilas)) 1;
   text-decoration: none;
-  transition: transform 150ms ease, opacity 150ms ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  transition: transform 150ms ease, opacity 150ms ease, box-shadow 150ms ease;
 }
-.pl-btn-secondary:active, .pl-share-btn:active, .pl-edit-link:active, .pl-edit-link-inline:active, .pl-see-all-link:active { transform: scale(0.96); }
-.pl-btn-secondary:disabled { opacity: 0.6; cursor: default; transform: none; }
+/* Levitação sutil — só em aparelhos com hover de verdade, pra não travar
+   o estado de "hover" depois de um toque em touchscreen. */
+@media (hover: hover) {
+  .pl-btn-secondary:hover, .pl-share-btn:hover, .pl-edit-link:hover, .pl-edit-link-inline:hover, .pl-see-all-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+  }
+}
+.pl-btn-secondary:active, .pl-share-btn:active, .pl-edit-link:active, .pl-edit-link-inline:active, .pl-see-all-link:active {
+  transform: scale(0.96) translateY(1px);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.pl-btn-secondary:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
 
 .pl-btn-secondary { flex: 1; padding: 10px 8px; font-size: 14px; text-align: center; }
 .pl-btn-danger { color: var(--tag-red); border: none; text-decoration: underline; text-decoration-style: wavy; text-underline-offset: 3px; }
@@ -423,6 +444,7 @@ body::before {
 .pl-edit-link { position: absolute; top: 10px; right: 12px; padding: 3px 8px; font-size: 11px; }
 .pl-edit-link-inline { padding: 2px 7px; font-size: 10px; white-space: nowrap; }
 .pl-see-all-link { display: inline-block; font-size: 14px; padding: 8px 16px; }
+.pl-back-link { display: inline-flex; align-items: center; font-size: 13px; padding: 5px 10px; }
 
 /* Link inline simples (dentro de frase) — sem borda, sem virar botão-caixa. */
 .pl-inline-link {

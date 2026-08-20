@@ -13,6 +13,7 @@ import CancelPresencaModal from '../../components/CancelPresencaModal';
 import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
 import EscalacaoField from '../../components/EscalacaoField';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
+import BackLink from '../../components/BackLink';
 
 // Só quem pode editar a pelada (capitão) vê o botão, e só depois que o
 // horário já passou e ela ainda não foi encerrada.
@@ -94,7 +95,7 @@ export default function PeladaClient({ id }) {
   return (
     <div>
       <div className="pl-header">
-        <Link href="/" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Todas as peladas</Link>
+        <BackLink href="/">Todas as peladas</BackLink>
         <div className="pl-brand" style={{ marginTop: 10 }}><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
       </div>
 

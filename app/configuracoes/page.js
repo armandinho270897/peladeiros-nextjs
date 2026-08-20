@@ -1,12 +1,12 @@
 'use client';
 import { useState } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
 import { useToast } from '../components/ToastProvider';
 import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
 import InstallButton from '../components/InstallButton';
+import BackLink from '../components/BackLink';
 
 const TIPOS = [
   { id: 'solicitacao_pendente', label: 'Alguém pediu pra entrar na sua pelada' },
@@ -32,7 +32,7 @@ export default function ConfiguracoesPage() {
   if (authLoading || !profile) {
     return (
       <div>
-        <div className="pl-header"><Link href="/perfil" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link></div>
+        <div className="pl-header"><BackLink href="/perfil" /></div>
         <div className="pl-list" style={{ paddingTop: 14 }}><div className="pl-skeleton" style={{ height: 200 }} /></div>
       </div>
     );
@@ -74,7 +74,7 @@ export default function ConfiguracoesPage() {
   return (
     <div>
       <div className="pl-header">
-        <Link href="/perfil" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link>
+        <BackLink href="/perfil" />
       </div>
 
       <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontFamily: 'var(--font-display)', color: 'var(--paper)', textTransform: 'uppercase' }}>

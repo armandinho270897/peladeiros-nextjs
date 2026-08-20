@@ -6,6 +6,7 @@ import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
 import Confetti from './Confetti';
 import TipoJogoIcon from './TipoJogoIcon';
+import CardIllustration from './CardIllustration';
 
 function ConfirmadoAvatar({ nome, moral, bench, fotoUrl }) {
   return (
@@ -100,6 +101,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
 
   return (
     <div className="pl-card">
+      <CardIllustration gameId={g.id} />
       {justLotou && <Confetti />}
       {lotado && <div className="pl-stamp">Lotado</div>}
 
