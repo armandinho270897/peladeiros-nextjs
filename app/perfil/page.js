@@ -71,6 +71,7 @@ export default function PerfilPage() {
           )}
           <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
             <button className="pl-share-btn" onClick={() => setEditOpen(true)}>Editar perfil</button>
+            <Link href="/times" className="pl-share-btn" style={{ textDecoration: 'none' }}>Meus times</Link>
             <Link href="/configuracoes" className="pl-share-btn" style={{ textDecoration: 'none' }}>Notificações</Link>
             <button className="pl-share-btn" onClick={signOut}>Sair</button>
           </div>
@@ -100,6 +101,25 @@ export default function PerfilPage() {
 
       <div className="pl-section-title" style={{ maxWidth: 640, margin: '0 auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Conquistas</div>
       <ConquistasBadges conquistas={conquistas} />
+
+      <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Times</div>
+      {data.times?.length > 0 ? (
+        <div className="pl-list" style={{ paddingBottom: 8 }}>
+          {data.times.map((t) => (
+            <Link key={t.id} href={`/time/${t.id}`} className="pl-card" style={{ textDecoration: 'none' }}>
+              <Avatar nome={t.nome} size={44} fotoUrl={t.escudo_url} />
+              <div className="pl-info">
+                <h3>{t.nome}</h3>
+                <p className="meta">{t.papel === 'capitao' ? 'Capitão' : 'Membro'}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="meta" style={{ maxWidth: 640, margin: '0 auto', padding: '0 16px' }}>
+          Você ainda não faz parte de nenhum time. <Link href="/times" style={{ color: 'var(--neon)' }}>Criar ou entrar num time</Link>.
+        </p>
+      )}
 
       <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Histórico de peladas</div>
 

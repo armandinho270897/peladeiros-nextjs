@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useArenas } from '@/lib/useArenas';
 import { useAuth } from './AuthProvider';
@@ -60,6 +60,12 @@ export default function NewGameModal({ onCancel, onCreated }) {
   const [valor, setValor] = useState('');
   const [regras, setRegras] = useState('');
   const [jogadores, setJogadores] = useState([]);
+  const [meusTimesCapitao, setMeusTimesCapitao] = useState([]);
+  const [timeVinculado, setTimeVinculado] = useState('');
+
+  useEffect(() => {
+    fetch('/api/times?papel=capitao').then((r) => r.json()).then((t) => setMeusTimesCapitao(Array.isArray(t) ? t : [])).catch(() => {});
+  }, []);
 
   // convidados sem conta têm id: null — usa uma key própria por entrada pra
   // não colidir entre vários convidados (senão remover/deduplicar por id
@@ -119,8 +125,21 @@ export default function NewGameModal({ onCancel, onCreated }) {
     };
     const res = await fetch('/api/games', { method: 'POST', body: JSON.stringify(body) });
     const result = await res.json();
+    if (!res.ok) { setSubmitting(false); setError(result.error); return; }
+
+    if (timeVinculado) {
+      try {
+        await fetch(`/api/games/${result.id}/vincular-time`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ timeId: timeVinculado }),
+        });
+      } catch {
+        // pelada já foi criada com sucesso — vincular time é um extra, não bloqueia
+      }
+    }
+
     setSubmitting(false);
-    if (!res.ok) { setError(result.error); return; }
     setError('');
     onCreated(result);
   }
@@ -228,6 +247,20 @@ export default function NewGameModal({ onCancel, onCreated }) {
 
         {step === 3 && (
           <div>
+            {meusTimesCapitao.length > 0 && (
+              <div className="pl-field">
+                <label>Vincular um time (opcional)</label>
+                <select className="pl-select" style={{ width: '100%' }} value={timeVinculado} onChange={(e) => setTimeVinculado(e.target.value)}>
+                  <option value="">Nenhum</option>
+                  {meusTimesCapitao.map((t) => <option key={t.id} value={t.id}>{t.nome}</option>)}
+                </select>
+                {timeVinculado && (
+                  <p style={{ fontSize: 11, color: 'var(--paper-dim)', marginTop: 4 }}>
+                    Todos os membros aprovados do time entram como solicitação pendente assim que a pelada for publicada.
+                  </p>
+                )}
+              </div>
+            )}
             <div className="pl-field">
               <label>Quem já vai jogar (opcional)</label>
               <PlayerSearch onSelect={addJogador} excludeIds={jogadores.map((j) => j.id)} />

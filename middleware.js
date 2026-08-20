@@ -5,6 +5,7 @@ function isPublicPath(pathname) {
   if (pathname === '/login') return true;
   if (pathname.startsWith('/auth/')) return true;
   if (pathname.startsWith('/pelada/')) return true;
+  if (pathname.startsWith('/time/')) return true;
   return false;
 }
 
