@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import Avatar from '../../components/Avatar';
 import CaptainIcon from '../../components/CaptainIcon';
 import PlayerSearch from '../../components/PlayerSearch';
+import BackLink from '../../components/BackLink';
 import { useToast } from '../../components/ToastProvider';
 import { MODALIDADE_LABEL, POSICAO_LABEL } from '@/lib/gameUtils';
 
@@ -38,7 +38,7 @@ export default function TimeClient({ id }) {
   if (loading) {
     return (
       <div>
-        <div className="pl-header"><Link href="/times" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link></div>
+        <div className="pl-header"><BackLink href="/times" /></div>
         <div className="pl-perfil-header">
           <div className="pl-skeleton" style={{ width: 80, height: 80, borderRadius: '50%' }} />
           <div style={{ flex: 1 }}><div className="pl-skeleton" style={{ width: '60%', height: 22 }} /></div>
@@ -50,7 +50,7 @@ export default function TimeClient({ id }) {
   if (!data) {
     return (
       <div>
-        <div className="pl-header"><Link href="/times" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link></div>
+        <div className="pl-header"><BackLink href="/times" /></div>
         <div className="pl-empty"><p>Time não encontrado.</p></div>
       </div>
     );
@@ -62,7 +62,7 @@ export default function TimeClient({ id }) {
   return (
     <div>
       <div className="pl-header">
-        <Link href="/times" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link>
+        <BackLink href="/times" />
       </div>
 
       <div className="pl-perfil-header">

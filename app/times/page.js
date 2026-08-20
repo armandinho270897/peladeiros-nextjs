@@ -8,6 +8,7 @@ import Avatar from '../components/Avatar';
 import EmptyFieldIcon from '../components/EmptyFieldIcon';
 import TicketButton from '../components/TicketButton';
 import NewTimeModal from '../components/NewTimeModal';
+import BackLink from '../components/BackLink';
 import { MODALIDADE_LABEL } from '@/lib/gameUtils';
 
 export default function TimesPage() {
@@ -43,7 +44,7 @@ export default function TimesPage() {
   return (
     <div>
       <div className="pl-header">
-        <Link href="/perfil" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link>
+        <BackLink href="/perfil" />
       </div>
 
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 16px' }}>

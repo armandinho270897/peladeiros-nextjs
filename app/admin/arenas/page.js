@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { ADMIN_USER_ID } from '@/lib/adminConfig';
 import { useAuth } from '../../components/AuthProvider';
 import { useToast } from '../../components/ToastProvider';
 import TicketButton from '../../components/TicketButton';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
+import BackLink from '../../components/BackLink';
 
 const ArenaMiniMap = dynamic(() => import('../../components/ArenaMiniMap'), { ssr: false });
 
@@ -45,7 +45,7 @@ export default function AprovarArenasPage() {
   if (authLoading) {
     return (
       <div>
-        <div className="pl-header"><Link href="/peladas" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link></div>
+        <div className="pl-header"><BackLink href="/peladas" /></div>
         <div className="pl-list" style={{ paddingTop: 14 }}><div className="pl-skeleton" style={{ height: 200 }} /></div>
       </div>
     );
@@ -54,7 +54,7 @@ export default function AprovarArenasPage() {
   if (user?.id !== ADMIN_USER_ID) {
     return (
       <div>
-        <div className="pl-header"><Link href="/peladas" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link></div>
+        <div className="pl-header"><BackLink href="/peladas" /></div>
         <div className="pl-empty">
           <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>Sem permissão</h3>
           <p>Essa página é só pra administração do app.</p>
