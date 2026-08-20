@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-server';
 
 export async function GET(request) {
@@ -36,6 +37,7 @@ export async function GET(request) {
     // em vez de falhar em silêncio — foi exatamente essa falta de sinal que
     // escondeu a causa do bug anterior.
     console.error('[auth/callback] falha ao trocar código/token por sessão:', lastError?.message || lastError);
+    Sentry.captureException(lastError instanceof Error ? lastError : new Error(String(lastError?.message || lastError || 'falha desconhecida no auth/callback')));
     const reason = lastError?.message ? encodeURIComponent(lastError.message) : 'unknown';
     return NextResponse.redirect(`${origin}/login?authError=${reason}`);
   }

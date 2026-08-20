@@ -3,6 +3,7 @@ import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
+import { errJson } from '@/lib/apiError';
 
 export async function POST(request, { params }) {
   if (!checkRateLimit(`time-membros:recusar:${getClientIp(request)}`)) {
@@ -20,7 +21,7 @@ export async function POST(request, { params }) {
   if (convite.status !== 'pendente') return NextResponse.json({ error: 'Esse convite já foi respondido.' }, { status: 409 });
 
   const { data: atualizado, error } = await supabase.from('time_membros').update({ status: 'rejeitado' }).eq('id', id).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   const { data: time } = await supabase.from('times').select('nome').eq('id', convite.time_id).single();
   const { data: profile } = await supabase.from('profiles').select('nome').eq('id', user.id).maybeSingle();

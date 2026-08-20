@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { authorizeTimeCaptain } from '@/lib/timeAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
+import { errJson } from '@/lib/apiError';
 
 export async function POST(request, { params }) {
   if (!checkRateLimit(`times:convidar:${getClientIp(request)}`)) {
@@ -44,7 +45,7 @@ export async function POST(request, { params }) {
       .single());
   }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   await createNotification({
     userId,

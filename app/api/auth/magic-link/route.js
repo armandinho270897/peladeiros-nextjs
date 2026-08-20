@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { errJson } from '@/lib/apiError';
 
 // Login via API HTTP do Resend em vez do e-mail nativo do Supabase — o
 // plano gratuito do Supabase trava em 2 e-mails/hora, o que impedia gente
@@ -26,7 +27,7 @@ export async function POST(request) {
   }
 
   if (!process.env.RESEND_API_KEY) {
-    return NextResponse.json({ error: 'Login por e-mail não está configurado no servidor (falta RESEND_API_KEY).' }, { status: 500 });
+    return errJson('Login por e-mail não está configurado no servidor (falta RESEND_API_KEY).', 500);
   }
 
   const origin = request.headers.get('origin') || new URL(request.url).origin;
@@ -39,12 +40,12 @@ export async function POST(request) {
   });
 
   if (error) {
-    return NextResponse.json({ error: error.message || 'Não consegui gerar o link de login.' }, { status: 500 });
+    return errJson(error.message || 'Não consegui gerar o link de login.', 500);
   }
 
   const actionLink = data?.properties?.action_link;
   if (!actionLink) {
-    return NextResponse.json({ error: 'O link de login não foi gerado. Tenta de novo.' }, { status: 500 });
+    return errJson('O link de login não foi gerado. Tenta de novo.', 500);
   }
 
   const from = process.env.RESEND_FROM_EMAIL || 'Peladeiros <onboarding@resend.dev>';
@@ -77,7 +78,7 @@ export async function POST(request) {
 
   if (!resendRes.ok) {
     const body = await resendRes.json().catch(() => ({}));
-    return NextResponse.json({ error: body.message || 'Não consegui enviar o e-mail. Tenta de novo em alguns minutos.' }, { status: 502 });
+    return errJson(body.message || 'Não consegui enviar o e-mail. Tenta de novo em alguns minutos.', 502);
   }
 
   return NextResponse.json({ ok: true });

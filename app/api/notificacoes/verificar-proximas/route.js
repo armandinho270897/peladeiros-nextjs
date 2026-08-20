@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { errJson } from '@/lib/apiError';
 
 const JANELA_MS = 3 * 60 * 60 * 1000; // "em breve" = começa dentro de 3h
 
@@ -48,7 +49,7 @@ export async function POST() {
     .upsert(rows, { onConflict: 'user_id,game_id', ignoreDuplicates: true })
     .select();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   return NextResponse.json({ ok: true, criadas: inseridas?.length || 0 });
 }

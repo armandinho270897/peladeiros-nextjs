@@ -1,7 +1,9 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { errJson } from '@/lib/apiError';
 
 export async function GET(request) {
   const authClient = createServerClient();
@@ -18,7 +20,7 @@ export async function GET(request) {
   if (papel) query = query.eq('papel', papel);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   const times = (data || []).map((m) => ({ ...m.times, papel: m.papel }));
   return NextResponse.json(times);
@@ -50,13 +52,13 @@ export async function POST(request) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   const { error: membroError } = await supabase
     .from('time_membros')
     .insert({ time_id: time.id, user_id: user.id, papel: 'capitao', status: 'aprovado' });
 
-  if (membroError) return NextResponse.json({ error: membroError.message }, { status: 500 });
+  if (membroError) return errJson(membroError.message, 500);
 
   if (escudo && typeof escudo === 'object' && escudo.size > 0) {
     const ext = escudo.name?.split('.').pop() || 'jpg';
@@ -66,10 +68,13 @@ export async function POST(request) {
       upsert: true,
       contentType: escudo.type || 'image/jpeg',
     });
-    if (!uploadError) {
+    if (uploadError) {
+      Sentry.captureException(new Error(uploadError.message));
+    } else {
       const { data: urlData } = supabase.storage.from('times-escudos').getPublicUrl(path);
       const escudoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      await supabase.from('times').update({ escudo_url: escudoUrl }).eq('id', time.id);
+      const { error: updateError } = await supabase.from('times').update({ escudo_url: escudoUrl }).eq('id', time.id);
+      if (updateError) Sentry.captureException(new Error(updateError.message));
       time.escudo_url = escudoUrl;
     }
   }

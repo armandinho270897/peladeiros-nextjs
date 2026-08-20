@@ -2,6 +2,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 import LoadingBall from '../../../components/LoadingBall';
 
@@ -26,6 +27,7 @@ function CompleteInner() {
     supabase.auth.setSession({ access_token, refresh_token }).then(({ error }) => {
       if (error) {
         console.error('[auth/callback/complete] setSession falhou:', error.message);
+        Sentry.captureException(new Error(`auth/callback/complete setSession falhou: ${error.message}`));
         setError(true);
         return;
       }

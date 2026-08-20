@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { authorizeGameOwner } from '@/lib/gameAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { errJson } from '@/lib/apiError';
 
 // Encerramento formal: o capitão marca quem não compareceu entre os
 // aprovados (todo mundo começa presente por padrão — só desmarca a
@@ -34,14 +35,16 @@ export async function POST(request, { params }) {
   const idsAusentesReais = (aprovados || []).filter((c) => ausentesSet.has(c.id)).map((c) => c.id);
 
   if (presentesIds.length > 0) {
-    await supabase.from('confirmacoes').update({ presente: true }).in('id', presentesIds);
+    const { error: presenteError } = await supabase.from('confirmacoes').update({ presente: true }).in('id', presentesIds);
+    if (presenteError) return errJson(presenteError.message, 500);
   }
   if (idsAusentesReais.length > 0) {
-    await supabase.from('confirmacoes').update({ presente: false }).in('id', idsAusentesReais);
+    const { error: ausenteError } = await supabase.from('confirmacoes').update({ presente: false }).in('id', idsAusentesReais);
+    if (ausenteError) return errJson(ausenteError.message, 500);
   }
 
   const { error } = await supabase.from('games').update({ encerrada_em: new Date().toISOString() }).eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   return NextResponse.json({ ok: true, presentes: presentesIds.length, ausentes: idsAusentesReais.length });
 }
