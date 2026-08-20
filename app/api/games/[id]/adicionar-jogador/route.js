@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { authorizeGameOwner } from '@/lib/gameAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { errJson } from '@/lib/apiError';
 
 // Mesmo caminho de "adicionar jogador" usado na criação da pelada, só que
 // aqui o capitão adiciona depois, na tela de gerenciar.
@@ -37,7 +38,7 @@ export async function POST(request, { params }) {
       .insert({ game_id: id, user_id: null, nome: nomeConvidado.trim(), whatsapp: '', bairro: null, status: novoStatus })
       .select()
       .single());
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return errJson(error.message, 500);
     return NextResponse.json(resultado, { status: 201 });
   }
 
@@ -56,6 +57,6 @@ export async function POST(request, { params }) {
       .single());
   }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
   return NextResponse.json(resultado, { status: 201 });
 }

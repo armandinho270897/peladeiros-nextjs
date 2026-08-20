@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { ADMIN_USER_ID } from '@/lib/adminConfig';
 import { NextResponse } from 'next/server';
+import { errJson } from '@/lib/apiError';
 
 // Fila de aprovação — só o dono do app vê as arenas pendentes.
 export async function GET() {
@@ -17,7 +18,7 @@ export async function GET() {
     .eq('status', 'pendente')
     .order('created_at', { ascending: true });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   const userIds = [...new Set(arenas.map((a) => a.proposto_por_user_id).filter(Boolean))];
   const { data: proponentes } = userIds.length

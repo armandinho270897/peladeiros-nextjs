@@ -1,5 +1,6 @@
 'use client';
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 
 const AuthContext = createContext(null);
@@ -23,7 +24,9 @@ export function AuthProvider({ children }) {
       // "partida próxima": checagem única na abertura do app, não em cada
       // refresh de token — a rota é idempotente, não duplica notificação.
       if (user) {
-        fetch('/api/notificacoes/verificar-proximas', { method: 'POST' }).catch(() => {});
+        fetch('/api/notificacoes/verificar-proximas', { method: 'POST' })
+          .then((res) => { if (!res.ok) Sentry.captureMessage(`verificar-proximas respondeu ${res.status}`, 'warning'); })
+          .catch((err) => Sentry.captureException(err));
       }
     });
 

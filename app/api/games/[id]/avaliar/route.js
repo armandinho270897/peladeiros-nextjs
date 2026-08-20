@@ -3,6 +3,7 @@ import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { todayISO } from '@/lib/gameUtils';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { errJson } from '@/lib/apiError';
 
 async function getSessionUser() {
   const authClient = createServerClient();
@@ -104,7 +105,7 @@ export async function POST(request, { params }) {
       .from('avaliacoes')
       .upsert(rowsComAlvo, { onConflict: 'game_id,avaliador_id,avaliado_id,tipo', ignoreDuplicates: true })
       .select();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return errJson(error.message, 500);
     salvas += inserted.length;
   }
 
@@ -118,7 +119,7 @@ export async function POST(request, { params }) {
       .maybeSingle();
     if (!jaTemGeral) {
       const { error } = await supabase.from('avaliacoes').insert(rowGeral);
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error) return errJson(error.message, 500);
       salvas += 1;
     }
   }

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
+import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import BellIcon from './BellIcon';
@@ -63,7 +64,8 @@ export default function NotificationBell({ variant = 'header' }) {
       const naoLidasIds = notificacoes.filter((n) => !n.lida).map((n) => n.id);
       if (naoLidasIds.length > 0) {
         setNotificacoes((prev) => prev.map((n) => ({ ...n, lida: true })));
-        await supabase.from('notificacoes').update({ lida: true }).eq('user_id', user.id).eq('lida', false);
+        const { error: lidaError } = await supabase.from('notificacoes').update({ lida: true }).eq('user_id', user.id).eq('lida', false);
+        if (lidaError) Sentry.captureException(lidaError);
       }
     }
   }

@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { errJson } from '@/lib/apiError';
 
 // Segundo clique da confirmação em duas etapas: só o próprio jogador,
 // autenticado, pode confirmar a própria vaga.
@@ -37,6 +38,6 @@ export async function POST(request, { params }) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
   return NextResponse.json(atualizada);
 }

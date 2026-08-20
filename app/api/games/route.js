@@ -5,6 +5,7 @@ import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { attachNotaMedia } from '@/lib/ratings';
 import { createNotification } from '@/lib/notify';
 import { sweepExpiredConfirmacoes } from '@/lib/confirmacoesExpiry';
+import { errJson } from '@/lib/apiError';
 
 export async function GET() {
   await sweepExpiredConfirmacoes();
@@ -15,7 +16,7 @@ export async function GET() {
     .order('data', { ascending: true })
     .order('horario', { ascending: true });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   const comNotas = await attachNotaMedia(games);
   // não devolve o código (PIN) pro front — só é usado server-side pra validar edição
@@ -59,7 +60,7 @@ export async function POST(request) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   // jogadores adicionados direto na criação entram como aprovado (dentro da
   // capacidade) ou espera (se estourar) — mesmo critério do fluxo de aprovar.

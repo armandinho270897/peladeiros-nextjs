@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { promoverEsperaComConfirmacao } from '@/lib/confirmacoesExpiry';
+import { errJson } from '@/lib/apiError';
 
 // Duas formas de cancelar uma confirmação:
 // - o próprio jogador, autenticado, cancelando a própria presença (sem PIN nenhum)
@@ -32,7 +33,8 @@ export async function DELETE(request, { params }) {
 
   // Mantém a linha (status 'cancelado') em vez de apagar — sem histórico
   // não dá pra calcular selo do capitão nem Moral depois.
-  await supabase.from('confirmacoes').update({ status: 'cancelado', cancelado_em: new Date().toISOString() }).eq('id', id);
+  const { error: cancelError } = await supabase.from('confirmacoes').update({ status: 'cancelado', cancelado_em: new Date().toISOString() }).eq('id', id);
+  if (cancelError) return errJson(cancelError.message, 500);
 
   if (confirmacao.status === 'aprovado' || confirmacao.status === 'aguardando_confirmacao') {
     await promoverEsperaComConfirmacao(confirmacao.game_id, 1);

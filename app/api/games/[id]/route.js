@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { attachNotaMedia } from '@/lib/ratings';
 import { authorizeGameOwner } from '@/lib/gameAuth';
 import { sweepExpiredConfirmacoes, promoverEsperaComConfirmacao } from '@/lib/confirmacoesExpiry';
+import { errJson } from '@/lib/apiError';
 
 export async function GET(request, { params }) {
   await sweepExpiredConfirmacoes();
@@ -34,7 +35,7 @@ export async function PATCH(request, { params }) {
     .update({ local, bairro, data, horario, vagas_totais: vagasTotais })
     .eq('id', id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   // se vagas aumentaram, promove quem estiver na fila de espera
   const { data: confirmacoes } = await supabase
@@ -60,7 +61,7 @@ export async function DELETE(request, { params }) {
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const { error } = await supabase.from('games').delete().eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   return NextResponse.json({ ok: true });
 }

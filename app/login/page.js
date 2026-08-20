@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 import { createRecoveryClient } from '@/lib/supabase-recovery';
 import TicketButton from '../components/TicketButton';
@@ -95,6 +96,7 @@ function LoginForm() {
     });
     setLoading(false);
     if (error) {
+      Sentry.captureException(new Error(`resetPasswordForEmail falhou: ${error.message}`));
       setError('Não conseguimos enviar agora. Tenta de novo em alguns minutos.');
       return;
     }

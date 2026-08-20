@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { authorizeGameOwner } from '@/lib/gameAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
+import { errJson } from '@/lib/apiError';
 
 export async function POST(request, { params }) {
   if (!checkRateLimit(`rejeitar:${getClientIp(request)}`)) {
@@ -30,7 +31,7 @@ export async function POST(request, { params }) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   if (confirmacao.user_id) {
     await createNotification({

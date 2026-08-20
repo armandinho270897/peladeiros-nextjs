@@ -1,8 +1,10 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { authorizeGameOwner } from '@/lib/gameAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
+import { errJson } from '@/lib/apiError';
 
 const PRAZO_CONFIRMACAO_MS = 2 * 60 * 60 * 1000;
 
@@ -31,7 +33,8 @@ async function cancelarConflitosDeHorario(userId, gameAprovado) {
     const inicioOutro = new Date(`${outroGame.data}T${outroGame.horario}`).getTime();
     if (Math.abs(inicioOutro - inicioAprovado) >= JANELA_CONFLITO_MS) continue;
 
-    await supabase.from('confirmacoes').update({ status: 'rejeitado' }).eq('id', c.id);
+    const { error: cancelError } = await supabase.from('confirmacoes').update({ status: 'rejeitado' }).eq('id', c.id);
+    if (cancelError) Sentry.captureException(new Error(cancelError.message));
     await createNotification({
       userId,
       tipo: 'conflito_horario',
@@ -78,7 +81,7 @@ export async function POST(request, { params }) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   if (confirmacao.user_id) {
     if (novoStatus === 'aguardando_confirmacao') {

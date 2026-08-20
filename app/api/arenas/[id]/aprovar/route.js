@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { ADMIN_USER_ID } from '@/lib/adminConfig';
 import { NextResponse } from 'next/server';
+import { errJson } from '@/lib/apiError';
 
 export async function POST(request, { params }) {
   const authClient = createServerClient();
@@ -17,7 +18,7 @@ export async function POST(request, { params }) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return errJson(error.message, 500);
 
   return NextResponse.json(arena);
 }

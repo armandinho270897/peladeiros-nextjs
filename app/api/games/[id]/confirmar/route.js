@@ -3,6 +3,7 @@ import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
+import { errJson } from '@/lib/apiError';
 
 export async function POST(request, { params }) {
   if (!checkRateLimit(`confirmar:${getClientIp(request)}`)) {
@@ -45,7 +46,7 @@ export async function POST(request, { params }) {
         .eq('id', existente.id)
         .select()
         .single();
-      if (reviveError) return NextResponse.json({ error: reviveError.message }, { status: 500 });
+      if (reviveError) return errJson(reviveError.message, 500);
       if (game.owner_id) {
         await createNotification({
           userId: game.owner_id,
@@ -71,7 +72,7 @@ export async function POST(request, { params }) {
     if (error.code === '23505') {
       return NextResponse.json({ error: 'Você já solicitou presença nessa pelada.' }, { status: 409 });
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return errJson(error.message, 500);
   }
 
   if (game.owner_id) {
