@@ -344,7 +344,7 @@ body::before {
    negativo + isolation:isolate no .pl-card garante que ela sempre pinta
    atrás do texto (que não é posicionado), sem precisar tocar em mais nada —
    inclusive o .pl-stamp de "Lotado", que continua por cima normalmente. */
-.pl-card-illustration { position: absolute; top: 0; right: 0; bottom: 0; pointer-events: none; z-index: -1; }
+.pl-card-illustration { position: absolute; top: 0; right: 0; bottom: 0; width: 150px; pointer-events: none; z-index: -1; }
 
 /* Linha 1 — o essencial, tudo junto e em alto contraste: local, dia/hora,
    vagas. É a única linha que compete visualmente com o card inteiro. */

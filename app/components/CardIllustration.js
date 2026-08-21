@@ -5,9 +5,18 @@
 // cada carregamento, senão vira ruído visual em vez de identidade.
 const COR = 'rgba(243,243,238,0.09)';
 
+// width/height por CSS (100% do container), nunca como atributo percentual
+// no próprio <svg> — em pelo menos um WebView mobile (navegador embutido
+// do WhatsApp) o height="100%" como atributo não resolve certo contra o
+// container posicionado, e o SVG acaba renderizando gigante/distorcido
+// (o "desenho bagunçado" que virou um risco branco enorme sobre o card).
+// Mesma família de bug que o antigo "inset: 0" — resolver por CSS de
+// verdade em vez de confiar em atributo do próprio elemento.
+const SVG_STYLE = { width: '100%', height: '100%', display: 'block' };
+
 function CampoPattern() {
   return (
-    <svg width="150" height="100%" viewBox="0 0 150 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
+    <svg style={SVG_STYLE} viewBox="0 0 150 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
       <line x1="10" y1="70" x2="150" y2="70" stroke={COR} strokeWidth="1.5" />
       <circle cx="80" cy="70" r="26" stroke={COR} strokeWidth="1.5" />
       <circle cx="80" cy="70" r="2" fill={COR} />
@@ -19,7 +28,7 @@ function CampoPattern() {
 
 function BolaPattern() {
   return (
-    <svg width="140" height="100%" viewBox="0 0 140 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
+    <svg style={SVG_STYLE} viewBox="0 0 140 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
       <circle cx="85" cy="100" r="34" stroke={COR} strokeWidth="1.5" />
       <path d="M85 76l10 7.2-4 12.3H79l-4-12.3z" stroke={COR} strokeWidth="1.2" strokeLinejoin="round" />
       <path d="M85 76v-9M104 89.6l9.4-6M96.3 111l6.5 8.2M73.7 111l-6.5 8.2M66 89.6l-9.4-6" stroke={COR} strokeWidth="1" />
@@ -35,7 +44,7 @@ function RedePattern() {
     lines.push(<line key={`b${i}`} x1={i * 16 + 160} y1="0" x2={i * 16} y2="220" stroke={COR} strokeWidth="1" />);
   }
   return (
-    <svg width="150" height="100%" viewBox="0 0 150 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
+    <svg style={SVG_STYLE} viewBox="0 0 150 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
       {lines}
     </svg>
   );
@@ -43,7 +52,7 @@ function RedePattern() {
 
 function QuadraPattern() {
   return (
-    <svg width="150" height="100%" viewBox="0 0 150 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
+    <svg style={SVG_STYLE} viewBox="0 0 150 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
       <line x1="20" y1="0" x2="20" y2="220" stroke={COR} strokeWidth="1.5" />
       <line x1="60" y1="0" x2="60" y2="220" stroke={COR} strokeWidth="1.5" strokeDasharray="4 6" />
       <line x1="100" y1="0" x2="100" y2="220" stroke={COR} strokeWidth="1.5" strokeDasharray="4 6" />
@@ -55,7 +64,7 @@ function QuadraPattern() {
 
 function BandeirinhaPattern() {
   return (
-    <svg width="140" height="100%" viewBox="0 0 140 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
+    <svg style={SVG_STYLE} viewBox="0 0 140 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true">
       <path d="M110 20v130" stroke={COR} strokeWidth="1.5" strokeLinecap="round" />
       <path d="M110 20l24 12-24 12z" stroke={COR} strokeWidth="1.3" strokeLinejoin="round" />
       <path d="M110 150a40 40 0 0 1-40-40" stroke={COR} strokeWidth="1.5" />
