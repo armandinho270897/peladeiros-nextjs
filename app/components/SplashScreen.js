@@ -26,7 +26,8 @@ export default function SplashScreen() {
 
   return (
     <div className={`pl-splash ${exiting ? 'pl-splash-exit' : ''}`} onClick={dismiss}>
-      <img src="/icons/icon-512.png" alt="Peladeiros" className="pl-splash-logo" width={160} height={160} fetchPriority="high" />
+      <img src="/splash.png" alt="Peladeiros" className="pl-splash-bg" fetchPriority="high" />
+      <div className="pl-splash-frame" aria-hidden="true" />
     </div>
   );
 }
