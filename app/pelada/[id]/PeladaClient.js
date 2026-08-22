@@ -14,6 +14,7 @@ import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
 import EscalacaoField from '../../components/EscalacaoField';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
 import BackLink from '../../components/BackLink';
+import Brand from '../../components/Brand';
 
 // Só quem pode editar a pelada (capitão) vê o botão, e só depois que o
 // horário já passou e ela ainda não foi encerrada.
@@ -52,6 +53,7 @@ export default function PeladaClient({ id }) {
     const restantes = Math.max(0, g.vagas_totais - confirmados);
     const msg = `⚽ Pelada marcada!\n📍 ${g.local} (${g.bairro})\n📅 ${g.data} às ${g.horario}\n🔢 ${restantes} vaga(s) livre(s) de ${g.vagas_totais}\n👑 Capitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
     window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    showToast('📲 Pelada compartilhada');
   }
 
   async function handleConfirmarVaga(confirmacaoId) {
@@ -59,7 +61,7 @@ export default function PeladaClient({ id }) {
     const result = await res.json();
     if (!res.ok) { showToast(result.error || 'Não consegui confirmar sua vaga.'); return; }
     loadGame();
-    showToast('Vaga confirmada!');
+    showToast('🔥 Você entrou no jogo!');
   }
 
   function handleConfirmClick(g) {
@@ -96,7 +98,7 @@ export default function PeladaClient({ id }) {
     <div>
       <div className="pl-header">
         <BackLink href="/">Todas as peladas</BackLink>
-        <div className="pl-brand" style={{ marginTop: 10 }}><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
+        <Brand style={{ marginTop: 10 }} />
       </div>
 
       <div className="pl-list" style={{ paddingTop: 14 }}>

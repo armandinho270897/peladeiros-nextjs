@@ -80,7 +80,7 @@ export default function AprovarArenasPage() {
         ) : pendentes.length === 0 ? (
           <div className="pl-empty">
             <EmptyFieldIcon />
-            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>Fila vazia</h3>
+            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>Fila vazia 🎉</h3>
             <p>Nenhuma arena esperando aprovação agora.</p>
           </div>
         ) : (

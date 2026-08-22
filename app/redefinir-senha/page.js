@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase-browser';
 import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
+import Brand from '../components/Brand';
 
 // Chega aqui só depois do link de "esqueci minha senha" já ter passado por
 // /auth/callback/complete e ativado a sessão (o middleware barra quem não
@@ -36,7 +37,7 @@ export default function RedefinirSenhaPage() {
   return (
     <div className="pl-authpage">
       <div className="pl-authcard">
-        <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
+        <Brand />
         <p className="pl-tagline">Vem pro fut, vem.</p>
 
         <h3 style={{ marginBottom: 6 }}>Escolhe uma senha nova</h3>
