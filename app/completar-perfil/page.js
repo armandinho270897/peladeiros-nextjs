@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
 import TicketButton from '../components/TicketButton';
 import LoadingBall from '../components/LoadingBall';
+import Brand from '../components/Brand';
 
 function CompletarPerfilForm() {
   const searchParams = useSearchParams();
@@ -56,7 +57,7 @@ function CompletarPerfilForm() {
   return (
     <div className="pl-authpage">
       <div className="pl-authcard">
-        <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
+        <Brand />
         <h3>Completar perfil</h3>
         <p className="pl-hint">Só na primeira vez — é o que aparece pros outros jogadores.</p>
         {authLoading ? (

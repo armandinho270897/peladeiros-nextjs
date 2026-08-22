@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase-browser';
 import { createRecoveryClient } from '@/lib/supabase-recovery';
 import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
+import Brand from '../components/Brand';
 
 // Traduz os erros mais comuns do supabase-js pra mensagem em português —
 // o resto (raro) cai no fallback genérico, mas nunca fica sem feedback.
@@ -116,7 +117,7 @@ function LoginForm() {
     return (
       <div className="pl-authpage">
         <div className="pl-authcard">
-          <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
+          <Brand />
           <p className="pl-tagline">Vem pro fut, vem.</p>
 
           {pedidoEnviado ? (
@@ -149,7 +150,7 @@ function LoginForm() {
   return (
     <div className="pl-authpage">
       <div className="pl-authcard">
-        <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
+        <Brand />
         <p className="pl-tagline">Vem pro fut, vem.</p>
 
         <div className="pl-tabs" style={{ margin: '16px 0', padding: 0, maxWidth: 'none' }}>

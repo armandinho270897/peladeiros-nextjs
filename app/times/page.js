@@ -86,7 +86,7 @@ export default function TimesPage() {
       ) : times.length === 0 ? (
         <div className="pl-empty">
           <EmptyFieldIcon />
-          <p>Você ainda não faz parte de nenhum time. Cria o seu ou espera um convite.</p>
+          <p>Tá sem time ainda 👀 Cria o seu ou espera um convite.</p>
         </div>
       ) : (
         <div className="pl-list" style={{ paddingBottom: 24 }}>

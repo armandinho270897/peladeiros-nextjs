@@ -33,7 +33,9 @@ export default function NextGameHero({ game, onConfirm, currentUserId }) {
           {g.bairro}
           {g.tipo && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 8 }}><TipoJogoIcon tipo={g.tipo} size={12} /> {g.tipo}</span>}
         </div>
-        <div className="pl-next-game-status">{lotado ? '🔴 Lotada' : `🟢 ${restantes} vaga${restantes === 1 ? '' : 's'}`}</div>
+        <div className="pl-next-game-status">
+          {lotado ? '🔴 Lotada' : restantes <= 3 ? `🔥 Últimas ${restantes} vaga${restantes === 1 ? '' : 's'}` : `🟢 ${restantes} vagas`}
+        </div>
         <p style={{ fontSize: 12, color: 'var(--paper-dim)', display: 'flex', alignItems: 'center', margin: '2px 0 0' }}>
           <CaptainIcon /> {g.capitao}
         </p>

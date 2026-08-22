@@ -75,10 +75,10 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
     if (!ehHoje) return null;
     const inicio = new Date(`${g.data}T${g.horario}`).getTime();
     const diff = inicio - agora;
-    if (diff <= 0) return 'Rolando agora';
+    if (diff <= 0) return '⚽ Acontecendo agora';
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
-    return h > 0 ? `Começa em ${h}h${String(m).padStart(2, '0')}min` : `Começa em ${m}min`;
+    return h > 0 ? `⚡ Começa em ${h}h${String(m).padStart(2, '0')}min` : `⚡ Começa em ${m}min`;
   })();
 
   // Contagem regressiva do prazo pra confirmar a vaga — dá pro jogador uma

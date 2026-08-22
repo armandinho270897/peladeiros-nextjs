@@ -64,7 +64,7 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
       {todosOsPins.length === 0 ? (
         <div className="pl-empty" style={{ padding: '40px 20px' }}>
           <EmptyFieldIcon width={110} />
-          <p>Nenhuma pelada ou arena com localização marcada no mapa ainda.</p>
+          <p>Nada no mapa ainda 🗺️ Assim que tiver pelada ou arena marcada, aparece aqui.</p>
         </div>
       ) : (
         <MapContainer center={center} zoom={zoom} style={{ height: 420, width: '100%', borderRadius: 6 }}>

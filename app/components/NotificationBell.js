@@ -99,7 +99,7 @@ export default function NotificationBell({ variant = 'header' }) {
           {notificacoes.length === 0 ? (
             <div style={{ padding: '10px 4px', textAlign: 'center' }}>
               <BolaParadaIcon width={56} />
-              <p style={{ fontSize: 13, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Nada por aqui ainda.</p>
+              <p style={{ fontSize: 13, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Nada por aqui ainda 👀</p>
             </div>
           ) : (
             notificacoes.map((n) => {

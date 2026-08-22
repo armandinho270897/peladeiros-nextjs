@@ -127,7 +127,7 @@ export default function PerfilPage() {
       {historico.length === 0 ? (
         <div className="pl-empty">
           <EmptyFieldIcon />
-          <p>Nenhuma pelada passada ainda. Confirma presença em alguma pra ela aparecer aqui depois.</p>
+          <p>Ainda sem histórico por aqui 👀 Confirma presença numa pelada pra ela aparecer aqui depois.</p>
         </div>
       ) : (
         <div className="pl-list" style={{ paddingBottom: 24 }}>

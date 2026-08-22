@@ -5,6 +5,7 @@ import Link from 'next/link';
 import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 import LoadingBall from '../../../components/LoadingBall';
+import Brand from '../../../components/Brand';
 
 function CompleteInner() {
   const searchParams = useSearchParams();
@@ -41,7 +42,7 @@ function CompleteInner() {
     return (
       <div className="pl-authpage">
         <div className="pl-authcard">
-          <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
+          <Brand />
           <h3>Link inválido ou expirado</h3>
           <p className="pl-hint">Pede um link novo pra entrar.</p>
           <Link href="/login" className="pl-ticket" style={{ display: 'inline-flex', textDecoration: 'none' }}>
