@@ -1059,42 +1059,10 @@ body::before {
   border: 3px solid var(--card-bg);
 }
 
-/* Botão flutuante "+ Criar pelada" (só Home, só mobile) — ver
-   FloatingCreateButton.js. Fica acima da bottom nav (mesmo offset do
-   toast-container) e nunca cobre conteúdo por ser compacto e ficar no
-   canto. Escondido por padrão; a media query abaixo reativa em telas
-   estreitas (regra precisa vir DEPOIS daqui pra vencer na cascata). */
-.pl-fab {
-  display: none;
-  position: fixed;
-  right: 16px;
-  bottom: 78px;
-  z-index: 35;
-  align-items: center;
-  gap: 8px;
-  background: var(--neon);
-  color: var(--ink);
-  border: none;
-  border-radius: var(--radius-pill);
-  padding: 13px 18px 13px 15px;
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  font-size: 12px;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(166,255,0,0.35), 0 0 0 1px rgba(166,255,0,0.12);
-  transition: padding 220ms ease, box-shadow 220ms ease, gap 220ms ease;
-}
-.pl-fab-icon { font-size: 18px; line-height: 1; font-weight: 700; }
-.pl-fab-label { white-space: nowrap; overflow: hidden; max-width: 120px; transition: max-width 220ms ease, opacity 160ms ease; opacity: 1; }
-.pl-fab-collapsed { padding: 13px; gap: 0; box-shadow: 0 4px 10px rgba(166,255,0,0.25); }
-.pl-fab-collapsed .pl-fab-label { max-width: 0; opacity: 0; }
-
 @media (max-width: 700px) {
   .pl-bottom-nav { display: flex; }
   body { padding-bottom: 68px; }
   .pl-toast-container { bottom: 78px; }
-  .pl-fab { display: inline-flex; }
 }
 
 /* Mapa — pino com foto (círculo com a imagem dentro, borda dourada
