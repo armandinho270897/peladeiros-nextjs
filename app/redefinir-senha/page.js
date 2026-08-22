@@ -47,8 +47,8 @@ export default function RedefinirSenhaPage() {
           <h3 style={{ marginBottom: 6 }}>Escolhe uma senha nova</h3>
           <p className="pl-hint">Depois de salvar, entra de novo com ela.</p>
           <form onSubmit={handleSubmit}>
-            <PasswordField label="Nova senha" required minLength={6} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" />
-            <PasswordField label="Confirmar senha" required minLength={6} value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} autoComplete="new-password" />
+            <PasswordField floating label="Nova senha" required minLength={6} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" />
+            <PasswordField floating label="Confirmar senha" required minLength={6} value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} autoComplete="new-password" />
             {error && <p className="pl-error">{error}</p>}
             <TicketButton type="submit" style={{ width: '100%' }} disabled={loading}>
               {loading ? <BtnBall /> : 'Salvar senha nova'}

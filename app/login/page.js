@@ -164,10 +164,11 @@ function LoginForm() {
           <p className="pl-hint" key={modo}>{modo === 'criar' ? 'Cria sua conta com e-mail e senha.' : 'Entra com seu e-mail e senha.'}</p>
           <form onSubmit={handleSubmit}>
             <FloatingInput label="E-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-            <PasswordField label="Senha" required minLength={6} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete={modo === 'criar' ? 'new-password' : 'current-password'} />
+            <PasswordField floating label="Senha" required minLength={6} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete={modo === 'criar' ? 'new-password' : 'current-password'} />
             <div className={`pl-field-collapse ${modo === 'criar' ? 'open' : ''}`}>
               <div>
                 <PasswordField
+                  floating
                   label="Confirmar senha"
                   required={modo === 'criar'}
                   minLength={6}
