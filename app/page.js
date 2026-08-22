@@ -56,8 +56,8 @@ export default function Home() {
     const confirmados = aprovadosDe(g).length;
     const restantes = Math.max(0, g.vagas_totais - confirmados);
     const msg = `⚽ Pelada marcada!\n📍 ${g.local} (${g.bairro})\n📅 ${g.data} às ${g.horario}\n🔢 ${restantes} vaga(s) livre(s) de ${g.vagas_totais}\n👑 Capitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
-    showToast('📲 Pelada compartilhada');
+    const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    if (win) showToast('📲 Pelada compartilhada');
   }
 
   function handleCreated() {

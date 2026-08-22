@@ -17,7 +17,15 @@ export default function FloatingCreateButton() {
 
   useEffect(() => {
     if (pathname !== '/') return undefined;
+    // O componente nunca desmonta (fica no layout raiz só escondido fora da
+    // Home), então reseta aqui — sem isso o FAB podia voltar já colapsado
+    // de uma visita anterior em que o timer de reexpandir não chegou a rodar.
+    setCollapsed(false);
+    let ticking = false;
     function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { ticking = false; });
       setCollapsed(true);
       clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => setCollapsed(false), 600);
