@@ -145,7 +145,7 @@ body::before {
   z-index: 0;
 }
 .pl-header > *:not(.pl-header-watermark) { position: relative; z-index: 1; }
-.pl-brand { display: flex; align-items: center; gap: 12px; position: relative; cursor: pointer; }
+.pl-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
 .pl-brand-text { font-family: var(--font-display); font-size: 22px; text-transform: uppercase; }
 .pl-brand-text span { color: var(--neon); }
 

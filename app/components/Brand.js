@@ -23,7 +23,15 @@ export default function Brand({ style }) {
   }
 
   return (
-    <div className="pl-brand" style={style} onClick={handleTap}>
+    <div
+      className="pl-brand"
+      style={style}
+      onClick={handleTap}
+      role="button"
+      tabIndex={0}
+      aria-label="Peladeiros"
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTap(); } }}
+    >
       <div className="pl-brand-text">PELADEI<span>ROS</span></div>
       {egg && <span className="pl-easter-ball" aria-hidden="true">⚽</span>}
     </div>

@@ -26,7 +26,23 @@ export default function BottomNav() {
         <span className="pl-bottom-nav-icon"><PeladasIcon /></span>
         Peladas
       </Link>
-      <Link href="/?criar=1" className="pl-bottom-nav-central" aria-label="Criar pelada">+</Link>
+      <Link
+        href="/?criar=1"
+        className="pl-bottom-nav-central"
+        aria-label="Criar pelada"
+        onClick={(e) => {
+          // Já em "/": navegar pra "/?criar=1" não remonta a página, então o
+          // efeito que lê a query string na montagem nunca dispara de novo.
+          // Avisa direto por evento (mesmo mecanismo do FAB) em vez de
+          // depender da navegação.
+          if (pathname === '/') {
+            e.preventDefault();
+            window.dispatchEvent(new Event('pl:criar-pelada'));
+          }
+        }}
+      >
+        +
+      </Link>
       <NotificationBell variant="bottomnav" />
       <Link href="/perfil" className={`pl-bottom-nav-item ${pathname === '/perfil' ? 'active' : ''}`}>
         <span className="pl-bottom-nav-icon"><PersonIcon /></span>
