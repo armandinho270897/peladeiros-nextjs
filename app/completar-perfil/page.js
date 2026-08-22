@@ -7,6 +7,7 @@ import TicketButton from '../components/TicketButton';
 import LoadingBall from '../components/LoadingBall';
 import Brand from '../components/Brand';
 import NightPitchBackground from '../components/NightPitchBackground';
+import PitchBall from '../components/PitchBall';
 import FloatingInput from '../components/FloatingInput';
 import BtnBall from '../components/BtnBall';
 
@@ -60,6 +61,7 @@ function CompletarPerfilForm() {
   return (
     <div className="pl-authpage">
       <NightPitchBackground />
+      <PitchBall />
       <div className="pl-authcard">
         <div className="pl-stagger-1"><Brand /></div>
         <h3 className="pl-stagger-2">Completar perfil</h3>

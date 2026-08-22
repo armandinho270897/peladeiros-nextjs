@@ -9,6 +9,7 @@ import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
 import Brand from '../components/Brand';
 import NightPitchBackground from '../components/NightPitchBackground';
+import PitchBall from '../components/PitchBall';
 import FloatingInput from '../components/FloatingInput';
 import BtnBall from '../components/BtnBall';
 
@@ -42,11 +43,22 @@ function LoginForm() {
   const [credenciaisInvalidas, setCredenciaisInvalidas] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pedidoEnviado, setPedidoEnviado] = useState(false);
+  const [kickState, setKickState] = useState('idle'); // 'idle' | 'kicking' | 'goal' | 'post' — só no modo "entrar"
+  const [showFlash, setShowFlash] = useState(false);
+
+  // Depois de autenticar de verdade (nunca antes — isso não atrasa a
+  // chamada real), um flash rápido de refletor cobre a troca de tela por
+  // menos de 1s, sem mexer na Home nem na splash que já existe.
+  function irParaHomeComFlash() {
+    setShowFlash(true);
+    setTimeout(() => { window.location.href = next; }, 380);
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setCredenciaisInvalidas(false);
+    setKickState('idle');
 
     if (modo === 'criar') {
       if (senha.length < 6) { setError('A senha precisa ter pelo menos 6 caracteres.'); return; }
@@ -66,15 +78,20 @@ function LoginForm() {
         setError('Conta criada, mas ainda precisa confirmar por e-mail antes de entrar.');
         return;
       }
-      // Navegação completa (não router.push) — o router cache do Next às
-      // vezes serve uma versão de "/" que ainda não viu a sessão nova.
-      window.location.href = next;
+      irParaHomeComFlash();
       return;
     }
 
+    // Chute a gol: a bola "sai" assim que a requisição começa e acompanha o
+    // tempo real dela — se a resposta chegar antes da animação de saída
+    // terminar, a troca de classe (React) já corta ela na hora, sem espera
+    // artificial nenhuma pra qualquer lado (gol ou trave).
+    setKickState('kicking');
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha });
     if (error) {
       setLoading(false);
+      setKickState('post');
+      setTimeout(() => setKickState('idle'), 700);
       setError(traduzErroSenha(error));
       // A Supabase não distingue "e-mail não existe" de "senha errada" (evita
       // vazar quais e-mails têm conta) — em vez de adivinhar, oferece o
@@ -82,7 +99,8 @@ function LoginForm() {
       if ((error.message || '').includes('Invalid login credentials')) setCredenciaisInvalidas(true);
       return;
     }
-    window.location.href = next;
+    setKickState('goal');
+    irParaHomeComFlash();
   }
 
   async function handleEsqueciSenha(e) {
@@ -120,6 +138,7 @@ function LoginForm() {
     return (
       <div className="pl-authpage">
         <NightPitchBackground />
+        <PitchBall />
         <div className="pl-authcard">
           <div className="pl-stagger-1"><Brand /></div>
           <p className="pl-tagline pl-stagger-2">Vem pro fut, vem.</p>
@@ -151,6 +170,8 @@ function LoginForm() {
   return (
     <div className="pl-authpage">
       <NightPitchBackground />
+      <PitchBall />
+      {showFlash && <div className="pl-login-flash" aria-hidden="true" />}
       <div className="pl-authcard">
         <div className="pl-stagger-1"><Brand /></div>
         <p className="pl-tagline pl-stagger-2">Vem pro fut, vem.</p>
@@ -189,8 +210,23 @@ function LoginForm() {
                 <button type="button" className="pl-inline-link" onClick={() => trocarModo('criar')}>Criar conta</button>
               </p>
             )}
-            <TicketButton type="submit" style={{ width: '100%' }} disabled={loading}>
-              {loading ? <BtnBall /> : (modo === 'criar' ? 'Criar conta' : 'Entrar')}
+            <TicketButton
+              type="submit"
+              style={{ width: '100%' }}
+              disabled={loading}
+              className={kickState === 'post' ? 'pl-kickbtn-post' : kickState === 'goal' ? 'pl-kickbtn-goal' : ''}
+            >
+              {kickState === 'kicking' ? (
+                <span className="pl-launch-ball" aria-hidden="true">⚽</span>
+              ) : kickState === 'goal' ? (
+                'Gol!'
+              ) : kickState === 'post' ? (
+                'Entrar'
+              ) : loading ? (
+                <BtnBall />
+              ) : (
+                modo === 'criar' ? 'Criar conta' : 'Entrar'
+              )}
             </TicketButton>
           </form>
         </div>

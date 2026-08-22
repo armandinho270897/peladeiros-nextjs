@@ -685,11 +685,72 @@ body::before {
 .pl-btn-ball { position: absolute; left: 1px; top: 0; font-size: 16px; line-height: 1; animation: pl-bounce 700ms ease-in-out infinite; }
 .pl-btn-ball-shadow { position: absolute; bottom: 1px; left: 3px; width: 14px; height: 4px; border-radius: 50%; background: rgba(0,0,0,0.4); animation: pl-shadow-pulse 700ms ease-in-out infinite; }
 
+/* Fase 2 — bola interativa parada no gramado (PitchBall.js). Puramente
+   lúdica, mesma filosofia do easter egg do logo. Posição em % pra ter boa
+   chance de cair numa área visível de grama abaixo do cartão em telas
+   normais; se o cartão cobrir, sem problema — só some até rolar. */
+.pl-pitch-ball {
+  position: absolute; z-index: 1; left: 18%; bottom: 6%;
+  background: none; border: none; padding: 8px; margin: 0; cursor: pointer;
+  font-size: 28px; line-height: 1;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+}
+.pl-pitch-ball.pl-kicked { animation: pl-ball-kick 650ms cubic-bezier(.3,1.4,.5,1); }
+@keyframes pl-ball-kick {
+  0% { transform: translate(0,0) rotate(0deg) scale(1); }
+  30% { transform: translate(10px,-46px) rotate(160deg) scale(0.9); }
+  55% { transform: translate(-6px,-70px) rotate(280deg) scale(0.85); }
+  100% { transform: translate(0,0) rotate(520deg) scale(1); }
+}
+
+/* Fase 2 — chute a gol no botão Entrar (só no modo "entrar", ver
+   login/page.js). A bolinha "sai chutada" de cima do botão e some — sem
+   desenhar gol nenhum no cenário (rejeitado antes como visual poluído).
+   O resultado (gol/trave) aparece no próprio botão. */
+.pl-launch-ball {
+  position: absolute; left: 50%; bottom: 100%; margin-bottom: 4px;
+  font-size: 20px; line-height: 1; transform: translateX(-50%);
+  animation: pl-fly-away 550ms cubic-bezier(.4,0,.3,1) forwards;
+}
+@keyframes pl-fly-away {
+  0% { transform: translate(-50%,0) scale(1) rotate(0deg); opacity: 1; }
+  100% { transform: translate(-50%,-140px) scale(0.3) rotate(360deg); opacity: 0; }
+}
+.pl-authcard .pl-ticket.pl-kickbtn-post { background: var(--tag-red); animation: pl-kick-shake 420ms ease; }
+.pl-authcard .pl-ticket.pl-kickbtn-goal { background: var(--lilas); }
+.pl-authcard .pl-ticket.pl-kickbtn-post .pl-ticket-label,
+.pl-authcard .pl-ticket.pl-kickbtn-goal .pl-ticket-label { color: var(--paper); }
+@keyframes pl-kick-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+/* Fase 2 — flash de refletor na transição pro Home após login bem-sucedido.
+   Só cosmético: dispara depois que a autenticação já deu certo, nunca
+   atrasa a chamada real — janela fixa e curta (<1s) antes de navegar. */
+.pl-login-flash {
+  position: fixed; inset: 0; z-index: 999; pointer-events: none;
+  background: radial-gradient(circle at 50% 30%, rgba(230,255,200,0.9), rgba(230,255,200,0) 70%);
+  animation: pl-flash-seq 400ms ease-out;
+}
+@keyframes pl-flash-seq {
+  0% { opacity: 0; }
+  25% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pl-lamp-core, .pl-lamp-beam { animation: none; opacity: 0.85; }
   .pl-stagger-1, .pl-stagger-2, .pl-stagger-3 { animation: none; opacity: 1; transform: none; }
   .pl-btn-ball, .pl-btn-ball-shadow { animation: none; }
   .pl-authcard .pl-ticket:active { box-shadow: none; }
+  .pl-pitch-ball.pl-kicked { animation: none; }
+  .pl-launch-ball { animation: none; opacity: 0; }
+  .pl-authcard .pl-ticket.pl-kickbtn-post { animation: none; }
+  .pl-login-flash { display: none; }
 }
 
 /* Toasts */
