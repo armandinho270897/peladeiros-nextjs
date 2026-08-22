@@ -6,6 +6,9 @@ import { useAuth } from '../components/AuthProvider';
 import TicketButton from '../components/TicketButton';
 import LoadingBall from '../components/LoadingBall';
 import Brand from '../components/Brand';
+import NightPitchBackground from '../components/NightPitchBackground';
+import FloatingInput from '../components/FloatingInput';
+import BtnBall from '../components/BtnBall';
 
 function CompletarPerfilForm() {
   const searchParams = useSearchParams();
@@ -56,20 +59,21 @@ function CompletarPerfilForm() {
 
   return (
     <div className="pl-authpage">
+      <NightPitchBackground />
       <div className="pl-authcard">
-        <Brand />
-        <h3>Completar perfil</h3>
-        <p className="pl-hint">Só na primeira vez — é o que aparece pros outros jogadores.</p>
+        <div className="pl-stagger-1"><Brand /></div>
+        <h3 className="pl-stagger-2">Completar perfil</h3>
+        <p className="pl-hint pl-stagger-2">Só na primeira vez — é o que aparece pros outros jogadores.</p>
         {authLoading ? (
           <LoadingBall />
         ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="pl-field"><label>Nome</label><input name="nome" required /></div>
-            <div className="pl-field"><label>WhatsApp</label><input name="whatsapp" required /></div>
-            <div className="pl-field"><label>Bairro (opcional)</label><input name="bairro" /></div>
+          <form onSubmit={handleSubmit} className="pl-stagger-3">
+            <FloatingInput label="Nome" name="nome" required />
+            <FloatingInput label="WhatsApp" name="whatsapp" required />
+            <FloatingInput label="Bairro (opcional)" name="bairro" />
             {error && <p className="pl-error">{error}</p>}
             <TicketButton type="submit" style={{ width: '100%' }} disabled={loading || !user}>
-              {loading ? 'Salvando...' : 'Salvar e continuar'}
+              {loading ? <BtnBall /> : 'Salvar e continuar'}
             </TicketButton>
           </form>
         )}
