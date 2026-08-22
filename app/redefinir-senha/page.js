@@ -5,6 +5,7 @@ import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
 import Brand from '../components/Brand';
 import NightPitchBackground from '../components/NightPitchBackground';
+import PitchBall from '../components/PitchBall';
 import BtnBall from '../components/BtnBall';
 
 // Chega aqui só depois do link de "esqueci minha senha" já ter passado por
@@ -39,6 +40,7 @@ export default function RedefinirSenhaPage() {
   return (
     <div className="pl-authpage">
       <NightPitchBackground />
+      <PitchBall />
       <div className="pl-authcard">
         <div className="pl-stagger-1"><Brand /></div>
         <p className="pl-tagline pl-stagger-2">Vem pro fut, vem.</p>
