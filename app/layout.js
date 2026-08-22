@@ -4,6 +4,7 @@ import OnboardingOverlay from './components/OnboardingOverlay';
 import InAppBrowserBanner from './components/InAppBrowserBanner';
 import InstallBanner from './components/InstallBanner';
 import BottomNav from './components/BottomNav';
+import FloatingCreateButton from './components/FloatingCreateButton';
 import { AuthProvider } from './components/AuthProvider';
 import { ToastProvider } from './components/ToastProvider';
 
@@ -47,6 +48,7 @@ export default function RootLayout({ children }) {
         <ToastProvider>
           <AuthProvider>
             {children}
+            <FloatingCreateButton />
             <BottomNav />
           </AuthProvider>
         </ToastProvider>
