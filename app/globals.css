@@ -145,9 +145,22 @@ body::before {
   z-index: 0;
 }
 .pl-header > *:not(.pl-header-watermark) { position: relative; z-index: 1; }
-.pl-brand { display: flex; align-items: center; gap: 12px; }
+.pl-brand { display: flex; align-items: center; gap: 12px; position: relative; cursor: pointer; }
 .pl-brand-text { font-family: var(--font-display); font-size: 22px; text-transform: uppercase; }
 .pl-brand-text span { color: var(--neon); }
+
+/* Easter egg — 5 toques seguidos no logo fazem uma bola quicar rapidinho. */
+.pl-easter-ball {
+  position: fixed; left: 50%; top: 50%; font-size: 26px;
+  animation: pl-easter-bounce 900ms ease-out forwards;
+  pointer-events: none; z-index: 9998;
+}
+@keyframes pl-easter-bounce {
+  0%   { transform: translate(-50%, -50%) scale(0.5) rotate(0deg); opacity: 0; }
+  15%  { opacity: 1; }
+  50%  { transform: translate(calc(-50% + 110px), calc(-50% - 55px)) scale(1.1) rotate(280deg); }
+  100% { transform: translate(calc(-50% + 240px), calc(-50% + 130px)) scale(0.75) rotate(680deg); opacity: 0; }
+}
 .pl-tagline {
   font-family: var(--font-tag);
   font-size: 11px;
@@ -953,10 +966,42 @@ body::before {
   border: 3px solid var(--card-bg);
 }
 
+/* Botão flutuante "+ Criar pelada" (só Home, só mobile) — ver
+   FloatingCreateButton.js. Fica acima da bottom nav (mesmo offset do
+   toast-container) e nunca cobre conteúdo por ser compacto e ficar no
+   canto. Escondido por padrão; a media query abaixo reativa em telas
+   estreitas (regra precisa vir DEPOIS daqui pra vencer na cascata). */
+.pl-fab {
+  display: none;
+  position: fixed;
+  right: 16px;
+  bottom: 78px;
+  z-index: 35;
+  align-items: center;
+  gap: 8px;
+  background: var(--neon);
+  color: var(--ink);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 13px 18px 13px 15px;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(166,255,0,0.35), 0 0 0 1px rgba(166,255,0,0.12);
+  transition: padding 220ms ease, box-shadow 220ms ease, gap 220ms ease;
+}
+.pl-fab-icon { font-size: 18px; line-height: 1; font-weight: 700; }
+.pl-fab-label { white-space: nowrap; overflow: hidden; max-width: 120px; transition: max-width 220ms ease, opacity 160ms ease; opacity: 1; }
+.pl-fab-collapsed { padding: 13px; gap: 0; box-shadow: 0 4px 10px rgba(166,255,0,0.25); }
+.pl-fab-collapsed .pl-fab-label { max-width: 0; opacity: 0; }
+
 @media (max-width: 700px) {
   .pl-bottom-nav { display: flex; }
   body { padding-bottom: 68px; }
   .pl-toast-container { bottom: 78px; }
+  .pl-fab { display: inline-flex; }
 }
 
 /* Mapa — pino com foto (círculo com a imagem dentro, borda dourada
