@@ -3,11 +3,13 @@ import { useState } from 'react';
 import EyeIcon from './EyeIcon';
 import EyeOffIcon from './EyeOffIcon';
 
-export default function PasswordField({ label, value, onChange, placeholder = '••••••', required, minLength, autoComplete }) {
+export default function PasswordField({ label, value, onChange, placeholder = '••••••', required, minLength, autoComplete, tabIndex }) {
   const [show, setShow] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const filled = (value || '').length > 0;
 
   return (
-    <div className="pl-field">
+    <div className={`pl-field ${focused ? 'pl-field-focused' : ''} ${filled ? 'pl-field-filled' : ''}`}>
       {label && <label>{label}</label>}
       <div className="pl-password-wrap">
         <input
@@ -18,6 +20,9 @@ export default function PasswordField({ label, value, onChange, placeholder = '�
           onChange={onChange}
           placeholder={placeholder}
           autoComplete={autoComplete}
+          tabIndex={tabIndex}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
         />
         <button
           type="button"

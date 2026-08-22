@@ -620,14 +620,107 @@ body::before {
 .pl-modal-actions { display: flex; gap: 10px; margin-top: 16px; align-items: stretch; }
 .pl-error { color: var(--tag-red); font-size: 12px; }
 
-.pl-authpage { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-.pl-authcard { background: var(--card-bg); border: 2px solid var(--concrete); border-radius: var(--radius-lg); padding: 28px 24px; width: 100%; max-width: 380px; }
+.pl-authpage { position: relative; overflow: hidden; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.pl-authcard {
+  position: relative; z-index: 1;
+  background: rgba(20,24,20,0.86);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 2px solid var(--concrete); border-radius: var(--radius-lg);
+  padding: 28px 24px; width: 100%; max-width: 380px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(166,255,0,0.06);
+}
 .pl-authcard .pl-brand { justify-content: center; margin-bottom: 4px; }
 .pl-authcard .pl-tagline { text-align: center; margin-bottom: 22px; }
 .pl-authcard h3 { font-family: var(--font-display); color: var(--paper); text-transform: uppercase; margin-top: 0; }
-.pl-authcard p.pl-hint { font-size: 13px; color: var(--paper-dim); margin-bottom: 18px; }
+.pl-authcard p.pl-hint { font-size: 13px; color: var(--paper-dim); margin-bottom: 18px; animation: pl-stagger-in 200ms ease both; }
 .pl-authpage-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: var(--paper-dim); font-size: 11px; text-transform: uppercase; }
 .pl-authpage-divider::before, .pl-authpage-divider::after { content: ''; flex: 1; height: 1px; background: rgba(110,113,120,0.35); }
+
+/* Cenário "quadra à noite" atrás do cartão — ver NightPitchBackground.js.
+   Tudo decorativo, cores/opacidades baixas de propósito pra não competir
+   com o formulário. */
+.pl-night-pitch {
+  position: absolute; inset: 0; z-index: 0; overflow: hidden;
+  background: radial-gradient(120% 65% at 50% 0%, #151b12 0%, var(--ink) 62%);
+}
+.pl-night-grass {
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(102deg, rgba(255,255,255,0.028) 0 40px, rgba(255,255,255,0) 40px 80px);
+}
+.pl-night-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pl-night-floodlight {
+  position: absolute; top: -12%; width: 62%; height: 46%; border-radius: 50%;
+  background: radial-gradient(circle, rgba(224,255,180,0.16), rgba(224,255,180,0) 72%);
+  animation: pl-floodlight-pulse 7s ease-in-out infinite;
+}
+.pl-night-floodlight-l { left: -18%; }
+.pl-night-floodlight-r { right: -18%; animation-delay: -3.4s; }
+@keyframes pl-floodlight-pulse {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}
+
+/* Entrada encenada: logo → tagline → formulário, ~400ms no total. */
+@keyframes pl-stagger-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.pl-stagger-1, .pl-stagger-2, .pl-stagger-3 { animation: pl-stagger-in 240ms ease both; }
+.pl-stagger-1 { animation-delay: 0ms; }
+.pl-stagger-2 { animation-delay: 80ms; }
+.pl-stagger-3 { animation-delay: 150ms; }
+
+/* Campo reativo: label flutuante + borda em degradê no foco. Estado vem de
+   React (FloatingInput.js / PasswordField.js), não de :has()/:placeholder-
+   shown — mais confiável entre navegadores do que o truque puro em CSS. */
+.pl-authcard .pl-field { position: relative; margin-bottom: 18px; }
+.pl-authcard .pl-field label {
+  position: absolute; left: 14px; top: 14px; margin: 0; z-index: 2;
+  font-size: 15px; text-transform: none; letter-spacing: 0;
+  color: var(--paper-dim); pointer-events: none;
+  transition: top 160ms ease, font-size 160ms ease, color 160ms ease;
+}
+.pl-authcard .pl-field input { padding: 19px 14px 7px; }
+.pl-authcard .pl-password-wrap input { padding-right: 40px; }
+.pl-authcard .pl-field.pl-field-focused label,
+.pl-authcard .pl-field.pl-field-filled label {
+  top: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;
+  color: var(--neon);
+}
+.pl-authcard .pl-field input,
+.pl-authcard .pl-password-wrap input {
+  border: 1.5px solid var(--concrete);
+  background: var(--ink);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.pl-authcard .pl-field.pl-field-focused input,
+.pl-authcard .pl-field.pl-field-focused .pl-password-wrap input {
+  outline: none; border-color: transparent; box-shadow: none;
+  background-image: linear-gradient(var(--ink), var(--ink)), linear-gradient(90deg, var(--neon), var(--lilas));
+  background-origin: border-box; background-clip: padding-box, border-box;
+}
+
+/* Campo de confirmar senha desliza pra dentro/fora ao trocar Entrar⇄Criar
+   conta, em vez de simplesmente sumir — fica sempre no DOM (acessibilidade
+   de foco/tab não pega ele quando fechado via tabIndex=-1 no call site). */
+.pl-field-collapse { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 240ms ease, opacity 180ms ease; }
+.pl-field-collapse.open { max-height: 100px; opacity: 1; }
+
+/* Botão: brilho neon ao tocar, além do scale que já existia. */
+.pl-authcard .pl-ticket:active { box-shadow: 0 0 0 2px rgba(166,255,0,0.25), 0 0 26px rgba(166,255,0,0.5); }
+
+/* Bola girando dentro do botão (estado de carregamento) — reaproveita as
+   mesmas keyframes do LoadingBall de página cheia, só menor. */
+.pl-btn-ball-stage { position: relative; display: inline-block; width: 20px; height: 30px; vertical-align: middle; }
+.pl-btn-ball { position: absolute; left: 1px; top: 0; font-size: 16px; line-height: 1; animation: pl-bounce 700ms ease-in-out infinite; }
+.pl-btn-ball-shadow { position: absolute; bottom: 1px; left: 3px; width: 14px; height: 4px; border-radius: 50%; background: rgba(0,0,0,0.4); animation: pl-shadow-pulse 700ms ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-night-floodlight { animation: none; opacity: 0.85; }
+  .pl-stagger-1, .pl-stagger-2, .pl-stagger-3, .pl-authcard p.pl-hint { animation: none; opacity: 1; transform: none; }
+  .pl-btn-ball, .pl-btn-ball-shadow { animation: none; }
+  .pl-authcard .pl-ticket:active { box-shadow: none; }
+}
 
 /* Toasts */
 .pl-toast-container {
