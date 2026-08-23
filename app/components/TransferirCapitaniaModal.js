@@ -36,7 +36,7 @@ export default function TransferirCapitaniaModal({ time, membros, onClose, onTra
               type="button"
               key={p.id}
               className="pl-card"
-              style={{ width: '100%', textAlign: 'left', cursor: 'pointer', border: selecionado?.id === p.id ? '2px solid var(--neon)' : undefined }}
+              style={{ width: '100%', textAlign: 'left', cursor: 'pointer', font: 'inherit', border: selecionado?.id === p.id ? '2px solid var(--neon)' : undefined }}
               onClick={() => setSelecionado(p)}
             >
               <Avatar nome={p.nome} size={40} fotoUrl={p.foto_url} />
