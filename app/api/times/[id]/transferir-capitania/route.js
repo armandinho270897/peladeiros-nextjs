@@ -1,10 +1,15 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { authorizeTimeCaptain } from '@/lib/timeAuth';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
 
 export async function POST(request, { params }) {
+  if (!checkRateLimit(`times:transferir-capitania:${getClientIp(request)}`)) {
+    return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
+  }
+
   const { id } = params;
   const { novoCapitaoUserId } = await request.json().catch(() => ({}));
   if (!novoCapitaoUserId) return NextResponse.json({ error: 'Selecione um jogador.' }, { status: 400 });
@@ -38,7 +43,13 @@ export async function POST(request, { params }) {
     .update({ papel: 'membro' })
     .eq('time_id', id)
     .eq('user_id', auth.user.id);
-  if (erroAntigo) return errJson(erroAntigo.message, 500);
+  if (erroAntigo) {
+    // Desfaz a promoção pra nunca deixar dois capitães aprovados ao mesmo
+    // tempo — isso trava authorizeTimeCaptain (.maybeSingle() erra com mais
+    // de uma linha) e ninguém mais consegue gerenciar o time.
+    await supabase.from('time_membros').update({ papel: 'membro' }).eq('id', novoCapitaoMembro.id);
+    return errJson(erroAntigo.message, 500);
+  }
 
   await createNotification({
     userId: novoCapitaoUserId,

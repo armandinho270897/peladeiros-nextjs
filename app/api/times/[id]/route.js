@@ -3,6 +3,7 @@ import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { authorizeTimeCaptain } from '@/lib/timeAuth';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
 
@@ -53,6 +54,10 @@ export async function GET(request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
+  if (!checkRateLimit(`times:editar:${getClientIp(request)}`)) {
+    return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
+  }
+
   const { id } = params;
 
   const auth = await authorizeTimeCaptain(id);
@@ -91,6 +96,10 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+  if (!checkRateLimit(`times:excluir:${getClientIp(request)}`)) {
+    return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
+  }
+
   const { id } = params;
 
   const auth = await authorizeTimeCaptain(id);
