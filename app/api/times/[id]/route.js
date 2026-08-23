@@ -1,6 +1,10 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
+import { authorizeTimeCaptain } from '@/lib/timeAuth';
+import { createNotification } from '@/lib/notify';
+import { errJson } from '@/lib/apiError';
 
 export async function GET(request, { params }) {
   const { id } = params;
@@ -46,4 +50,73 @@ export async function GET(request, { params }) {
     pendentes,
     souCapitao,
   });
+}
+
+export async function PATCH(request, { params }) {
+  const { id } = params;
+
+  const auth = await authorizeTimeCaptain(id);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  const form = await request.formData();
+  const nome = form.get('nome')?.toString().trim();
+  const bairro = form.get('bairro')?.toString().trim() || null;
+  const modalidade = form.get('modalidade')?.toString().trim() || null;
+  const escudo = form.get('escudo');
+
+  if (!nome) return NextResponse.json({ error: 'Dá um nome pro time.' }, { status: 400 });
+
+  const updates = { nome, bairro, modalidade };
+
+  if (escudo && typeof escudo === 'object' && escudo.size > 0) {
+    const ext = escudo.name?.split('.').pop() || 'jpg';
+    const path = `${id}/escudo.${ext}`;
+    const buffer = Buffer.from(await escudo.arrayBuffer());
+    const { error: uploadError } = await supabase.storage.from('times-escudos').upload(path, buffer, {
+      upsert: true,
+      contentType: escudo.type || 'image/jpeg',
+    });
+    if (uploadError) {
+      Sentry.captureException(new Error(uploadError.message));
+    } else {
+      const { data: urlData } = supabase.storage.from('times-escudos').getPublicUrl(path);
+      updates.escudo_url = `${urlData.publicUrl}?t=${Date.now()}`;
+    }
+  }
+
+  const { data: time, error } = await supabase.from('times').update(updates).eq('id', id).select().single();
+  if (error) return errJson(error.message, 500);
+
+  return NextResponse.json(time);
+}
+
+export async function DELETE(request, { params }) {
+  const { id } = params;
+
+  const auth = await authorizeTimeCaptain(id);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  const { data: time } = await supabase.from('times').select('nome').eq('id', id).single();
+  if (!time) return NextResponse.json({ error: 'Time não encontrado.' }, { status: 404 });
+
+  const { data: outrosMembros } = await supabase
+    .from('time_membros')
+    .select('user_id')
+    .eq('time_id', id)
+    .eq('status', 'aprovado')
+    .neq('user_id', auth.user.id);
+
+  const { error } = await supabase.from('times').delete().eq('id', id);
+  if (error) return errJson(error.message, 500);
+
+  for (const m of outrosMembros || []) {
+    await createNotification({
+      userId: m.user_id,
+      tipo: 'time_excluido',
+      mensagem: `O time ${time.nome} foi excluído pelo capitão.`,
+      atorUserId: auth.user.id,
+    });
+  }
+
+  return NextResponse.json({ ok: true });
 }
