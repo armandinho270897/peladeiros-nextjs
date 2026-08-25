@@ -35,8 +35,10 @@ export default function PeladaClient({ id }) {
   const [modal, setModal] = useState(null);
   const justLotaram = useJustLotou(game, loading);
 
-  const loadGame = useCallback(async () => {
-    setLoading(true);
+  // silent=true pros refetches em segundo plano (poll, volta de aba) —
+  // sem isso a tela inteira piscava pro skeleton de novo a cada 15s.
+  const loadGame = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     const res = await fetch(`/api/games/${id}`);
     if (res.status === 404) { setNotFound(true); setLoading(false); return; }
     const data = await res.json();
@@ -46,6 +48,25 @@ export default function PeladaClient({ id }) {
 
   useEffect(() => {
     loadGame();
+  }, [loadGame]);
+
+  // Sem isso, quem já tá com a página aberta (ex: pediu presença e ficou
+  // esperando) só via a aprovação do capitão depois de recarregar na mão —
+  // o pedido "sumia" do ponto de vista de quem tava esperando. Reforça com
+  // poll (pega quem ficou parado olhando a tela) + refetch ao voltar pra
+  // aba (pega quem trocou de aba e voltou).
+  useEffect(() => {
+    const interval = setInterval(() => loadGame(true), 15000);
+    function onVisible() {
+      if (document.visibilityState === 'visible') loadGame(true);
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
   }, [loadGame]);
 
   function shareGame(g) {

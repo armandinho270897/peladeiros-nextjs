@@ -48,6 +48,22 @@ export default function NotificationBell({ variant = 'header' }) {
 
   useEffect(() => { load(); }, [load]);
 
+  // Sem poll, o sininho só atualizava num reload manual — quem tava com a
+  // aba aberta esperando uma aprovação não via o aviso chegar.
+  useEffect(() => {
+    const interval = setInterval(load, 30000);
+    function onVisible() {
+      if (document.visibilityState === 'visible') load();
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [load]);
+
   useEffect(() => {
     if (!open) return;
     function onClickOutside(e) {
