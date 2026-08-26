@@ -803,10 +803,18 @@ body::before {
   background: var(--card-bg); border: 2px solid var(--concrete); border-radius: var(--radius-lg);
   padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
-/* Variante usada na navegação inferior — o painel abre pra cima, não pra baixo */
+/* Variante usada na navegação inferior — o painel abre pra cima, não pra
+   baixo. position:fixed centralizado na TELA (não no botão "Avisos", que
+   fica fora do centro) — centralizar no botão fazia o painel (280px)
+   estourar a borda direita em telas estreitas, e a parte que sobrava
+   ficava invisível/cortada, parecendo que "não abre nada". */
 .pl-bell-panel.upward {
-  top: auto; bottom: calc(100% + 10px); right: auto; left: 50%;
+  position: fixed;
+  top: auto;
+  bottom: calc(68px + env(safe-area-inset-bottom, 0px) + 10px);
+  left: 50%; right: auto;
   transform: translateX(-50%);
+  width: min(280px, calc(100vw - 24px));
 }
 .pl-bell-panel-title { font-size: 11px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
 .pl-bell-item { padding: 8px 6px; border-radius: var(--radius-sm); }
