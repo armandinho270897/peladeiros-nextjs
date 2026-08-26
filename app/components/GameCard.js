@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas } from '@/lib/gameUtils';
+import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas, souCapitaoDe } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
@@ -39,10 +39,11 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
   const lotado = restantes === 0;
   const status = statusVagas(restantes, lotado);
   const podeEditar = !g.owner_id || g.owner_id === currentUserId;
+  const souCapitao = souCapitaoDe(g, currentUserId);
   const minhaConfirmacao = (g.confirmacoes || []).find((c) => c.user_id === currentUserId);
-  const aguardandoAprovacao = minhaConfirmacao?.status === 'pendente';
-  const minhaPresencaAprovada = minhaConfirmacao?.status === 'aprovado';
-  const minhaVagaAguardandoConfirmacao = minhaConfirmacao?.status === 'aguardando_confirmacao';
+  const aguardandoAprovacao = !souCapitao && minhaConfirmacao?.status === 'pendente';
+  const minhaPresencaAprovada = souCapitao || minhaConfirmacao?.status === 'aprovado';
+  const minhaVagaAguardandoConfirmacao = !souCapitao && minhaConfirmacao?.status === 'aguardando_confirmacao';
 
   const [pulse, setPulse] = useState(false);
   const prevRestantes = useRef(restantes);
@@ -149,7 +150,10 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
       <div className="pl-card-footer">
         <div className="pl-card-footer-row">
           <p className="pl-card-capitao"><CaptainIcon /> {g.capitao}</p>
-          {minhaPresencaAprovada && (
+          {/* Capitão não cancela a própria presença por aqui — sairia do
+              próprio jogo sem sair da posição de dono. Quem quer desmarcar
+              a pelada inteira usa o fluxo de editar/encerrar. */}
+          {!souCapitao && minhaConfirmacao?.status === 'aprovado' && (
             <button className="pl-link-danger-small" onClick={() => onCancelPresenca(minhaConfirmacao.id, g)}>
               Cancelar presença
             </button>

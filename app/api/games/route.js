@@ -1,6 +1,7 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { attachNotaMedia } from '@/lib/ratings';
 import { createNotification } from '@/lib/notify';
@@ -33,7 +34,7 @@ export async function POST(request) {
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login pra criar uma pelada.' }, { status: 401 });
 
-  const { data: profile } = await supabase.from('profiles').select('nome').eq('id', user.id).maybeSingle();
+  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro').eq('id', user.id).maybeSingle();
   if (!profile) return NextResponse.json({ error: 'Complete seu perfil antes de criar uma pelada.' }, { status: 400 });
 
   const body = await request.json();
@@ -62,14 +63,30 @@ export async function POST(request) {
 
   if (error) return errJson(error.message, 500);
 
+  const idsRegistrados = Array.isArray(jogadoresIniciais)
+    ? [...new Set(jogadoresIniciais.map((j) => j.id).filter((id) => id && id !== user.id))]
+    : [];
+
+  // O capitão sempre entra confirmado na própria pelada, sem passar pelo
+  // fluxo de solicitação/aprovação (ele não vai aprovar a presença dele
+  // mesmo) — ocupa uma vaga de vagas_totais como qualquer outro jogador.
+  // Roda junto com a busca de perfis dos jogadoresIniciais (não há
+  // dependência entre as duas — nenhuma usa o resultado da outra).
+  const [{ error: confirmacaoCapitaoError }, { data: perfis }] = await Promise.all([
+    supabase.from('confirmacoes').insert({
+      game_id: game.id, user_id: user.id, nome: profile.nome, whatsapp: profile.whatsapp, bairro: profile.bairro, status: 'aprovado',
+    }),
+    idsRegistrados.length > 0
+      ? supabase.from('profiles').select('id, nome, whatsapp, bairro').in('id', idsRegistrados)
+      : Promise.resolve({ data: [] }),
+  ]);
+  if (confirmacaoCapitaoError) Sentry.captureException(new Error(`confirmação do capitão falhou: ${confirmacaoCapitaoError.message}`));
+
   // jogadores adicionados direto na criação entram como aprovado (dentro da
   // capacidade) ou espera (se estourar) — mesmo critério do fluxo de aprovar.
   // Convidados sem conta (só nome, sem id) entram do mesmo jeito, sem user_id.
+  // Uma vaga já é do capitão, então a capacidade restante pra eles é vagasTotais - 1.
   if (Array.isArray(jogadoresIniciais) && jogadoresIniciais.length > 0) {
-    const idsRegistrados = [...new Set(jogadoresIniciais.map((j) => j.id).filter((id) => id && id !== user.id))];
-    const { data: perfis } = idsRegistrados.length > 0
-      ? await supabase.from('profiles').select('id, nome, whatsapp, bairro').in('id', idsRegistrados)
-      : { data: [] };
     const perfilPorId = {};
     for (const p of perfis || []) perfilPorId[p.id] = p;
 
@@ -78,7 +95,7 @@ export async function POST(request) {
     let i = 0;
     for (const j of jogadoresIniciais) {
       if (j.id === user.id) continue;
-      const status = i < vagasTotais ? 'aprovado' : 'espera';
+      const status = i < vagasTotais - 1 ? 'aprovado' : 'espera';
       if (j.id) {
         const p = perfilPorId[j.id];
         if (!p) continue;
