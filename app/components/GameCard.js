@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO } from '@/lib/gameUtils';
+import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
@@ -27,14 +27,6 @@ function ConfirmadoAvatar({ nome, moral, bench, fotoUrl }) {
       )}
     </div>
   );
-}
-
-// Status de vagas mais informativo que só o número. "Aberta"/"Lotada" são
-// estados neutros (cinza); só "últimas vagas" usa o dourado de urgência.
-function statusVagas(restantes, lotado) {
-  if (lotado) return { label: '🔴 Lotada', className: 'lotada' };
-  if (restantes <= 3) return { label: `🔥 Últimas ${restantes} vaga${restantes === 1 ? '' : 's'}`, className: 'ultimas' };
-  return { label: `🟢 Aberta · ${restantes} vagas`, className: 'aberta' };
 }
 
 export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou, distanciaKm }) {
@@ -75,10 +67,10 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
     if (!ehHoje) return null;
     const inicio = new Date(`${g.data}T${g.horario}`).getTime();
     const diff = inicio - agora;
-    if (diff <= 0) return 'Rolando agora';
+    if (diff <= 0) return '⚽ Acontecendo agora';
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
-    return h > 0 ? `Começa em ${h}h${String(m).padStart(2, '0')}min` : `Começa em ${m}min`;
+    return h > 0 ? `⚡ Começa em ${h}h${String(m).padStart(2, '0')}min` : `⚡ Começa em ${m}min`;
   })();
 
   // Contagem regressiva do prazo pra confirmar a vaga — dá pro jogador uma

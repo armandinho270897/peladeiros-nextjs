@@ -81,7 +81,8 @@ export default function PeladasPage() {
     const confirmados = aprovadosDe(g).length;
     const restantes = Math.max(0, g.vagas_totais - confirmados);
     const msg = `⚽ Pelada marcada!\n📍 ${g.local} (${g.bairro})\n📅 ${g.data} às ${g.horario}\n🔢 ${restantes} vaga(s) livre(s) de ${g.vagas_totais}\n👑 Capitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    if (win) showToast('📲 Pelada compartilhada');
   }
 
   function handleArenaCreated() {
@@ -101,7 +102,7 @@ export default function PeladasPage() {
     const result = await res.json();
     if (!res.ok) { showToast(result.error || 'Não consegui confirmar sua vaga.'); return; }
     loadGames();
-    showToast('Vaga confirmada!');
+    showToast('🔥 Você entrou no jogo!');
   }
 
   const today = todayISO();
@@ -230,9 +231,15 @@ export default function PeladasPage() {
         <div className="pl-empty">
           <EmptyFieldIcon />
           <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>
-            {tab === 'minhas' ? 'Você não confirmou nenhuma pelada futura' : 'Nenhuma pelada marcada'}
+            {tab === 'minhas' ? 'Você ainda não tá em nenhuma pelada 👀' : 'Tá quieto por aqui... 👀'}
           </h3>
-          <p>{tab === 'minhas' ? 'Confirme presença numa pelada pra ela aparecer aqui.' : 'Seja o primeiro a chamar o povo pro campo essa semana.'}</p>
+          <p>{tab === 'minhas' ? 'Dá uma olhada nas peladas rolando e confirma presença.' : 'Que tal criar a primeira pelada da semana?'}</p>
+          {tab !== 'minhas' && (
+            <Link href="/?criar=1" className="pl-ticket" style={{ display: 'inline-flex', marginTop: 12, textDecoration: 'none' }}>
+              <span className="pl-ticket-label">Criar pelada</span>
+              <span className="pl-ticket-stub" aria-hidden="true">⚽</span>
+            </Link>
+          )}
         </div>
       ) : (
         <>

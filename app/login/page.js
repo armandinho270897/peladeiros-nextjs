@@ -7,6 +7,11 @@ import { createClient } from '@/lib/supabase-browser';
 import { createRecoveryClient } from '@/lib/supabase-recovery';
 import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
+import Brand from '../components/Brand';
+import NightPitchBackground from '../components/NightPitchBackground';
+import PitchBall from '../components/PitchBall';
+import FloatingInput from '../components/FloatingInput';
+import BtnBall from '../components/BtnBall';
 
 // Traduz os erros mais comuns do supabase-js pra mensagem em português —
 // o resto (raro) cai no fallback genérico, mas nunca fica sem feedback.
@@ -38,11 +43,22 @@ function LoginForm() {
   const [credenciaisInvalidas, setCredenciaisInvalidas] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pedidoEnviado, setPedidoEnviado] = useState(false);
+  const [kickState, setKickState] = useState('idle'); // 'idle' | 'kicking' | 'goal' | 'post' — só no modo "entrar"
+  const [showFlash, setShowFlash] = useState(false);
+
+  // Depois de autenticar de verdade (nunca antes — isso não atrasa a
+  // chamada real), um flash rápido de refletor cobre a troca de tela por
+  // menos de 1s, sem mexer na Home nem na splash que já existe.
+  function irParaHomeComFlash() {
+    setShowFlash(true);
+    setTimeout(() => { window.location.href = next; }, 380);
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setCredenciaisInvalidas(false);
+    setKickState('idle');
 
     if (modo === 'criar') {
       if (senha.length < 6) { setError('A senha precisa ter pelo menos 6 caracteres.'); return; }
@@ -62,15 +78,20 @@ function LoginForm() {
         setError('Conta criada, mas ainda precisa confirmar por e-mail antes de entrar.');
         return;
       }
-      // Navegação completa (não router.push) — o router cache do Next às
-      // vezes serve uma versão de "/" que ainda não viu a sessão nova.
-      window.location.href = next;
+      irParaHomeComFlash();
       return;
     }
 
+    // Chute a gol: a bola "sai" assim que a requisição começa e acompanha o
+    // tempo real dela — se a resposta chegar antes da animação de saída
+    // terminar, a troca de classe (React) já corta ela na hora, sem espera
+    // artificial nenhuma pra qualquer lado (gol ou trave).
+    setKickState('kicking');
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha });
     if (error) {
       setLoading(false);
+      setKickState('post');
+      setTimeout(() => setKickState('idle'), 700);
       setError(traduzErroSenha(error));
       // A Supabase não distingue "e-mail não existe" de "senha errada" (evita
       // vazar quais e-mails têm conta) — em vez de adivinhar, oferece o
@@ -78,7 +99,8 @@ function LoginForm() {
       if ((error.message || '').includes('Invalid login credentials')) setCredenciaisInvalidas(true);
       return;
     }
-    window.location.href = next;
+    setKickState('goal');
+    irParaHomeComFlash();
   }
 
   async function handleEsqueciSenha(e) {
@@ -115,9 +137,11 @@ function LoginForm() {
   if (modo === 'esqueci') {
     return (
       <div className="pl-authpage">
+        <NightPitchBackground />
+        <PitchBall />
         <div className="pl-authcard">
-          <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
-          <p className="pl-tagline">Vem pro fut, vem.</p>
+          <div className="pl-stagger-1"><Brand /></div>
+          <p className="pl-tagline pl-stagger-2">Vem pro fut, vem.</p>
 
           {pedidoEnviado ? (
             <>
@@ -126,20 +150,17 @@ function LoginForm() {
               <TicketButton type="button" style={{ width: '100%', marginTop: 8 }} onClick={() => trocarModo('entrar')}>Voltar pro login</TicketButton>
             </>
           ) : (
-            <>
+            <div className="pl-stagger-3">
               <p className="pl-hint">Esqueceu a senha? Manda seu e-mail que a gente envia um link pra redefinir.</p>
               <form onSubmit={handleEsqueciSenha}>
-                <div className="pl-field">
-                  <label>E-mail</label>
-                  <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" />
-                </div>
+                <FloatingInput label="E-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 {error && <p className="pl-error">{error}</p>}
                 <TicketButton type="submit" style={{ width: '100%' }} disabled={loading}>
-                  {loading ? 'Enviando...' : 'Enviar link'}
+                  {loading ? <BtnBall /> : 'Enviar link'}
                 </TicketButton>
               </form>
               <button type="button" className="pl-share-btn" style={{ marginTop: 10 }} onClick={() => trocarModo('entrar')}>Voltar pro login</button>
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -148,39 +169,67 @@ function LoginForm() {
 
   return (
     <div className="pl-authpage">
+      <NightPitchBackground />
+      <PitchBall />
+      {showFlash && <div className="pl-login-flash" aria-hidden="true" />}
       <div className="pl-authcard">
-        <div className="pl-brand"><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
-        <p className="pl-tagline">Vem pro fut, vem.</p>
+        <div className="pl-stagger-1"><Brand /></div>
+        <p className="pl-tagline pl-stagger-2">Vem pro fut, vem.</p>
 
-        <div className="pl-tabs" style={{ margin: '16px 0', padding: 0, maxWidth: 'none' }}>
+        <div className="pl-tabs pl-stagger-3" style={{ margin: '16px 0', padding: 0, maxWidth: 'none' }}>
           <button type="button" className={`pl-tab ${modo === 'entrar' ? 'active' : ''}`} onClick={() => trocarModo('entrar')}>Entrar</button>
           <button type="button" className={`pl-tab ${modo === 'criar' ? 'active' : ''}`} onClick={() => trocarModo('criar')}>Criar conta</button>
         </div>
 
-        <p className="pl-hint">{modo === 'criar' ? 'Cria sua conta com e-mail e senha.' : 'Entra com seu e-mail e senha.'}</p>
-        <form onSubmit={handleSubmit}>
-          <div className="pl-field">
-            <label>E-mail</label>
-            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@exemplo.com" />
-          </div>
-          <PasswordField label="Senha" required minLength={6} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete={modo === 'criar' ? 'new-password' : 'current-password'} />
-          {modo === 'criar' && (
-            <PasswordField label="Confirmar senha" required minLength={6} value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} autoComplete="new-password" />
-          )}
-          {modo === 'entrar' && (
-            <button type="button" className="pl-share-btn" style={{ marginTop: -4 }} onClick={() => trocarModo('esqueci')}>Esqueci minha senha</button>
-          )}
-          {error && <p className="pl-error">{error}</p>}
-          {credenciaisInvalidas && (
-            <p className="pl-hint" style={{ marginTop: -6 }}>
-              Ainda não tem conta?{' '}
-              <button type="button" className="pl-inline-link" onClick={() => trocarModo('criar')}>Criar conta</button>
-            </p>
-          )}
-          <TicketButton type="submit" style={{ width: '100%' }} disabled={loading}>
-            {loading ? (modo === 'criar' ? 'Criando...' : 'Entrando...') : (modo === 'criar' ? 'Criar conta' : 'Entrar')}
-          </TicketButton>
-        </form>
+        <div className="pl-stagger-3">
+          <p className="pl-hint" key={modo}>{modo === 'criar' ? 'Cria sua conta com e-mail e senha.' : 'Entra com seu e-mail e senha.'}</p>
+          <form onSubmit={handleSubmit}>
+            <FloatingInput label="E-mail" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <PasswordField floating label="Senha" required minLength={6} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete={modo === 'criar' ? 'new-password' : 'current-password'} />
+            <div className={`pl-field-collapse ${modo === 'criar' ? 'open' : ''}`}>
+              <div>
+                <PasswordField
+                  floating
+                  label="Confirmar senha"
+                  required={modo === 'criar'}
+                  minLength={6}
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  autoComplete="new-password"
+                  tabIndex={modo === 'criar' ? 0 : -1}
+                />
+              </div>
+            </div>
+            {modo === 'entrar' && (
+              <button type="button" className="pl-share-btn" style={{ marginTop: -4 }} onClick={() => trocarModo('esqueci')}>Esqueci minha senha</button>
+            )}
+            {error && <p className="pl-error">{error}</p>}
+            {credenciaisInvalidas && (
+              <p className="pl-hint" style={{ marginTop: -6 }}>
+                Ainda não tem conta?{' '}
+                <button type="button" className="pl-inline-link" onClick={() => trocarModo('criar')}>Criar conta</button>
+              </p>
+            )}
+            <TicketButton
+              type="submit"
+              style={{ width: '100%' }}
+              disabled={loading}
+              className={kickState === 'post' ? 'pl-kickbtn-post' : kickState === 'goal' ? 'pl-kickbtn-goal' : ''}
+            >
+              {kickState === 'kicking' ? (
+                <span className="pl-launch-ball" aria-hidden="true">⚽</span>
+              ) : kickState === 'goal' ? (
+                'Gol!'
+              ) : kickState === 'post' ? (
+                'Entrar'
+              ) : loading ? (
+                <BtnBall />
+              ) : (
+                modo === 'criar' ? 'Criar conta' : 'Entrar'
+              )}
+            </TicketButton>
+          </form>
+        </div>
       </div>
     </div>
   );
