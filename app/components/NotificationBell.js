@@ -163,6 +163,7 @@ export default function NotificationBell({ variant = 'header' }) {
         </button>
       )}
 
+      {open && isBottomNav && <div className="pl-bell-backdrop" onClick={() => setOpen(false)} />}
       {open && (
         <div ref={panelRef} className={`pl-bell-panel ${isBottomNav ? 'upward' : ''}`}>
           <div className="pl-bell-panel-title">Notificações</div>
