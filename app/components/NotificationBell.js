@@ -5,8 +5,10 @@ import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import BellIcon from './BellIcon';
+import AvisoFlagIcon from './AvisoFlagIcon';
 import Avatar from './Avatar';
 import BolaParadaIcon from './BolaParadaIcon';
+import { tapFlash, flashClass } from '@/lib/tapFlash';
 
 function tempoRelativo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -26,6 +28,9 @@ export default function NotificationBell({ variant = 'header' }) {
   const [atores, setAtores] = useState({});
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
+  const iconWrapRef = useRef(null);
+  const prevNaoLidasRef = useRef(0);
+  const hasLoadedRef = useRef(false);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -35,11 +40,23 @@ export default function NotificationBell({ variant = 'header' }) {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(30);
-    setNotificacoes(data || []);
+    const rows = data || [];
+    setNotificacoes(rows);
+
+    // Tremor de 340ms quando um aviso novo chega — decidido aqui dentro
+    // (não num useEffect reagindo a naoLidas) pra não confundir "primeiro
+    // load populando os avisos que já existiam" com "aviso novo chegou":
+    // só treme a partir do segundo load em diante.
+    const naoLidasAgora = rows.filter((n) => !n.lida).length;
+    if (hasLoadedRef.current && naoLidasAgora > prevNaoLidasRef.current) {
+      flashClass(iconWrapRef.current, 'shake', 400);
+    }
+    prevNaoLidasRef.current = naoLidasAgora;
+    hasLoadedRef.current = true;
 
     // busca separada (não dá pra embedar via FK — ator_user_id referencia
     // auth.users, não profiles) só pra quem tem foto/nome pra mostrar.
-    const atorIds = [...new Set((data || []).map((n) => n.ator_user_id).filter(Boolean))];
+    const atorIds = [...new Set(rows.map((n) => n.ator_user_id).filter(Boolean))];
     if (atorIds.length > 0) {
       const { data: perfis } = await supabase.from('profiles').select('id, nome, foto_url').in('id', atorIds);
       setAtores(Object.fromEntries((perfis || []).map((p) => [p.id, p])));
@@ -47,6 +64,22 @@ export default function NotificationBell({ variant = 'header' }) {
   }, [supabase, user]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Sem poll, o sininho só atualizava num reload manual — quem tava com a
+  // aba aberta esperando uma aprovação não via o aviso chegar.
+  useEffect(() => {
+    const interval = setInterval(load, 30000);
+    function onVisible() {
+      if (document.visibilityState === 'visible') load();
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [load]);
 
   useEffect(() => {
     if (!open) return;
@@ -64,24 +97,33 @@ export default function NotificationBell({ variant = 'header' }) {
       const naoLidasIds = notificacoes.filter((n) => !n.lida).map((n) => n.id);
       if (naoLidasIds.length > 0) {
         setNotificacoes((prev) => prev.map((n) => ({ ...n, lida: true })));
+        // sem isso, prevNaoLidasRef fica travado no valor de antes de abrir
+        // o painel e um aviso genuinamente novo logo em seguida não tremeria
+        // (a comparação em load() ia achar que ainda não subiu).
+        prevNaoLidasRef.current = 0;
         const { error: lidaError } = await supabase.from('notificacoes').update({ lida: true }).eq('user_id', user.id).eq('lida', false);
         if (lidaError) Sentry.captureException(lidaError);
       }
     }
   }
 
-  if (!user) return null;
-
   const naoLidas = notificacoes.filter((n) => !n.lida).length;
+
+  if (!user) return null;
 
   const isBottomNav = variant === 'bottomnav';
 
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
       {isBottomNav ? (
-        <button className="pl-bottom-nav-item" onClick={toggleOpen} aria-label="Notificações">
-          <span className="pl-bottom-nav-icon">
-            <BellIcon />
+        <button
+          className="pl-bottom-nav-item pl-bottom-nav-avisos"
+          onClick={(e) => { tapFlash(e); toggleOpen(); }}
+          aria-label="Notificações"
+        >
+          <span className="pl-bottom-nav-icon" ref={iconWrapRef}>
+            <span className="pl-bottom-nav-flash" aria-hidden="true" />
+            <AvisoFlagIcon />
             {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}
           </span>
           Avisos
@@ -99,7 +141,7 @@ export default function NotificationBell({ variant = 'header' }) {
           {notificacoes.length === 0 ? (
             <div style={{ padding: '10px 4px', textAlign: 'center' }}>
               <BolaParadaIcon width={56} />
-              <p style={{ fontSize: 13, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Nada por aqui ainda.</p>
+              <p style={{ fontSize: 13, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Nada por aqui ainda 👀</p>
             </div>
           ) : (
             notificacoes.map((n) => {

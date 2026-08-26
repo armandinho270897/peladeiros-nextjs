@@ -1,5 +1,5 @@
 'use client';
-import { fmtDate, ocupandoVagaDe } from '@/lib/gameUtils';
+import { fmtDate, ocupandoVagaDe, statusVagas } from '@/lib/gameUtils';
 import TicketButton from './TicketButton';
 import CaptainIcon from './CaptainIcon';
 import TipoJogoIcon from './TipoJogoIcon';
@@ -14,6 +14,7 @@ export default function NextGameHero({ game, onConfirm, currentUserId }) {
   const ocupadas = ocupandoVagaDe(g).length;
   const restantes = Math.max(0, g.vagas_totais - ocupadas);
   const lotado = restantes === 0;
+  const status = statusVagas(restantes, lotado);
   const minhaConfirmacao = (g.confirmacoes || []).find((c) => c.user_id === currentUserId);
   const jaDentro = minhaConfirmacao?.status === 'aprovado';
   const aguardando = minhaConfirmacao?.status === 'pendente';
@@ -33,7 +34,7 @@ export default function NextGameHero({ game, onConfirm, currentUserId }) {
           {g.bairro}
           {g.tipo && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 8 }}><TipoJogoIcon tipo={g.tipo} size={12} /> {g.tipo}</span>}
         </div>
-        <div className="pl-next-game-status">{lotado ? '🔴 Lotada' : `🟢 ${restantes} vaga${restantes === 1 ? '' : 's'}`}</div>
+        <div className="pl-next-game-status">{status.label}</div>
         <p style={{ fontSize: 12, color: 'var(--paper-dim)', display: 'flex', alignItems: 'center', margin: '2px 0 0' }}>
           <CaptainIcon /> {g.capitao}
         </p>

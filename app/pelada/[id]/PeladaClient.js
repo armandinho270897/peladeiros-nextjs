@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { aprovadosDe, shareUrl } from '@/lib/gameUtils';
+import { aprovadosDe, shareUrl, jaAconteceu } from '@/lib/gameUtils';
 import { useJustLotou } from '@/lib/useJustLotou';
 import { useAuth } from '../../components/AuthProvider';
 import { useToast } from '../../components/ToastProvider';
@@ -12,8 +12,10 @@ import ManageModal from '../../components/ManageModal';
 import CancelPresencaModal from '../../components/CancelPresencaModal';
 import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
 import EscalacaoField from '../../components/EscalacaoField';
+import PeladaChat from '../../components/PeladaChat';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
 import BackLink from '../../components/BackLink';
+import Brand from '../../components/Brand';
 
 // Só quem pode editar a pelada (capitão) vê o botão, e só depois que o
 // horário já passou e ela ainda não foi encerrada.
@@ -21,7 +23,7 @@ function podeEncerrar(game, user) {
   if (!game || game.encerrada_em) return false;
   const podeEditar = !game.owner_id || game.owner_id === user?.id;
   if (!podeEditar) return false;
-  return new Date(`${game.data}T${game.horario}`).getTime() <= Date.now();
+  return jaAconteceu(game);
 }
 
 export default function PeladaClient({ id }) {
@@ -34,8 +36,10 @@ export default function PeladaClient({ id }) {
   const [modal, setModal] = useState(null);
   const justLotaram = useJustLotou(game, loading);
 
-  const loadGame = useCallback(async () => {
-    setLoading(true);
+  // silent=true pros refetches em segundo plano (poll, volta de aba) —
+  // sem isso a tela inteira piscava pro skeleton de novo a cada 15s.
+  const loadGame = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     const res = await fetch(`/api/games/${id}`);
     if (res.status === 404) { setNotFound(true); setLoading(false); return; }
     const data = await res.json();
@@ -47,11 +51,31 @@ export default function PeladaClient({ id }) {
     loadGame();
   }, [loadGame]);
 
+  // Sem isso, quem já tá com a página aberta (ex: pediu presença e ficou
+  // esperando) só via a aprovação do capitão depois de recarregar na mão —
+  // o pedido "sumia" do ponto de vista de quem tava esperando. Reforça com
+  // poll (pega quem ficou parado olhando a tela) + refetch ao voltar pra
+  // aba (pega quem trocou de aba e voltou).
+  useEffect(() => {
+    const interval = setInterval(() => loadGame(true), 15000);
+    function onVisible() {
+      if (document.visibilityState === 'visible') loadGame(true);
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [loadGame]);
+
   function shareGame(g) {
     const confirmados = aprovadosDe(g).length;
     const restantes = Math.max(0, g.vagas_totais - confirmados);
     const msg = `⚽ Pelada marcada!\n📍 ${g.local} (${g.bairro})\n📅 ${g.data} às ${g.horario}\n🔢 ${restantes} vaga(s) livre(s) de ${g.vagas_totais}\n👑 Capitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    if (win) showToast('📲 Pelada compartilhada');
   }
 
   async function handleConfirmarVaga(confirmacaoId) {
@@ -59,7 +83,7 @@ export default function PeladaClient({ id }) {
     const result = await res.json();
     if (!res.ok) { showToast(result.error || 'Não consegui confirmar sua vaga.'); return; }
     loadGame();
-    showToast('Vaga confirmada!');
+    showToast('🔥 Você entrou no jogo!');
   }
 
   function handleConfirmClick(g) {
@@ -96,7 +120,7 @@ export default function PeladaClient({ id }) {
     <div>
       <div className="pl-header">
         <BackLink href="/">Todas as peladas</BackLink>
-        <div className="pl-brand" style={{ marginTop: 10 }}><div className="pl-brand-text">PELADEI<span>ROS</span></div></div>
+        <Brand style={{ marginTop: 10 }} />
       </div>
 
       <div className="pl-list" style={{ paddingTop: 14 }}>
@@ -135,6 +159,8 @@ export default function PeladaClient({ id }) {
       )}
 
       <EscalacaoField game={game} />
+
+      <PeladaChat game={game} />
 
       {modal?.type === 'confirm' && (
         <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={() => { setModal(null); loadGame(); showToast('Solicitação enviada! Aguardando aprovação do capitão.'); }} />
