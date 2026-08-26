@@ -28,6 +28,7 @@ export default function NotificationBell({ variant = 'header' }) {
   const [atores, setAtores] = useState({});
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
+  const panelRef = useRef(null);
   const iconWrapRef = useRef(null);
   const prevNaoLidasRef = useRef(0);
   const hasLoadedRef = useRef(false);
@@ -90,8 +91,35 @@ export default function NotificationBell({ variant = 'header' }) {
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, [open]);
 
+  // Diagnóstico temporário (ver toggleOpen) — confirma se o painel chegou a
+  // montar de verdade e onde ele calculou a própria posição, depois do
+  // layout assentar. Remover junto com o resto da instrumentação.
+  useEffect(() => {
+    if (!open) return;
+    const id = requestAnimationFrame(() => {
+      const el = panelRef.current;
+      if (!el) {
+        Sentry.captureMessage('Avisos: open=true mas panelRef não montou', 'warning');
+        return;
+      }
+      const r = el.getBoundingClientRect();
+      const cs = getComputedStyle(el);
+      Sentry.captureMessage(
+        `Avisos painel montado: rect=${JSON.stringify({ x: r.x, y: r.y, w: r.width, h: r.height })} display=${cs.display} visibility=${cs.visibility} opacity=${cs.opacity} zIndex=${cs.zIndex}`,
+        'info'
+      );
+    });
+    return () => cancelAnimationFrame(id);
+  }, [open]);
+
   async function toggleOpen() {
     const abrindo = !open;
+    // Diagnóstico temporário — o painel não aparece em pelo menos um
+    // usuário real (Android e iPhone), mas nenhum teste sintético reproduz
+    // e o Sentry não capturou exceção nenhuma. Precisa saber se o handler
+    // dispara de verdade e com que estado/viewport, já que "nada acontece"
+    // sem erro nenhum é o próprio sintoma. Remover depois de diagnosticado.
+    Sentry.captureMessage(`Avisos clicado: abrindo=${abrindo} innerWidth=${window.innerWidth} innerHeight=${window.innerHeight} ua=${navigator.userAgent}`, 'info');
     setOpen(abrindo);
     if (abrindo) {
       const naoLidasIds = notificacoes.filter((n) => !n.lida).map((n) => n.id);
@@ -136,7 +164,7 @@ export default function NotificationBell({ variant = 'header' }) {
       )}
 
       {open && (
-        <div className={`pl-bell-panel ${isBottomNav ? 'upward' : ''}`}>
+        <div ref={panelRef} className={`pl-bell-panel ${isBottomNav ? 'upward' : ''}`}>
           <div className="pl-bell-panel-title">Notificações</div>
           {notificacoes.length === 0 ? (
             <div style={{ padding: '10px 4px', textAlign: 'center' }}>
