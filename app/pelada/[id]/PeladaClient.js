@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { aprovadosDe, shareUrl } from '@/lib/gameUtils';
+import { aprovadosDe, shareUrl, jaAconteceu } from '@/lib/gameUtils';
 import { useJustLotou } from '@/lib/useJustLotou';
 import { useAuth } from '../../components/AuthProvider';
 import { useToast } from '../../components/ToastProvider';
@@ -12,6 +12,7 @@ import ManageModal from '../../components/ManageModal';
 import CancelPresencaModal from '../../components/CancelPresencaModal';
 import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
 import EscalacaoField from '../../components/EscalacaoField';
+import PeladaChat from '../../components/PeladaChat';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
 import BackLink from '../../components/BackLink';
 import Brand from '../../components/Brand';
@@ -22,7 +23,7 @@ function podeEncerrar(game, user) {
   if (!game || game.encerrada_em) return false;
   const podeEditar = !game.owner_id || game.owner_id === user?.id;
   if (!podeEditar) return false;
-  return new Date(`${game.data}T${game.horario}`).getTime() <= Date.now();
+  return jaAconteceu(game);
 }
 
 export default function PeladaClient({ id }) {
@@ -158,6 +159,8 @@ export default function PeladaClient({ id }) {
       )}
 
       <EscalacaoField game={game} />
+
+      <PeladaChat game={game} />
 
       {modal?.type === 'confirm' && (
         <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={() => { setModal(null); loadGame(); showToast('Solicitação enviada! Aguardando aprovação do capitão.'); }} />
