@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase-browser';
-import { jaAconteceu as jaAconteceuDe } from '@/lib/gameUtils';
+import { jaAconteceu as jaAconteceuDe, souCapitaoDe } from '@/lib/gameUtils';
 import { LIMITE_MENSAGEM_CHAT as LIMITE_CARACTERES } from '@/lib/chatUtils';
 import { useAuth } from './AuthProvider';
 import { useToast } from './ToastProvider';
@@ -23,7 +23,8 @@ export default function PeladaChat({ game }) {
   const listRef = useRef(null);
   const autoresRef = useRef({});
 
-  const souAprovado = (game.confirmacoes || []).some((c) => c.user_id === user?.id && c.status === 'aprovado');
+  const souAprovado = souCapitaoDe(game, user?.id)
+    || (game.confirmacoes || []).some((c) => c.user_id === user?.id && c.status === 'aprovado');
   const jaAconteceu = jaAconteceuDe(game);
 
   // Guarda os ids já buscados num ref (não no state) pra não refazer a
