@@ -33,24 +33,39 @@ export default function EscalacaoField({ game }) {
       <div className="pl-escalacao-title">Escalação</div>
       <div className="pl-field-draw">
         {ZONAS.map((zona) => (
-          <div key={zona} className="pl-field-zone">
-            {(porZona[zona] || []).map((c) => (
-              <div key={c.id} className="pl-field-player">
-                <Avatar nome={c.nome} size={28} fotoUrl={c.foto_url} />
-              </div>
-            ))}
-            {(porZona[zona] || []).length === 0 && (
-              <span className="pl-field-zone-empty">{ZONA_LABEL[zona]}</span>
+          <div key={zona} className="pl-field-zone-wrap">
+            {(porZona[zona] || []).length > 0 && (
+              <span className="pl-field-zone-label">{ZONA_LABEL[zona]}</span>
             )}
+            <div className="pl-field-zone">
+              {(porZona[zona] || []).map((c) => (
+                <div key={c.id} className="pl-field-player">
+                  <Avatar nome={c.nome} size={36} fotoUrl={c.foto_url} />
+                  <span className="pl-field-player-name">{c.nome}</span>
+                </div>
+              ))}
+              {(porZona[zona] || []).length === 0 && (
+                <span className="pl-field-zone-empty">{ZONA_LABEL[zona]}</span>
+              )}
+            </div>
           </div>
         ))}
       </div>
-      {reservas.length > 0 && (
-        <div className="pl-field-reservas">
-          <span className="pl-field-reservas-label">Reservas:</span>
-          {reservas.map((c) => <Avatar key={c.id} nome={c.nome} size={24} fotoUrl={c.foto_url} />)}
-        </div>
-      )}
+      <div className="pl-field-reservas">
+        <span className="pl-field-reservas-label">Reservas</span>
+        {reservas.length > 0 ? (
+          <div className="pl-field-reservas-chips">
+            {reservas.map((c) => (
+              <div key={c.id} className="pl-field-reserva-chip">
+                <Avatar nome={c.nome} size={24} fotoUrl={c.foto_url} />
+                <span>{c.nome}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="pl-field-reservas-empty">Sem reservas no momento.</p>
+        )}
+      </div>
     </div>
   );
 }

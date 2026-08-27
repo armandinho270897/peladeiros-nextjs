@@ -11,8 +11,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import ManageModal from '../../components/ManageModal';
 import CancelPresencaModal from '../../components/CancelPresencaModal';
 import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
-import EscalacaoField from '../../components/EscalacaoField';
-import PeladaChat from '../../components/PeladaChat';
+import PeladaAbas from '../../components/PeladaAbas';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
 import BackLink from '../../components/BackLink';
 import Brand from '../../components/Brand';
@@ -158,9 +157,7 @@ export default function PeladaClient({ id }) {
         </div>
       )}
 
-      <EscalacaoField game={game} />
-
-      <PeladaChat game={game} />
+      <PeladaAbas game={game} />
 
       {modal?.type === 'confirm' && (
         <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={() => { setModal(null); loadGame(); showToast('Solicitação enviada! Aguardando aprovação do capitão.'); }} />

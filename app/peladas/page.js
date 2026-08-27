@@ -153,6 +153,7 @@ export default function PeladasPage() {
         onConfirmarVaga={handleConfirmarVaga}
         justLotou={!!justLotaram[g.id]}
         distanciaKm={distanciaDe(g)}
+        clickThrough
       />
     );
   }
