@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './CaptainIcon';
@@ -29,7 +30,15 @@ function ConfirmadoAvatar({ nome, moral, bench, fotoUrl }) {
   );
 }
 
-export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou, distanciaKm }) {
+// stopPropagation nos controles internos evita que um clique num botão
+// (editar, confirmar, cancelar, compartilhar) também dispare a navegação
+// do clickThrough pro card inteiro.
+function pararPropagacao(fn) {
+  return (e) => { e.stopPropagation(); fn(); };
+}
+
+export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou, distanciaKm, clickThrough }) {
+  const router = useRouter();
   const g = game;
   const d = fmtDate(g.data);
   const confirmados = aprovadosDe(g);
@@ -91,8 +100,24 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
     return h > 0 ? `Confirma em até ${h}h${String(m).padStart(2, '0')}min` : `Confirma em até ${m}min`;
   })();
 
+  // Testado ao vivo: envolver o card inteiro num <Link> navegava de qualquer
+  // forma ao clicar nos botões internos (Editar, Compartilhar etc.), mesmo
+  // com stopPropagation neles. router.push num onClick comum no card não
+  // tem esse problema. e.target === e.currentTarget no keydown evita que um
+  // Enter dado num botão interno (que já bolha um keydown pro card antes do
+  // click do botão rodar) também dispare a navegação do card.
+  const wrapperProps = clickThrough
+    ? {
+        role: 'link',
+        tabIndex: 0,
+        'aria-label': `Ver detalhes da pelada em ${g.local}`,
+        onClick: () => router.push(`/pelada/${g.id}`),
+        onKeyDown: (e) => { if (e.key === 'Enter' && e.target === e.currentTarget) router.push(`/pelada/${g.id}`); },
+      }
+    : {};
+
   return (
-    <div className="pl-card">
+    <div className="pl-card" {...wrapperProps}>
       <CardIllustration gameId={g.id} />
       {justLotou && <Confetti />}
       {lotado && <div className="pl-stamp">Lotado</div>}
@@ -107,7 +132,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         <div className="pl-card-line1-side">
           <div className={`pl-status-badge ${status.className} ${pulse ? 'pl-flip-pulse' : ''}`}>{status.label}</div>
           {podeEditar && (
-            <button className="pl-edit-link-inline" onClick={() => onEdit(g)}>
+            <button className="pl-edit-link-inline" onClick={pararPropagacao(() => onEdit(g))}>
               Editar
               {pendentes.length > 0 && <span className="pl-pending-badge">{pendentes.length}</span>}
             </button>
@@ -132,14 +157,14 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
           <>
             <p className="pl-aguardando">Aprovado — falta você confirmar</p>
             {contagemPrazo && <p className="pl-prazo-confirmacao">{contagemPrazo}</p>}
-            <TicketButton compact onClick={() => onConfirmarVaga(minhaConfirmacao.id)}>
+            <TicketButton compact onClick={pararPropagacao(() => onConfirmarVaga(minhaConfirmacao.id))}>
               Confirmar minha vaga
             </TicketButton>
           </>
         ) : minhaPresencaAprovada ? (
           <span className="pl-inside-badge">✓ Você está dentro</span>
         ) : (
-          <TicketButton compact onClick={() => onConfirm(g)}>
+          <TicketButton compact onClick={pararPropagacao(() => onConfirm(g))}>
             {lotado ? 'Entrar no banco' : 'Confirmar'}
           </TicketButton>
         )}
@@ -150,7 +175,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         <div className="pl-card-footer-row">
           <p className="pl-card-capitao"><CaptainIcon /> {g.capitao}</p>
           {minhaPresencaAprovada && (
-            <button className="pl-link-danger-small" onClick={() => onCancelPresenca(minhaConfirmacao.id, g)}>
+            <button className="pl-link-danger-small" onClick={pararPropagacao(() => onCancelPresenca(minhaConfirmacao.id, g))}>
               Cancelar presença
             </button>
           )}
@@ -177,7 +202,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         )}
 
         <div className="pl-card-share-row">
-          <button className="pl-icon-btn" onClick={() => onShare(g)} aria-label="Compartilhar">🔗</button>
+          <button className="pl-icon-btn" onClick={pararPropagacao(() => onShare(g))} aria-label="Compartilhar">🔗</button>
         </div>
       </div>
     </div>

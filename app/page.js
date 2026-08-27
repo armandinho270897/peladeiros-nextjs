@@ -103,6 +103,7 @@ export default function Home() {
         onCancelPresenca={(confirmacaoId, game) => setModal({ type: 'cancelar', confirmacaoId, game })}
         onConfirmarVaga={handleConfirmarVaga}
         justLotou={!!justLotaram[g.id]}
+        clickThrough
       />
     );
   }

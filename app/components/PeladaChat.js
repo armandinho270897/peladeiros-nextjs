@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase-browser';
-import { jaAconteceu as jaAconteceuDe } from '@/lib/gameUtils';
+import { jaAconteceu as jaAconteceuDe, souAprovadoDe } from '@/lib/gameUtils';
 import { LIMITE_MENSAGEM_CHAT as LIMITE_CARACTERES } from '@/lib/chatUtils';
 import { useAuth } from './AuthProvider';
 import { useToast } from './ToastProvider';
@@ -23,7 +23,7 @@ export default function PeladaChat({ game }) {
   const listRef = useRef(null);
   const autoresRef = useRef({});
 
-  const souAprovado = (game.confirmacoes || []).some((c) => c.user_id === user?.id && c.status === 'aprovado');
+  const souAprovado = souAprovadoDe(game, user?.id);
   const jaAconteceu = jaAconteceuDe(game);
 
   // Guarda os ids já buscados num ref (não no state) pra não refazer a
@@ -97,46 +97,51 @@ export default function PeladaChat({ game }) {
   if (!souAprovado) return null;
 
   return (
-    <div className="pl-list" style={{ paddingTop: 0 }}>
-      <div className="pl-section-title">Chat da pelada</div>
-      <div className="pl-chat-card">
-        {jaAconteceu ? (
-          <div className="pl-chat-encerrado">
-            <span className="ico" aria-hidden="true">🔒</span>
-            <b>Chat encerrado</b>
-            <p>Essa pelada já rolou — o chat fechou junto com ela.</p>
-          </div>
-        ) : (
-          <>
-            <div className="pl-chat-list" ref={listRef}>
-              {mensagens.length === 0 ? (
-                <div className="pl-chat-empty">
-                  <span className="ico" aria-hidden="true">👋</span>
-                  Nenhuma mensagem ainda — chama a galera pra confirmar.
-                </div>
-              ) : (
-                mensagens.map((m) => {
-                  const autor = autores[m.user_id];
-                  const propria = m.user_id === user?.id;
-                  return (
-                    <div key={m.id} className={`pl-chat-msg ${propria ? 'own' : ''}`}>
-                      {!propria && <Avatar nome={autor?.nome || '?'} fotoUrl={autor?.foto_url} size={22} />}
-                      <div>
-                        <div className="pl-chat-bubble">
-                          {!propria && <span className="pl-chat-author">{autor?.nome || '...'}</span>}
-                          <p>{m.texto}</p>
-                        </div>
-                        <span className="pl-chat-time">
-                          {new Date(m.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+    <div className="pl-chat-card">
+      {jaAconteceu ? (
+        <div className="pl-chat-encerrado">
+          <span className="ico" aria-hidden="true">🔒</span>
+          <b>Chat encerrado</b>
+          <p>Essa pelada já rolou — o chat fechou junto com ela.</p>
+        </div>
+      ) : (
+        <>
+          <div className="pl-chat-list" ref={listRef}>
+            {mensagens.length === 0 ? (
+              <div className="pl-chat-empty">
+                <span className="ico" aria-hidden="true">👋</span>
+                Nenhuma mensagem ainda — chama a galera pra confirmar.
+              </div>
+            ) : (
+              mensagens.map((m, i) => {
+                const autor = autores[m.user_id];
+                const propria = m.user_id === user?.id;
+                // Não repete avatar/nome quando a mesma pessoa manda várias
+                // mensagens seguidas — só na primeira bolha da sequência.
+                const anterior = mensagens[i - 1];
+                const primeiraDaSequencia = !anterior || anterior.user_id !== m.user_id;
+                return (
+                  <div key={m.id} className={`pl-chat-msg ${propria ? 'own' : ''} ${primeiraDaSequencia ? '' : 'seguida'}`}>
+                    {!propria && (primeiraDaSequencia
+                      ? <Avatar nome={autor?.nome || '?'} fotoUrl={autor?.foto_url} size={22} />
+                      : <span className="pl-chat-avatar-spacer" />
+                    )}
+                    <div>
+                      <div className="pl-chat-bubble">
+                        {!propria && primeiraDaSequencia && <span className="pl-chat-author">{autor?.nome || '...'}</span>}
+                        <p>{m.texto}</p>
                       </div>
+                      <span className="pl-chat-time">
+                        {new Date(m.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
-                  );
-                })
-              )}
-            </div>
-            <div className="pl-chat-counter">{texto.length}/{LIMITE_CARACTERES}</div>
-            <form onSubmit={enviar} className="pl-chat-form">
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <form onSubmit={enviar} className="pl-chat-form">
+            <div className="pl-chat-form-row">
               <input
                 type="text"
                 value={texto}
@@ -145,10 +150,11 @@ export default function PeladaChat({ game }) {
                 maxLength={LIMITE_CARACTERES}
               />
               <button type="submit" className="pl-chat-send" disabled={enviando || !texto.trim()} aria-label="Enviar">➤</button>
-            </form>
-          </>
-        )}
-      </div>
+            </div>
+            <div className="pl-chat-counter">{texto.length}/{LIMITE_CARACTERES}</div>
+          </form>
+        </>
+      )}
     </div>
   );
 }
