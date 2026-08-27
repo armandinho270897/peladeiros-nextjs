@@ -48,10 +48,16 @@ export default function NotificationBell({ variant = 'header' }) {
     function onVisible() {
       if (document.visibilityState === 'visible') load();
     }
+    // Este componente fica montado no layout raiz e não desmonta ao
+    // navegar pra /avisos (navegação client-side, sem focus/visibilitychange
+    // próprios) — sem isso o contador ficava com o número antigo até o
+    // próximo poll de 30s mesmo já tendo marcado tudo como lido lá.
+    window.addEventListener('pl-notificacoes-lidas', load);
     document.addEventListener('visibilitychange', onVisible);
     window.addEventListener('focus', onVisible);
     return () => {
       clearInterval(interval);
+      window.removeEventListener('pl-notificacoes-lidas', load);
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('focus', onVisible);
     };
