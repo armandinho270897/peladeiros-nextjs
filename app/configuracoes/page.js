@@ -7,17 +7,10 @@ import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
 import InstallButton from '../components/InstallButton';
 import BackLink from '../components/BackLink';
+import { NOTIF_TIPOS } from '@/lib/notifCategorias';
 
-const TIPOS = [
-  { id: 'solicitacao_pendente', label: 'Alguém pediu pra entrar na sua pelada' },
-  { id: 'solicitacao_rejeitada', label: 'Sua solicitação foi recusada' },
-  { id: 'aprovado_aguardando_confirmacao', label: 'Você foi aprovado (falta confirmar a vaga)' },
-  { id: 'vaga_liberada_espera', label: 'Você entrou no banco de reservas' },
-  { id: 'vaga_expirada', label: 'Sua vaga expirou por falta de confirmação' },
-  { id: 'conflito_horario', label: 'Solicitação cancelada por conflito de horário' },
-  { id: 'partida_proxima', label: 'Sua partida está próxima' },
-  { id: 'pelada_nova_perto', label: 'Pelada nova no seu bairro' },
-];
+const URGENTES = NOTIF_TIPOS.filter((t) => t.categoria === 'urgente');
+const COMUNIDADE = NOTIF_TIPOS.filter((t) => t.categoria === 'comunidade');
 
 export default function ConfiguracoesPage() {
   const { profile, loading: authLoading, refreshProfile } = useAuth();
@@ -82,11 +75,23 @@ export default function ConfiguracoesPage() {
       </div>
 
       <div style={{ maxWidth: 640, margin: '14px auto 0', padding: '0 16px' }}>
-        {TIPOS.map((t) => {
+        <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--gold)', margin: '0 0 6px' }}>Urgentes</p>
+        {URGENTES.map((t) => {
           const ligado = prefs[t.id] !== false;
           return (
             <label key={t.id} className="pl-notif-pref-row">
-              <span>{t.label}</span>
+              <span>{t.icone} {t.label}</span>
+              <input type="checkbox" checked={ligado} onChange={() => toggle(t.id)} />
+            </label>
+          );
+        })}
+
+        <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--paper-dim)', margin: '18px 0 6px' }}>Comunidade</p>
+        {COMUNIDADE.map((t) => {
+          const ligado = prefs[t.id] !== false;
+          return (
+            <label key={t.id} className="pl-notif-pref-row">
+              <span>{t.icone} {t.label}</span>
               <input type="checkbox" checked={ligado} onChange={() => toggle(t.id)} />
             </label>
           );
