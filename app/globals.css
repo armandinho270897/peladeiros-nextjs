@@ -922,9 +922,16 @@ body::before {
 .pl-pending-actions .pl-btn-secondary { flex: none; padding: 4px 6px 8px; font-size: 12px; }
 .pl-pending-actions .pl-ticket { margin: 0; }
 
-/* Central de notificações */
+/* Sino de notificações — só ícone + contador, sem painel. O clique navega
+   pra /avisos (página de verdade, ver app/avisos/page.js e os estilos
+   .pl-avisos-* mais abaixo) em vez de abrir um dropdown/modal flutuante:
+   um painel com position:fixed nunca renderizou de forma confiável no
+   Safari do iPhone (fixed + transform falha só no passo de pintura, sem
+   erro nenhum, confirmado ao vivo com diagnóstico + teste real), e uma
+   rota é o jeito mais robusto que existe de mostrar uma lista na web. */
 .pl-bell-btn {
-  position: relative; background: none; border: none; cursor: pointer;
+  position: relative; display: inline-flex; background: none; border: none;
+  text-decoration: none; cursor: pointer;
   font-size: 16px; line-height: 1; padding: 4px; color: var(--paper-dim);
 }
 .pl-bell-badge {
@@ -934,44 +941,67 @@ body::before {
   min-width: 14px; height: 14px; border-radius: var(--radius-pill);
   display: inline-flex; align-items: center; justify-content: center; padding: 0 3px;
 }
-.pl-bell-panel {
-  position: absolute; top: calc(100% + 8px); right: 0; z-index: 40;
-  width: 280px; max-height: 340px; overflow-y: auto;
-  background: var(--card-bg); border: 2px solid var(--concrete); border-radius: var(--radius-lg);
-  padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+
+/* Página /avisos */
+.pl-avisos-head { max-width: 640px; margin: 4px auto 0; padding: 0 16px; }
+.pl-avisos-head h1 {
+  font-family: var(--font-display); font-weight: 400; text-transform: uppercase;
+  font-size: 26px; margin: 4px 0 14px; color: var(--paper);
 }
-/* Variante usada na navegação inferior — modal centralizado (com fundo
-   escurecido atrás). Confirmado ao vivo (diagnóstico + teste real no
-   iPhone): o fundo escurecido (.pl-bell-backdrop, sem transform) pinta
-   normal, mas a caixa em si — que usava position:fixed + transform:
-   translate(-50%,-50%) pra centralizar — não pintava, mesmo com
-   getBoundingClientRect() relatando a posição certa. É uma incompatibilidade
-   conhecida do Safari: fixed + transform no mesmo elemento às vezes falha
-   só no passo de composição/pintura, sem erro nenhum. Centraliza sem
-   transform: os 4 lados em 0 + margin:auto (truque clássico, funciona em
-   qualquer engine) — sobra só max-width/max-height pra não ocupar a tela
-   inteira. */
-.pl-bell-panel.upward {
-  position: fixed;
-  top: 0; right: 0; bottom: 0; left: 0;
-  margin: auto;
-  width: min(280px, calc(100vw - 32px));
-  height: fit-content;
-  max-height: min(340px, 70vh);
+.pl-avisos-tabs { display: flex; gap: 6px; }
+.pl-avisos-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 8px; font-family: var(--font-display); font-size: 12px;
+  letter-spacing: 0.02em; text-transform: uppercase; border-radius: var(--radius-sm);
+  cursor: pointer; border: 1px solid rgba(110,113,120,0.35); color: var(--paper-dim);
+  background: var(--card-bg);
 }
-.pl-bell-backdrop {
-  position: fixed;
-  top: 0; right: 0; bottom: 0; left: 0;
-  background: rgba(0,0,0,0.55);
-  z-index: 39;
+.pl-avisos-tab.active { color: var(--ink); background: var(--neon); border-color: var(--neon); }
+.pl-avisos-tab-count {
+  font-family: var(--font-body); font-weight: 700; font-size: 10px;
+  background: rgba(243,243,238,0.12); color: var(--paper-dim);
+  padding: 1px 6px; border-radius: var(--radius-pill);
 }
-.pl-bell-panel-title { font-size: 11px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
-.pl-bell-item { padding: 8px 6px; border-radius: var(--radius-sm); }
-.pl-bell-item.unread { background: rgba(166,255,0,0.08); }
-.pl-bell-item p { margin: 0; font-size: 13px; color: var(--paper); line-height: 1.35; }
-.pl-bell-time { font-size: 10px; color: var(--paper-dim); }
-.pl-bell-item-link { display: block; text-decoration: none; color: inherit; }
-.pl-bell-item-link:hover .pl-bell-item { background: rgba(255,255,255,0.05); }
+.pl-avisos-tab.active .pl-avisos-tab-count { background: rgba(10,10,10,0.18); color: var(--ink); }
+
+.pl-avisos-list { max-width: 640px; margin: 16px auto 0; padding: 0 16px 24px; }
+.pl-avisos-day {
+  font-family: var(--font-body); font-weight: 600; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--concrete); padding: 14px 4px 8px;
+}
+.pl-avisos-day:first-child { padding-top: 0; }
+.pl-avisos-empty { text-align: center; padding: 60px 24px 20px; }
+.pl-avisos-empty p { color: var(--paper-dim); font-size: 13.5px; margin: 14px 0 0; }
+
+.pl-n-card {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.28);
+  border-left: 3px solid var(--concrete); border-radius: var(--radius-md);
+  padding: 12px; margin-bottom: 8px; position: relative;
+}
+.pl-n-card.unread { border-left-color: var(--neon); background: rgba(166,255,0,0.04); }
+.pl-n-card.urgente.unread { border-left-color: var(--gold); }
+.pl-n-icon {
+  width: 34px; height: 34px; border-radius: var(--radius-sm); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  background: rgba(243,243,238,0.06); border: 1px solid rgba(110,113,120,0.28);
+}
+.pl-n-card.unread .pl-n-icon { background: rgba(166,255,0,0.10); border-color: rgba(166,255,0,0.3); }
+.pl-n-card.urgente.unread .pl-n-icon { background: rgba(255,197,61,0.12); border-color: rgba(255,197,61,0.35); }
+.pl-n-body { flex: 1; min-width: 0; }
+.pl-n-top { display: flex; justify-content: flex-end; }
+.pl-n-time { font-size: 11px; color: var(--concrete); }
+.pl-n-msg { font-size: 13.5px; line-height: 1.45; color: var(--paper); margin: 0; }
+.pl-n-card:not(.unread) .pl-n-msg { color: var(--paper-dim); }
+.pl-n-actor { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.pl-n-actor span { font-size: 11.5px; color: var(--paper-dim); }
+.pl-n-dot {
+  position: absolute; top: 12px; right: 12px; width: 7px; height: 7px;
+  border-radius: 50%; background: var(--neon); box-shadow: 0 0 6px rgba(166,255,0,0.7);
+}
+.pl-n-card.urgente.unread .pl-n-dot { background: var(--gold); box-shadow: 0 0 6px rgba(255,197,61,0.7); }
+.pl-n-card-link { display: block; text-decoration: none; color: inherit; }
+.pl-n-card-link:hover .pl-n-card { border-color: rgba(166,255,0,0.4); }
 
 /* Busca de jogador (criar pelada + gerenciar) */
 .pl-player-search { position: relative; }

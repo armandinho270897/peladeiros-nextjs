@@ -27,6 +27,9 @@ export function AuthProvider({ children }) {
         fetch('/api/notificacoes/verificar-proximas', { method: 'POST' })
           .then((res) => { if (!res.ok) Sentry.captureMessage(`verificar-proximas respondeu ${res.status}`, 'warning'); })
           .catch((err) => Sentry.captureException(err));
+        fetch('/api/notificacoes/verificar-goleiro', { method: 'POST' })
+          .then((res) => { if (!res.ok) Sentry.captureMessage(`verificar-goleiro respondeu ${res.status}`, 'warning'); })
+          .catch((err) => Sentry.captureException(err));
       }
     });
 
