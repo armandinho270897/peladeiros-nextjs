@@ -291,7 +291,7 @@ export default function NewGameModal({ onCancel, onCreated }) {
           <div>
             <p className="pl-hint">Confere como vai ficar antes de publicar:</p>
             <div style={{ pointerEvents: 'none' }}>
-              <GameCard game={previewGame} currentUserId={null} onEdit={() => {}} onConfirm={() => {}} onShare={() => {}} onCancelPresenca={() => {}} onConfirmarVaga={() => {}} justLotou={false} />
+              <GameCard game={previewGame} currentUserId={null} onEdit={() => {}} onConfirm={() => {}} onShare={() => {}} onCancelPresenca={() => {}} onConfirmarVaga={() => {}} justLotou={false} artSizes="396px" />
             </div>
             {(tipo || nivel || valor || regras) && (
               <div className="pl-field" style={{ marginTop: 12 }}>

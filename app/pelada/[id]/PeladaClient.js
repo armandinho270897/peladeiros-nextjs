@@ -12,6 +12,7 @@ import ManageModal from '../../components/ManageModal';
 import CancelPresencaModal from '../../components/CancelPresencaModal';
 import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
 import PeladaAbas from '../../components/PeladaAbas';
+import GameArtBanner from '../../components/GameArtBanner';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
 import BackLink from '../../components/BackLink';
 import Brand from '../../components/Brand';
@@ -117,6 +118,8 @@ export default function PeladaClient({ id }) {
 
   return (
     <div>
+      <GameArtBanner tipo={game.tipo} variant="hero" priority />
+
       <div className="pl-header">
         <BackLink href="/">Todas as peladas</BackLink>
         <Brand style={{ marginTop: 10 }} />
@@ -132,6 +135,7 @@ export default function PeladaClient({ id }) {
           onCancelPresenca={(confirmacaoId, g) => setModal({ type: 'cancelar', confirmacaoId, game: g })}
           onConfirmarVaga={handleConfirmarVaga}
           justLotou={!!justLotaram[game?.id]}
+          showArt={false}
         />
       </div>
 
