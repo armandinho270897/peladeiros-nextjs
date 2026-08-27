@@ -8,6 +8,7 @@ import TicketButton from './TicketButton';
 import Confetti from './Confetti';
 import TipoJogoIcon from './TipoJogoIcon';
 import CardIllustration from './CardIllustration';
+import GameArtBanner from './GameArtBanner';
 
 function ConfirmadoAvatar({ nome, moral, bench, fotoUrl }) {
   return (
@@ -37,7 +38,7 @@ function pararPropagacao(fn) {
   return (e) => { e.stopPropagation(); fn(); };
 }
 
-export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou, distanciaKm, clickThrough }) {
+export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou, distanciaKm, clickThrough, showArt = true, artSizes }) {
   const router = useRouter();
   const g = game;
   const d = fmtDate(g.data);
@@ -118,6 +119,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
 
   return (
     <div className="pl-card" {...wrapperProps}>
+      {showArt && <GameArtBanner tipo={g.tipo} variant="card" sizes={artSizes} />}
       <CardIllustration gameId={g.id} />
       {justLotou && <Confetti />}
       {lotado && <div className="pl-stamp">Lotado</div>}

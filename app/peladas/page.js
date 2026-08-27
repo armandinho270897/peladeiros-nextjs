@@ -194,6 +194,7 @@ export default function PeladasPage() {
             <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Society' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Society' ? '' : 'Society')}><TipoJogoIcon tipo="Society" size={14} /> Society</button>
             <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futsal' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futsal' ? '' : 'Futsal')}><TipoJogoIcon tipo="Futsal" size={14} /> Futsal</button>
             <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futebol de areia' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de areia' ? '' : 'Futebol de areia')}><TipoJogoIcon tipo="Futebol de areia" size={14} /> Areia</button>
+            <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futebol de Rua' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de Rua' ? '' : 'Futebol de Rua')}><TipoJogoIcon tipo="Futebol de Rua" size={14} /> Rua</button>
             <button className={`pl-chip pl-chip-filtros ${filtrosAbertos ? 'active' : ''}`} onClick={() => setFiltrosAbertos((v) => !v)}>⚙ Filtros</button>
           </div>
           {erroLocalizacao && <div style={{ maxWidth: 640, margin: '4px auto 0', padding: '0 16px', fontSize: 11, color: 'var(--tag-red)' }}>{erroLocalizacao}</div>}

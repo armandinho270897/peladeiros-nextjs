@@ -2,15 +2,17 @@ import FutebolCampoIcon from './FutebolCampoIcon';
 import SocietyIcon from './SocietyIcon';
 import FutsalIcon from './FutsalIcon';
 import PraiaIcon from './PraiaIcon';
+import RuaIcon from './RuaIcon';
 import CampoIcon from './CampoIcon';
 
-export const TIPOS_JOGO = ['Futebol de campo', 'Society', 'Futsal', 'Futebol de areia', 'Outro'];
+export const TIPOS_JOGO = ['Futebol de campo', 'Society', 'Futsal', 'Futebol de areia', 'Futebol de Rua', 'Outro'];
 
 const ICONS = {
   'Futebol de campo': FutebolCampoIcon,
   Society: SocietyIcon,
   Futsal: FutsalIcon,
   'Futebol de areia': PraiaIcon,
+  'Futebol de Rua': RuaIcon,
   Outro: CampoIcon,
 };
 
