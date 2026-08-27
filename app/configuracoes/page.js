@@ -35,6 +35,18 @@ export default function ConfiguracoesPage() {
     setPrefs((prev) => ({ ...prev, [tipoId]: prev[tipoId] === false ? true : false }));
   }
 
+  function renderGrupo(lista) {
+    return lista.map((t) => {
+      const ligado = prefs[t.id] !== false;
+      return (
+        <label key={t.id} className="pl-notif-pref-row">
+          <span>{t.icone} {t.label}</span>
+          <input type="checkbox" checked={ligado} onChange={() => toggle(t.id)} />
+        </label>
+      );
+    });
+  }
+
   async function handleSave() {
     setSaving(true);
     const supabase = createClient();
@@ -76,26 +88,10 @@ export default function ConfiguracoesPage() {
 
       <div style={{ maxWidth: 640, margin: '14px auto 0', padding: '0 16px' }}>
         <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--gold)', margin: '0 0 6px' }}>Urgentes</p>
-        {URGENTES.map((t) => {
-          const ligado = prefs[t.id] !== false;
-          return (
-            <label key={t.id} className="pl-notif-pref-row">
-              <span>{t.icone} {t.label}</span>
-              <input type="checkbox" checked={ligado} onChange={() => toggle(t.id)} />
-            </label>
-          );
-        })}
+        {renderGrupo(URGENTES)}
 
         <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--paper-dim)', margin: '18px 0 6px' }}>Comunidade</p>
-        {COMUNIDADE.map((t) => {
-          const ligado = prefs[t.id] !== false;
-          return (
-            <label key={t.id} className="pl-notif-pref-row">
-              <span>{t.icone} {t.label}</span>
-              <input type="checkbox" checked={ligado} onChange={() => toggle(t.id)} />
-            </label>
-          );
-        })}
+        {renderGrupo(COMUNIDADE)}
 
         <div style={{ marginTop: 18 }}>
           <TicketButton onClick={handleSave} disabled={saving}>{saving ? 'Salvando...' : 'Salvar preferências'}</TicketButton>

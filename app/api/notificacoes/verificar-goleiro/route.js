@@ -3,10 +3,12 @@ import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { errJson } from '@/lib/apiError';
-import { inicioDoJogo } from '@/lib/gameUtils';
+import { inicioDoJogo, POSICAO_ZONA } from '@/lib/gameUtils';
 
 const JANELA_MS = 12 * 60 * 60 * 1000; // avisa quando faltam 12h ou menos
-const POSICOES_GOLEIRO = ['goleiro', 'goleiro_linha'];
+// Deriva do mapa compartilhado de posições em vez de listar de novo aqui —
+// qualquer slug cuja zona seja "Goleiro" conta, em qualquer modalidade.
+const POSICOES_GOLEIRO = Object.keys(POSICAO_ZONA).filter((p) => POSICAO_ZONA[p] === 'Goleiro');
 
 // Chamada quando o app abre (mesmo padrão de verificar-proximas): olha as
 // peladas em que o usuário é capitão, acontecendo nas próximas 12h, e avisa
@@ -20,6 +22,11 @@ export async function POST() {
   if (!user) return NextResponse.json({ error: 'Faça login.' }, { status: 401 });
 
   if (!checkRateLimit(`verificar-goleiro:${user.id}`)) {
+    return NextResponse.json({ ok: true, criadas: 0 });
+  }
+
+  const { data: meuPerfil } = await supabase.from('profiles').select('notif_prefs').eq('id', user.id).maybeSingle();
+  if (meuPerfil?.notif_prefs?.goleiro_faltando === false) {
     return NextResponse.json({ ok: true, criadas: 0 });
   }
 

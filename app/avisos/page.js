@@ -10,10 +10,16 @@ import { categoriaDe } from '@/lib/notifCategorias';
 import { todayISO } from '@/lib/gameUtils';
 
 function rotuloDia(iso) {
+  if (!iso) return '';
   const data = iso.slice(0, 10);
   const hoje = todayISO();
   if (data === hoje) return 'Hoje';
-  const ontem = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  // Mesma lógica de todayISO (data local, não UTC) só que com "agora - 1
+  // dia" — usar toISOString() aqui desalinharia com "hoje" perto da
+  // meia-noite em fusos negativos (ex: Brasil, UTC-3).
+  const ont = new Date();
+  ont.setDate(ont.getDate() - 1);
+  const ontem = ont.getFullYear() + '-' + String(ont.getMonth() + 1).padStart(2, '0') + '-' + String(ont.getDate()).padStart(2, '0');
   if (data === ontem) return 'Ontem';
   const [y, m, d] = data.split('-');
   return `${d}/${m}`;
@@ -47,7 +53,14 @@ export default function AvisosPage() {
     }
   }, [supabase, user]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+    // Mesmo polling de 30s que o sino sempre teve — a página fica aberta
+    // (ex: usuário esperando uma aprovação) e precisa continuar recebendo
+    // avisos novos, não só carregar uma vez no mount.
+    const interval = setInterval(load, 30000);
+    return () => clearInterval(interval);
+  }, [load]);
 
   // Abrir a página já marca como lido — mesmo comportamento de sempre
   // (abrir o painel marcava tudo), só que agora é a página inteira.
@@ -57,7 +70,14 @@ export default function AvisosPage() {
     if (naoLidasIds.length === 0) return;
     setNotificacoes((prev) => prev.map((n) => ({ ...n, lida: true })));
     supabase.from('notificacoes').update({ lida: true }).eq('user_id', user.id).eq('lida', false)
-      .then(({ error }) => { if (error) Sentry.captureException(error); });
+      .then(({ error }) => {
+        if (error) { Sentry.captureException(error); return; }
+        // Avisa o sino (montado no layout raiz, fora desta página) que o
+        // contador de não-lidas mudou — ele só reconsulta a cada 30s ou em
+        // focus/visibilitychange, nenhum dos dois dispara numa navegação
+        // client-side pra dentro/fora de /avisos.
+        window.dispatchEvent(new Event('pl-notificacoes-lidas'));
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notificacoes.length, user]);
 
