@@ -2,7 +2,8 @@
 import Link from 'next/link';
 import * as Sentry from '@sentry/nextjs';
 import Avatar from './Avatar';
-import { categoriaDe, iconeDe } from '@/lib/notifCategorias';
+import NotifIconBadge from './NotifIconBadge';
+import { categoriaDe, iconeDe, corDe, indicadorDe } from '@/lib/notifCategorias';
 import { tempoRelativo, comNomeEmNegrito } from '@/lib/notificacoes';
 
 // Cada card é isolado no próprio try/catch — um registro com dado
@@ -29,7 +30,7 @@ export default function NotificationCard({ n, ator, onNavigate }) {
             {ehPedido && <span className="pl-n-actor-badge">+</span>}
           </span>
         ) : (
-          <span className="pl-n-icon" aria-hidden="true">{iconeDe(n.tipo)}</span>
+          <NotifIconBadge icone={iconeDe(n.tipo)} cor={corDe(n.tipo)} size={34} {...indicadorDe(n.tipo)} />
         )}
         <div className="pl-n-body">
           <div className="pl-n-top">

@@ -5,8 +5,9 @@ import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import { fetchNotificacoesComAtores, tempoRelativo, comNomeEmNegrito } from '@/lib/notificacoes';
-import { iconeDe } from '@/lib/notifCategorias';
+import { iconeDe, corDe, indicadorDe } from '@/lib/notifCategorias';
 import Avatar from './Avatar';
+import NotifIconBadge from './NotifIconBadge';
 import BolaParadaIcon from './BolaParadaIcon';
 
 const CHAVE_CONQUISTAS_VISTAS = 'pl-conquistas-vistas';
@@ -127,7 +128,7 @@ export default function HomeFeed({ conquistas, proximaConquista }) {
                   {n.tipo === 'solicitacao_pendente' && <span className="pl-n-actor-badge">+</span>}
                 </span>
               ) : (
-                <span className="pl-glass-icon" aria-hidden="true">{iconeDe(n.tipo)}</span>
+                <NotifIconBadge icone={iconeDe(n.tipo)} cor={corDe(n.tipo)} size={38} {...indicadorDe(n.tipo)} />
               )}
               <div className="pl-glass-body">
                 <p className="pl-glass-msg">{comNomeEmNegrito(mensagem, ator?.nome)}</p>

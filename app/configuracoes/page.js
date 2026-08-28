@@ -7,7 +7,8 @@ import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
 import InstallButton from '../components/InstallButton';
 import BackLink from '../components/BackLink';
-import { NOTIF_TIPOS } from '@/lib/notifCategorias';
+import NotifIconBadge from '../components/NotifIconBadge';
+import { NOTIF_TIPOS, iconeDe, corDe } from '@/lib/notifCategorias';
 
 const URGENTES = NOTIF_TIPOS.filter((t) => t.categoria === 'urgente');
 const COMUNIDADE = NOTIF_TIPOS.filter((t) => t.categoria === 'comunidade');
@@ -40,7 +41,10 @@ export default function ConfiguracoesPage() {
       const ligado = prefs[t.id] !== false;
       return (
         <label key={t.id} className="pl-notif-pref-row">
-          <span>{t.icone} {t.label}</span>
+          <span className="pl-notif-pref-label">
+            <NotifIconBadge icone={iconeDe(t.id)} cor={corDe(t.id)} size={26} />
+            {t.label}
+          </span>
           <input type="checkbox" checked={ligado} onChange={() => toggle(t.id)} />
         </label>
       );
