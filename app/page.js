@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 import { useAuth } from './components/AuthProvider';
 import { useToast } from './components/ToastProvider';
 import HomeHero from './components/HomeHero';
-import HomeFeed from './components/HomeFeed';
+import PendingActionCards from './components/PendingActionCards';
+import SocialSummaryCard from './components/SocialSummaryCard';
+import PatenteCard from './components/PatenteCard';
 import HomeFooterCta from './components/HomeFooterCta';
 import NewGameModal from './components/NewGameModal';
 
@@ -69,9 +71,17 @@ export default function Home() {
 
   return (
     <div>
-      <HomeHero profile={profile} tipo={tipoArte} statusFrase={statusFrase} />
-      <HomeFeed conquistas={perfil?.conquistas} proximaConquista={perfil?.proximaConquista} />
-      <HomeFooterCta game={proximaConfirmada} loading={perfil === null} />
+      <HomeHero profile={profile} tipo={tipoArte} statusFrase={statusFrase} patenteId={perfil?.patente?.id} />
+
+      <div className="pl-home-blocks">
+        <PendingActionCards acaoPendente={perfil?.acaoPendente} onChanged={carregarPerfil} />
+        <SocialSummaryCard resumoSocial={perfil?.resumoSocial} />
+        <PatenteCard patente={perfil?.patente} />
+      </div>
+
+      <div className="pl-reveal pl-reveal-4">
+        <HomeFooterCta game={proximaConfirmada} loading={perfil === null} />
+      </div>
 
       {modal === 'new' && (
         <NewGameModal onCancel={() => setModal(null)} onCreated={handleCreated} />
