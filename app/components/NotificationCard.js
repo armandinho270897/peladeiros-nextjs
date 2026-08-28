@@ -3,17 +3,7 @@ import Link from 'next/link';
 import * as Sentry from '@sentry/nextjs';
 import Avatar from './Avatar';
 import { categoriaDe, iconeDe } from '@/lib/notifCategorias';
-
-function tempoRelativo(iso) {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const min = Math.floor(diffMs / 60000);
-  if (min < 1) return 'agora';
-  if (min < 60) return `há ${min} min`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `há ${h}h`;
-  const d = Math.floor(h / 24);
-  return `há ${d}d`;
-}
+import { tempoRelativo } from '@/lib/notificacoes';
 
 // Cada card é isolado no próprio try/catch — um registro com dado
 // inesperado (data inválida, mensagem vazia) não derruba a lista inteira,

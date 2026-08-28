@@ -127,24 +127,14 @@ body::before {
 }
 .pl-page-fade { animation: pl-page-fade-in 280ms ease; }
 
-/* Header final: só marca + acesso ao perfil. Todo o resto (tagline, ações
-   de criar pelada/arena) mora no conteúdo da página (.pl-page-intro),
-   logo abaixo — não compete mais com a barra fixa do topo. */
+/* Header final: só marca + acesso ao perfil — não compete mais com o
+   conteúdo da página logo abaixo (tagline, ações de criar pelada/arena). */
 .pl-header {
   position: relative;
   padding: 12px 20px;
   border-bottom: 3px solid var(--concrete);
   overflow: hidden;
 }
-.pl-header-watermark {
-  position: absolute;
-  top: -20px;
-  right: -30px;
-  opacity: 0.035;
-  pointer-events: none;
-  z-index: 0;
-}
-.pl-header > *:not(.pl-header-watermark) { position: relative; z-index: 1; }
 .pl-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
 .pl-brand-text { font-family: var(--font-display); font-size: 22px; text-transform: uppercase; }
 .pl-brand-text span { color: var(--neon); }
@@ -210,7 +200,6 @@ body::before {
 
 /* Boas-vindas da página: tagline + ações principais (Criar pelada,
    Cadastrar arena), agora fora do header fixo */
-.pl-page-intro { max-width: 640px; margin: 14px auto 0; padding: 0 16px; }
 .pl-header-actions { display: flex; align-items: center; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
 
 /* Tela de abertura: logo em tela cheia + moldura em degradê neon→lilás nas
@@ -350,8 +339,9 @@ body::before {
 @media (min-width: 672px) {
   .pl-art-banner-hero { max-width: 640px; margin: 18px auto 6px; border-radius: var(--radius-md) var(--radius-md) 0 0; }
 }
-/* Sem imagem mapeada — mesmo padrão gráfico temático já usado em
-   .pl-next-game-card.pl-next-game-pattern (nunca preto liso). */
+/* Sem imagem mapeada — padrão gráfico temático único, reaproveitado por
+   todo banner de arte (GameCard, hero da pelada, hero da Home) pra nunca
+   cair num preto liso. */
 .pl-art-banner-fallback {
   background-color: var(--ink);
   background-image:
@@ -1185,33 +1175,104 @@ body::before {
 .pl-install-banner > button[aria-label="Fechar aviso"]:hover { opacity: 1; }
 
 /* "Sua próxima pelada" — card único de destaque no topo da aba Minhas peladas */
-.pl-next-game-wrap { max-width: 640px; margin: 16px auto 0; padding: 0 16px; }
-.pl-next-game-title {
-  font-family: var(--font-display); text-transform: uppercase; font-size: 13px;
-  color: var(--neon-dim); margin: 0 0 8px; display: flex; align-items: center; gap: 6px;
+/* ===== Home redesenhada — 3 blocos (hero+parallax, feed de vidro,
+   CTA de rodapé). Ver plano da etapa. ===== */
+
+/* -- Bloco 1: hero pessoal com parallax -- */
+.pl-home-hero { position: relative; height: 300px; overflow: hidden; }
+.pl-home-hero-bg {
+  position: absolute; top: -50px; left: 0; right: 0; height: 350px;
+  background-size: cover; background-position: center;
+  will-change: transform;
 }
-.pl-next-game-card {
-  background: var(--card-bg); border: 1.5px solid var(--neon-dim); border-radius: var(--radius-md);
-  padding: 16px; box-shadow: 0 0 16px rgba(166,255,0,0.1);
-  display: flex; flex-direction: column; gap: 6px;
-  position: relative; overflow: hidden;
+.pl-home-hero-bg::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,10,10,0.35) 0%, rgba(10,10,10,0.55) 55%, var(--ink) 100%);
 }
-/* Foto real da arena vinculada — o gradiente escuro já vem embutido no
-   background-image (via style inline, precisa da foto real por jogo). */
-.pl-next-game-card.pl-next-game-photo { background-size: cover; background-position: center; }
-/* Sem arena vinculada — padrão gráfico temático (nunca preto liso). */
-.pl-next-game-card.pl-next-game-pattern {
-  background-color: var(--card-bg);
-  background-image:
-    radial-gradient(circle at 12% 15%, rgba(166,255,0,0.12), transparent 42%),
-    radial-gradient(circle at 88% 85%, rgba(255,197,61,0.10), transparent 48%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='11' fill='none' stroke='%23F3F3EE' stroke-opacity='0.07' stroke-width='1.2'/%3E%3C/svg%3E");
-  background-repeat: no-repeat, no-repeat, repeat;
+.pl-home-hero-topbar { position: relative; z-index: 3; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 0; max-width: 640px; margin: 0 auto; }
+.pl-home-hero-content { position: relative; z-index: 2; height: calc(100% - 40px); display: flex; flex-direction: column; justify-content: flex-end; padding: 0 18px 20px; max-width: 640px; margin: 0 auto; }
+.pl-home-hero-greeting { font-family: var(--font-display); font-size: 28px; text-transform: uppercase; margin: 0; line-height: 1.02; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
+.pl-home-hero-status { font-family: var(--font-tag); font-size: 16px; color: var(--neon); margin: 6px 0 0; text-shadow: 0 1px 6px rgba(0,0,0,0.7); }
+
+/* -- Bloco 2: feed de vidro -- */
+.pl-home-feed { position: relative; z-index: 2; margin-top: -16px; padding: 0 16px 4px; max-width: 640px; margin-left: auto; margin-right: auto; display: flex; flex-direction: column; gap: 10px; }
+
+/* backdrop-filter custa GPU em aparelhos fracos — @supports garante um
+   fundo sólido (sem blur) em navegadores sem suporte. Se um teste real
+   em Android de gama média mostrar custo alto mesmo com suporte, a
+   saída mais simples é trocar --glass-bg pra opaco aqui, sem mexer nos
+   componentes. */
+.pl-glass-card {
+  display: flex; align-items: center; gap: 12px;
+  --glass-bg: rgba(20,24,20,0.5);
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  text-decoration: none; color: inherit;
 }
-.pl-next-game-card h3 { font-family: var(--font-display); font-size: 20px; margin: 0; text-transform: none; }
-.pl-next-game-meta { font-size: 13px; color: var(--paper-dim); }
-.pl-next-game-status { font-size: 13px; color: var(--neon); font-weight: 600; margin: 2px 0; }
-.pl-next-game-card .pl-ticket { margin-top: 8px; align-self: flex-start; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .pl-glass-card { background: rgba(18,20,18,0.94); }
+}
+.pl-glass-icon {
+  flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 17px;
+  background: rgba(255,255,255,0.07);
+}
+.pl-glass-body { flex: 1; min-width: 0; }
+.pl-glass-msg { font-size: 13px; margin: 0; line-height: 1.35; color: var(--paper); }
+.pl-glass-time { font-size: 10.5px; color: var(--paper-dim); margin-top: 2px; display: block; }
+
+.pl-glass-unlocked { border-color: var(--neon); animation: pl-unlock-glow 2.6s ease-in-out infinite; }
+.pl-glass-unlocked .pl-glass-icon { background: var(--neon); color: var(--ink); }
+@keyframes pl-unlock-glow {
+  0%, 100% { box-shadow: 0 0 0px rgba(166,255,0,0); }
+  50% { box-shadow: 0 0 18px rgba(166,255,0,0.45); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-glass-unlocked { animation: none; box-shadow: 0 0 14px rgba(166,255,0,0.3); }
+}
+
+.pl-progress-card { flex-direction: column; align-items: stretch; border-color: rgba(166,255,0,0.25); }
+.pl-progress-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.pl-progress-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--paper-dim); }
+.pl-progress-next { font-family: var(--font-display); font-size: 14px; color: var(--paper); text-transform: none; }
+.pl-progress-track { height: 8px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.08); overflow: hidden; }
+.pl-progress-fill { height: 100%; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--neon), var(--lilas)); transition: width 900ms cubic-bezier(0.16,1,0.3,1); }
+.pl-progress-count { font-size: 11px; color: var(--paper-dim); margin-top: 6px; text-align: right; }
+
+.pl-glass-empty {
+  background: var(--card-bg); border: 1px dashed rgba(255,255,255,0.15); border-radius: var(--radius-lg);
+  padding: 24px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.pl-glass-empty p { margin: 0; font-size: 13px; color: var(--paper-dim); line-height: 1.5; }
+
+.pl-glass-see-all { text-align: center; padding: 4px 0 2px; }
+.pl-glass-see-all a { color: var(--neon); font-family: var(--font-display); text-transform: uppercase; font-size: 12px; text-decoration: none; }
+
+/* -- Bloco 3: CTA único de rodapé -- */
+.pl-footer-cta-line {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(110,113,120,0.12); border: 1px solid rgba(110,113,120,0.3);
+  border-radius: var(--radius-md); text-decoration: none; color: inherit;
+  max-width: 608px; margin: 8px auto 24px; padding: 12px 14px;
+}
+.pl-footer-cta-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neon); flex-shrink: 0; box-shadow: 0 0 8px rgba(166,255,0,0.6); }
+.pl-footer-cta-txt { flex: 1; font-size: 13px; color: var(--paper); }
+.pl-footer-cta-txt b { font-family: var(--font-display); font-weight: 400; text-transform: none; }
+.pl-footer-cta-arrow { color: var(--neon); font-size: 16px; }
+
+.pl-footer-cta-empty { text-align: center; padding: 14px 16px 28px; max-width: 640px; margin: 0 auto; }
+.pl-footer-cta-headline { font-family: var(--font-display); font-size: 24px; text-transform: uppercase; color: var(--paper); margin: 0 0 4px; text-shadow: 0 0 20px rgba(166,255,0,0.15); }
+.pl-footer-cta-headline .accent { color: var(--neon); }
+.pl-footer-cta-sub { font-size: 13px; color: var(--paper-dim); margin: 0 0 16px; }
+.pl-footer-cta-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--neon); color: var(--ink); font-family: var(--font-display);
+  text-transform: uppercase; font-size: 14px; padding: 12px 22px; border-radius: var(--radius-sm);
+  text-decoration: none; box-shadow: 0 0 20px rgba(166,255,0,0.3);
+}
 
 /* Navegação inferior fixa — só em telas estreitas (mobile). "A Quadra
    Viva" (Bloco 2 do redesign): grafite/rua, corte angular na barra,
