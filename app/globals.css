@@ -345,7 +345,7 @@ body::before {
 .pl-art-banner { position: relative; overflow: hidden; }
 /* margin-bottom de 4px, não 10 — o .pl-card pai já tem gap:6px entre
    filhos, então o respiro visual real depois do banner é 4+6=10px. */
-.pl-art-banner-card { height: 160px; margin: -14px -16px 4px; width: calc(100% + 32px); }
+.pl-art-banner-card { height: var(--art-banner-card-h); margin: -14px -16px 4px; width: calc(100% + 32px); }
 .pl-art-banner-hero { height: 240px; margin-bottom: 6px; }
 @media (min-width: 672px) {
   .pl-art-banner-hero { max-width: 640px; margin: 18px auto 6px; border-radius: var(--radius-md) var(--radius-md) 0 0; }
@@ -371,6 +371,10 @@ body::before {
 }
 
 .pl-card {
+  /* fonte única da altura do banner — .pl-art-banner-card e as posições
+     de .pl-card-icon-actions/.pl-stamp abaixo derivam dela, em vez de
+     cada uma repetir 160px cru e poder desalinhar sem aviso. */
+  --art-banner-card-h: 160px;
   background: var(--card-bg);
   border: 1px solid rgba(110,113,120,0.35);
   border-left: 4px solid var(--concrete);
@@ -392,34 +396,41 @@ body::before {
 }
 .pl-card:hover { transform: translateY(-2px); border-color: var(--neon); box-shadow: 0 6px 24px rgba(166,255,0,0.14); }
 
-/* Ilustração de fundo do card — uma por pelada (sorteada de forma
-   determinística pelo id, ver CardIllustration.js), só decoração. z-index
-   negativo + isolation:isolate no .pl-card garante que ela sempre pinta
-   atrás do texto (que não é posicionado), sem precisar tocar em mais nada —
-   inclusive o .pl-stamp de "Lotado", que continua por cima normalmente. */
-.pl-card-illustration { position: absolute; top: 0; right: 0; bottom: 0; width: 150px; pointer-events: none; z-index: -1; }
+/* Ícones de Editar/Compartilhar — ancorados no canto, sobre a borda
+   inferior do banner, fora do bloco centralizado abaixo. */
+.pl-card-icon-actions { position: absolute; top: calc(var(--art-banner-card-h) - 6px); right: 12px; display: flex; gap: 6px; z-index: 2; }
+/* Sem banner (ex: card embutido na tela de detalhe, showArt={false}) —
+   os 154px pressupõem a altura do banner, que não existe aqui. */
+.pl-card-no-art .pl-card-icon-actions { top: 10px; }
+.pl-icon-btn-sm {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--radius-circle);
+  background: rgba(10,10,10,0.7); border: 1.5px solid rgba(166,255,0,0.5); color: var(--neon);
+  cursor: pointer; font-size: 12px; padding: 0;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+.pl-icon-btn-sm:hover { border-color: var(--neon); }
+.pl-icon-btn-sm:active { transform: scale(0.92); }
 
-/* Linha 1 — o essencial, tudo junto e em alto contraste: local, dia/hora,
-   vagas. É a única linha que compete visualmente com o card inteiro. */
-.pl-card-line1 { display: flex; align-items: flex-start; gap: 12px; }
-.pl-date { background: rgba(0,0,0,0.4); border-radius: var(--radius-sm); padding: 6px 4px; text-align: center; font-family: var(--font-display); flex-shrink: 0; min-width: 44px; }
-.pl-date .dow { font-size: 10px; color: var(--paper-dim); }
-.pl-date .dom { font-size: 20px; color: var(--paper); }
+/* Bloco central do card — data, local, horário, tags e ação principal,
+   tudo centralizado como uma unidade só. */
+.pl-card-center { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+.pl-date-pill {
+  font-family: var(--font-display); font-size: 11px; letter-spacing: 0.04em;
+  color: var(--paper-dim); background: rgba(0,0,0,0.4); padding: 3px 10px; border-radius: var(--radius-pill);
+}
+.pl-card-center h3 { font-family: var(--font-display); font-size: 20px; margin: 0; color: var(--paper); text-transform: none; overflow-wrap: break-word; }
+.pl-card-when { display: block; font-size: 12px; color: var(--paper-dim); }
 
-.pl-card-line1-main { flex: 1; min-width: 0; }
-.pl-card-line1-main h3 { font-family: var(--font-display); font-size: 20px; margin: 0; color: var(--paper); text-transform: none; overflow-wrap: break-word; }
-.pl-card-when { display: block; font-size: 12px; color: var(--paper-dim); margin-top: 2px; }
-
-.pl-card-line1-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-
-/* Linha 2 — secundário: tipo de jogo, bairro, distância. Sempre cinza. */
-.pl-card-line2 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pl-card-tags { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
 .pl-bairro-tag, .pl-tipo-tag { font-family: var(--font-tag); font-size: 12px; color: var(--paper-dim); background: rgba(110,113,120,0.25); padding: 1px 8px; border-radius: var(--radius-sm); display: inline-block; }
 .pl-tipo-tag { display: inline-flex; align-items: center; gap: 4px; }
 .pl-distancia { font-size: 12px; color: var(--paper-dim); }
 
-/* Linha 3 — status de participação em destaque, ou o botão de ação */
-.pl-card-line3 { margin-top: 2px; }
+.pl-card-cta { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+.pl-card-cta-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.pl-card-cta .pl-aguardando { margin: 0; text-align: center; }
 
 /* Status de vagas — mais informativo que só o número. "Aberta"/"Lotada"
    são estados neutros (não são ação nem algo destrutivo), então ficam
@@ -440,7 +451,10 @@ body::before {
 /* Carimbo de "lotado" sobre o card */
 .pl-stamp {
   position: absolute;
-  top: 46%; left: 40%;
+  /* banner tem altura fixa (160px) e o bloco central agora é centralizado
+     — posição fixa em vez de porcentagem, senão o carimbo cai em cima da
+     borda do banner ou em qualquer lugar dependendo da altura do card. */
+  top: calc(var(--art-banner-card-h) + 40px); left: 50%;
   transform: translate(-50%, -50%) rotate(-10deg);
   border: 3px solid var(--tag-red);
   border-radius: 6px;
@@ -455,6 +469,9 @@ body::before {
   white-space: nowrap;
   z-index: 2;
 }
+/* Sem banner (card embutido na tela de detalhe) — 200px cairia longe
+   demais do título, que começa bem mais cedo sem o banner de 160px. */
+.pl-card-no-art .pl-stamp { top: 50px; }
 .pl-stamp::before {
   content: '';
   position: absolute; top: -4px; right: -4px; bottom: -4px; left: -4px;
@@ -519,7 +536,7 @@ body::before {
 
 /* Ações secundárias: borda fina em degradê neon→lilás, fundo transparente —
    preserva a hierarquia (o botão primário sólido continua sendo "a" ação). */
-.pl-btn-secondary, .pl-share-btn, .pl-edit-link, .pl-edit-link-inline, .pl-see-all-link, .pl-back-link {
+.pl-btn-secondary, .pl-share-btn, .pl-edit-link, .pl-see-all-link, .pl-back-link {
   color: var(--neon);
   font-family: var(--font-display);
   text-transform: uppercase;
@@ -534,12 +551,12 @@ body::before {
 /* Levitação sutil — só em aparelhos com hover de verdade, pra não travar
    o estado de "hover" depois de um toque em touchscreen. */
 @media (hover: hover) {
-  .pl-btn-secondary:hover, .pl-share-btn:hover, .pl-edit-link:hover, .pl-edit-link-inline:hover, .pl-see-all-link:hover {
+  .pl-btn-secondary:hover, .pl-share-btn:hover, .pl-edit-link:hover, .pl-see-all-link:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.45);
   }
 }
-.pl-btn-secondary:active, .pl-share-btn:active, .pl-edit-link:active, .pl-edit-link-inline:active, .pl-see-all-link:active {
+.pl-btn-secondary:active, .pl-share-btn:active, .pl-edit-link:active, .pl-see-all-link:active {
   transform: scale(0.96) translateY(1px);
   box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
@@ -549,7 +566,6 @@ body::before {
 .pl-btn-danger { color: var(--tag-red); border: none; text-decoration: underline; text-decoration-style: wavy; text-underline-offset: 3px; }
 .pl-share-btn { display: inline-block; margin-top: 10px; padding: 5px 10px; font-size: 11px; text-align: left; }
 .pl-edit-link { position: absolute; top: 10px; right: 12px; padding: 3px 8px; font-size: 11px; }
-.pl-edit-link-inline { padding: 2px 7px; font-size: 10px; white-space: nowrap; }
 .pl-see-all-link { display: inline-block; font-size: 14px; padding: 8px 16px; }
 .pl-back-link { display: inline-flex; align-items: center; font-size: 13px; padding: 5px 10px; }
 
@@ -560,17 +576,6 @@ body::before {
   text-underline-offset: 2px; font: inherit;
 }
 .pl-inline-link:active { opacity: 0.7; }
-
-.pl-icon-btn {
-  flex-shrink: 0;
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: var(--radius-circle);
-  background: none; border: 1.5px solid rgba(110,113,120,0.4); color: var(--neon);
-  cursor: pointer; font-size: 14px; padding: 0;
-  transition: border-color 150ms ease, transform 150ms ease;
-}
-.pl-icon-btn:hover { border-color: var(--neon); }
-.pl-icon-btn:active { transform: scale(0.92); }
 
 /* Confirmado: pill neon em destaque (linha 3) em vez de botão de cancelar
    grande — "cancelar" vira link discreto lá embaixo, no rodapé do card. */
@@ -589,10 +594,8 @@ body::before {
 
 /* Rodapé do card: capitão, avaliações e ações discretas — não compete
    com a linha 1 (essencial) nem com a linha 3 (status/ação). */
-.pl-card-footer { margin-top: 4px; padding-top: 8px; border-top: 1px dashed rgba(110,113,120,0.25); display: flex; flex-direction: column; gap: 6px; }
-.pl-card-footer-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pl-card-footer { margin-top: 4px; padding-top: 8px; border-top: 1px dashed rgba(110,113,120,0.25); display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .pl-card-capitao { font-size: 11px; color: var(--paper-dim); margin: 0; }
-.pl-card-share-row { display: flex; justify-content: flex-end; }
 
 /* Avatares "figurinha" */
 .pl-sticker {
@@ -617,7 +620,7 @@ body::before {
 
 /* Banco de reservas */
 .pl-bench {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;
   margin-top: 8px; padding: 6px 8px;
   background: rgba(110,113,120,0.16);
   border-radius: var(--radius-sm);
@@ -887,12 +890,18 @@ body::before {
 }
 
 /* Aprovação do capitão: badge de pendentes no card, seção de solicitações no modal */
+/* Posicionado absoluto (não mais inline) desde que o único uso virou o
+   botão-ícone de 28px de Editar — inline não cabia "✎" + selo lado a
+   lado sem estourar o círculo; agora o selo fica sobreposto no canto,
+   mesmo padrão do selo de moral no ConfirmadoAvatar. */
 .pl-pending-badge {
+  position: absolute; top: -4px; right: -4px;
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: 15px; height: 15px; margin-left: 4px; padding: 0 3px;
+  min-width: 15px; height: 15px; padding: 0 3px;
   background: var(--gold); color: var(--ink);
   font-family: var(--font-body); font-size: 10px; font-weight: 700;
-  border-radius: var(--radius-pill); vertical-align: middle;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--card-bg);
 }
 
 .pl-aguardando { font-size: 11px; color: var(--paper-dim); margin: 8px 0 0; line-height: 1.3; }

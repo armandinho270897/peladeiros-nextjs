@@ -7,7 +7,6 @@ import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
 import Confetti from './Confetti';
 import TipoJogoIcon from './TipoJogoIcon';
-import CardIllustration from './CardIllustration';
 import GameArtBanner from './GameArtBanner';
 
 function ConfirmadoAvatar({ nome, moral, bench, fotoUrl }) {
@@ -118,73 +117,76 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
     : {};
 
   return (
-    <div className="pl-card" {...wrapperProps}>
+    <div className={`pl-card ${!showArt ? 'pl-card-no-art' : ''}`} {...wrapperProps}>
+      {/* showArt={false} hoje só existe em PeladaClient.js, que já tem seu
+          próprio hero (GameArtBanner variant="hero") logo acima — daí o
+          card embutido ficar sem nenhuma identidade visual própria não é
+          um card "pelado" na prática. Um novo showArt={false} em outro
+          lugar sem hero próprio precisaria de um fallback aqui também. */}
       {showArt && <GameArtBanner tipo={g.tipo} variant="card" sizes={artSizes} />}
-      <CardIllustration gameId={g.id} />
       {justLotou && <Confetti />}
       {lotado && <div className="pl-stamp">Lotado</div>}
 
-      {/* Linha 1 — essencial, alto contraste: local + dia/hora + vagas */}
-      <div className="pl-card-line1">
-        <div className="pl-date"><div className="dow">{d.dow}</div><div className="dom">{d.dom}</div></div>
-        <div className="pl-card-line1-main">
-          <h3>{g.local}</h3>
-          <span className="pl-card-when">{contagem || g.horario}</span>
-        </div>
-        <div className="pl-card-line1-side">
+      {/* Editar/Compartilhar viram um par de ícones ancorados no canto,
+          fora do bloco centralizado — não competem com ele. */}
+      <div className="pl-card-icon-actions">
+        {podeEditar && (
+          <button className="pl-icon-btn-sm" onClick={pararPropagacao(() => onEdit(g))} aria-label="Editar">
+            ✎
+            {pendentes.length > 0 && <span className="pl-pending-badge">{pendentes.length}</span>}
+          </button>
+        )}
+        <button className="pl-icon-btn-sm" onClick={pararPropagacao(() => onShare(g))} aria-label="Compartilhar">🔗</button>
+      </div>
+
+      {/* Bloco central — data, local, horário, tags e a ação principal,
+          tudo como uma unidade só, centralizado. */}
+      <div className="pl-card-center">
+        <div className="pl-date-pill">{d.dow} {d.dom}</div>
+        <h3>{g.local}</h3>
+        <span className="pl-card-when">{contagem || g.horario}</span>
+
+        <div className="pl-card-tags">
           <div className={`pl-status-badge ${status.className} ${pulse ? 'pl-flip-pulse' : ''}`}>{status.label}</div>
-          {podeEditar && (
-            <button className="pl-edit-link-inline" onClick={pararPropagacao(() => onEdit(g))}>
-              Editar
-              {pendentes.length > 0 && <span className="pl-pending-badge">{pendentes.length}</span>}
-            </button>
+          {g.tipo && <span className="pl-tipo-tag"><TipoJogoIcon tipo={g.tipo} size={13} /> {g.tipo}</span>}
+          <span className="pl-bairro-tag">{g.bairro}</span>
+          {distanciaKm != null && (
+            <span className="pl-distancia">📍 {distanciaKm.toFixed(1).replace('.', ',')} km</span>
           )}
         </div>
-      </div>
 
-      {/* Linha 2 — secundário: tipo de jogo, bairro, distância */}
-      <div className="pl-card-line2">
-        {g.tipo && <span className="pl-tipo-tag"><TipoJogoIcon tipo={g.tipo} size={13} /> {g.tipo}</span>}
-        <span className="pl-bairro-tag">{g.bairro}</span>
-        {distanciaKm != null && (
-          <span className="pl-distancia">📍 {distanciaKm.toFixed(1).replace('.', ',')} km</span>
-        )}
-      </div>
-
-      {/* Linha 3 — status de participação em destaque, ou o botão de ação */}
-      <div className="pl-card-line3">
-        {aguardandoAprovacao ? (
-          <p className="pl-aguardando">Aguardando aprovação do capitão</p>
-        ) : minhaVagaAguardandoConfirmacao ? (
-          <>
-            <p className="pl-aguardando">Aprovado — falta você confirmar</p>
-            {contagemPrazo && <p className="pl-prazo-confirmacao">{contagemPrazo}</p>}
-            <TicketButton compact onClick={pararPropagacao(() => onConfirmarVaga(minhaConfirmacao.id))}>
-              Confirmar minha vaga
+        <div className="pl-card-cta">
+          {aguardandoAprovacao ? (
+            <p className="pl-aguardando">Aguardando aprovação do capitão</p>
+          ) : minhaVagaAguardandoConfirmacao ? (
+            <div className="pl-card-cta-col">
+              <p className="pl-aguardando">Aprovado — falta você confirmar</p>
+              {contagemPrazo && <p className="pl-prazo-confirmacao">{contagemPrazo}</p>}
+              <TicketButton compact onClick={pararPropagacao(() => onConfirmarVaga(minhaConfirmacao.id))}>
+                Confirmar minha vaga
+              </TicketButton>
+            </div>
+          ) : minhaPresencaAprovada ? (
+            <>
+              <span className="pl-inside-badge">✓ Você está dentro</span>
+              <button className="pl-link-danger-small" onClick={pararPropagacao(() => onCancelPresenca(minhaConfirmacao.id, g))}>
+                Cancelar presença
+              </button>
+            </>
+          ) : (
+            <TicketButton compact onClick={pararPropagacao(() => onConfirm(g))}>
+              {lotado ? 'Entrar no banco' : 'Confirmar'}
             </TicketButton>
-          </>
-        ) : minhaPresencaAprovada ? (
-          <span className="pl-inside-badge">✓ Você está dentro</span>
-        ) : (
-          <TicketButton compact onClick={pararPropagacao(() => onConfirm(g))}>
-            {lotado ? 'Entrar no banco' : 'Confirmar'}
-          </TicketButton>
-        )}
-      </div>
-
-      {/* Rodapé discreto — capitão, avaliações, cancelar, compartilhar */}
-      <div className="pl-card-footer">
-        <div className="pl-card-footer-row">
-          <p className="pl-card-capitao"><CaptainIcon /> {g.capitao}</p>
-          {minhaPresencaAprovada && (
-            <button className="pl-link-danger-small" onClick={pararPropagacao(() => onCancelPresenca(minhaConfirmacao.id, g))}>
-              Cancelar presença
-            </button>
           )}
         </div>
+      </div>
+
+      {/* Rodapé discreto — capitão e quem já confirmou */}
+      <div className="pl-card-footer">
+        <p className="pl-card-capitao"><CaptainIcon /> {g.capitao}</p>
 
         {confirmados.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
             {confirmados.slice(0, 6).map((c) => (
               <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} fotoUrl={c.foto_url} />
             ))}
@@ -202,10 +204,6 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
             {espera.length > 6 && <span style={{ fontSize: 11, color: 'var(--concrete)' }}>+{espera.length - 6}</span>}
           </div>
         )}
-
-        <div className="pl-card-share-row">
-          <button className="pl-icon-btn" onClick={pararPropagacao(() => onShare(g))} aria-label="Compartilhar">🔗</button>
-        </div>
       </div>
     </div>
   );
