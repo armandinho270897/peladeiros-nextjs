@@ -8,7 +8,6 @@ import CaptainIcon from '../components/CaptainIcon';
 import EmptyFieldIcon from '../components/EmptyFieldIcon';
 import ConquistasBadges from '../components/ConquistasBadges';
 import TicketButton from '../components/TicketButton';
-import BackLink from '../components/BackLink';
 import { fmtDate, MODALIDADE_LABEL, POSICAO_LABEL } from '@/lib/gameUtils';
 import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../components/AuthProvider';
@@ -34,9 +33,6 @@ export default function PerfilPage() {
   if (loading || !data) {
     return (
       <div>
-        <div className="pl-header">
-          <BackLink href="/" />
-        </div>
         <div className="pl-perfil-header">
           <div className="pl-skeleton" style={{ width: 80, height: 80, borderRadius: '50%' }} />
           <div style={{ flex: 1 }}>
@@ -55,10 +51,6 @@ export default function PerfilPage() {
 
   return (
     <div>
-      <div className="pl-header">
-        <BackLink href="/" />
-      </div>
-
       <div className="pl-perfil-header">
         <Avatar nome={profile.nome} size={80} ring fotoUrl={profile.foto_url} />
         <div className="pl-perfil-info">
