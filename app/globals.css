@@ -1181,13 +1181,14 @@ body::before {
 .pl-install-banner > button[aria-label="Fechar aviso"]:hover { opacity: 1; }
 
 /* "Sua próxima pelada" — card único de destaque no topo da aba Minhas peladas */
-/* ===== Home redesenhada — 3 blocos (hero+parallax, feed de vidro,
-   CTA de rodapé). Ver plano da etapa. ===== */
+/* ===== Home redesenhada — "Sua lenda de rua": hero com parallax em 3
+   camadas + aura por patente, Bloco 1 (ação pendente), Bloco 2 (resumo
+   social), Bloco 3 (patente/progresso), CTA de rodapé. ===== */
 
-/* -- Bloco 1: hero pessoal com parallax -- */
+/* -- Hero: saudação + parallax em 3 camadas + aura por patente + orbes -- */
 .pl-home-hero { position: relative; height: 300px; overflow: hidden; }
 .pl-home-hero-bg {
-  position: absolute; top: -50px; left: 0; right: 0; height: 350px;
+  position: absolute; top: -50px; left: 0; right: 0; height: 350px; z-index: 0;
   background-size: cover; background-position: center;
   will-change: transform;
 }
@@ -1195,13 +1196,45 @@ body::before {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(10,10,10,0.35) 0%, rgba(10,10,10,0.55) 55%, var(--ink) 100%);
 }
+/* Camada intermediária: textura/silhueta de grafite, se move numa
+   velocidade diferente da arte de fundo — dá profundidade real ao
+   parallax em vez de uma imagem só deslizando. */
+.pl-home-hero-mid {
+  position: absolute; inset: 0; height: 350px; z-index: 1; pointer-events: none;
+  will-change: transform;
+  background-repeat: repeat-y;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='350'%3E%3Cg fill='none' stroke='%23F3F3EE' stroke-opacity='0.045' stroke-width='2'%3E%3Ccircle cx='240' cy='60' r='34'/%3E%3Cpath d='M20 300 L60 260 L110 300 L150 250'/%3E%3Cpath d='M180 200 L220 170 L260 210'/%3E%3C/g%3E%3C/svg%3E");
+}
+.pl-home-hero-aura { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.pl-home-hero-orb {
+  position: absolute; z-index: 1; border-radius: 50%; filter: blur(38px); pointer-events: none;
+}
+.pl-home-hero-orb-1 { width: 180px; height: 180px; background: var(--neon); opacity: 0.14; top: 20px; left: -60px; animation: pl-orb-drift-1 22s ease-in-out infinite; }
+.pl-home-hero-orb-2 { width: 220px; height: 220px; background: var(--lilas); opacity: 0.12; top: 120px; right: -80px; animation: pl-orb-drift-2 28s ease-in-out infinite; }
+@keyframes pl-orb-drift-1 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(24px, 30px); } }
+@keyframes pl-orb-drift-2 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-20px, -24px); } }
+@media (prefers-reduced-motion: reduce) {
+  .pl-home-hero-orb-1, .pl-home-hero-orb-2 { animation: none; }
+}
 .pl-home-hero-topbar { position: relative; z-index: 3; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 0; max-width: 640px; margin: 0 auto; }
 .pl-home-hero-content { position: relative; z-index: 2; height: calc(100% - 40px); display: flex; flex-direction: column; justify-content: flex-end; padding: 0 18px 20px; max-width: 640px; margin: 0 auto; }
 .pl-home-hero-greeting { font-family: var(--font-display); font-size: 28px; text-transform: uppercase; margin: 0; line-height: 1.02; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
 .pl-home-hero-status { font-family: var(--font-tag); font-size: 16px; color: var(--neon); margin: 6px 0 0; text-shadow: 0 1px 6px rgba(0,0,0,0.7); }
 
-/* -- Bloco 2: feed de vidro -- */
-.pl-home-feed { position: relative; z-index: 2; margin-top: -16px; padding: 0 16px 4px; max-width: 640px; margin-left: auto; margin-right: auto; display: flex; flex-direction: column; gap: 10px; }
+/* -- Blocos 1/2/3: cartões de vidro fosco, flutuando sobre o parallax -- */
+.pl-home-blocks { position: relative; z-index: 2; margin-top: -16px; padding: 0 16px 4px; max-width: 640px; margin-left: auto; margin-right: auto; display: flex; flex-direction: column; gap: 10px; }
+
+/* Entrada em sequência (scroll reveal simplificado como fade + subida no
+   carregamento — o "scroll" de verdade só existe rolando o app real). */
+.pl-reveal { opacity: 0; transform: translateY(14px); animation: pl-reveal-in 560ms ease forwards; }
+.pl-reveal-1 { animation-delay: 80ms; }
+.pl-reveal-2 { animation-delay: 220ms; }
+.pl-reveal-3 { animation-delay: 360ms; }
+.pl-reveal-4 { animation-delay: 500ms; }
+@keyframes pl-reveal-in { to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .pl-reveal { animation: none; opacity: 1; transform: none; }
+}
 
 /* backdrop-filter custa GPU em aparelhos fracos — @supports garante um
    fundo sólido (sem blur) em navegadores sem suporte. Se um teste real
@@ -1228,7 +1261,6 @@ body::before {
 }
 .pl-glass-body { flex: 1; min-width: 0; }
 .pl-glass-msg { font-size: 13px; margin: 0; line-height: 1.35; color: var(--paper); }
-.pl-glass-time { font-size: 10.5px; color: var(--paper-dim); margin-top: 2px; display: block; }
 
 .pl-glass-unlocked { border-color: var(--neon); animation: pl-unlock-glow 2.6s ease-in-out infinite; }
 .pl-glass-unlocked .pl-glass-icon { background: var(--neon); color: var(--ink); }
@@ -1240,23 +1272,38 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   .pl-glass-unlocked { animation: none; box-shadow: 0 0 14px rgba(166,255,0,0.3); }
 }
-
-.pl-progress-card { flex-direction: column; align-items: stretch; border-color: rgba(166,255,0,0.25); }
-.pl-progress-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-.pl-progress-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--paper-dim); }
-.pl-progress-next { font-family: var(--font-display); font-size: 14px; color: var(--paper); text-transform: none; }
-.pl-progress-track { height: 8px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.08); overflow: hidden; }
+.pl-progress-track { height: 8px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.08); overflow: hidden; margin: 12px 0 8px; }
 .pl-progress-fill { height: 100%; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--neon), var(--lilas)); transition: width 900ms cubic-bezier(0.16,1,0.3,1); }
-.pl-progress-count { font-size: 11px; color: var(--paper-dim); margin-top: 6px; text-align: right; }
 
-.pl-glass-empty {
-  background: var(--card-bg); border: 1px dashed rgba(255,255,255,0.15); border-radius: var(--radius-lg);
-  padding: 24px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
+/* -- Bloco 1: ação pendente -- */
+.pl-pending-block { display: flex; flex-direction: column; gap: 10px; }
+.pl-pending-card { flex-direction: column; align-items: stretch; }
+.pl-pending-text { font-size: 13px; line-height: 1.4; margin: 0 0 10px; }
+.pl-pending-text b { color: var(--paper); }
+.pl-pending-actions { display: flex; gap: 8px; }
+.pl-btn-reject, .pl-btn-approve, .pl-btn-confirm-vaga {
+  border-radius: 8px; padding: 9px 12px; font-size: 12.5px; font-weight: 700;
+  font-family: var(--font-body); border: none; cursor: pointer;
 }
-.pl-glass-empty p { margin: 0; font-size: 13px; color: var(--paper-dim); line-height: 1.5; }
+.pl-btn-reject { flex: 1; background: transparent; border: 1px solid rgba(110,113,120,0.5); color: var(--paper-dim); font-weight: 600; }
+.pl-btn-approve { flex: 1; background: var(--neon); color: var(--ink); }
+.pl-btn-reject:disabled, .pl-btn-approve:disabled, .pl-btn-confirm-vaga:disabled { opacity: 0.55; cursor: default; }
+.pl-vaga-card { justify-content: space-between; }
+.pl-vaga-text { flex: 1; font-size: 13px; min-width: 0; }
+.pl-vaga-status { color: var(--neon); font-weight: 600; font-size: 12px; display: block; margin-bottom: 2px; }
+.pl-btn-confirm-vaga { background: var(--neon); color: var(--ink); white-space: nowrap; flex-shrink: 0; }
 
-.pl-glass-see-all { text-align: center; padding: 4px 0 2px; }
-.pl-glass-see-all a { color: var(--neon); font-family: var(--font-display); text-transform: uppercase; font-size: 12px; text-decoration: none; }
+/* -- Bloco 2: resumo social em frase -- */
+.pl-social-card { flex-direction: column; align-items: stretch; }
+.pl-social-text { font-size: 13.5px; line-height: 1.4; margin: 0; color: var(--paper); }
+.pl-social-link { display: block; text-align: right; font-size: 11.5px; color: var(--paper-dim); margin-top: 8px; text-decoration: none; }
+
+/* -- Bloco 3: patente e progresso -- */
+.pl-patente-card { flex-direction: column; align-items: stretch; }
+.pl-patente-name { font-family: var(--font-display); font-size: 20px; text-transform: uppercase; color: var(--paper); margin: 0; }
+.pl-patente-capitao { color: var(--gold); font-size: 13px; font-family: var(--font-body); font-weight: 700; text-transform: none; margin-left: 6px; }
+.pl-patente-progress-note { font-size: 12px; color: var(--paper-dim); margin: 0; }
+.pl-patente-celebrate { margin-bottom: 10px; }
 
 /* -- Bloco 3: CTA único de rodapé -- */
 .pl-footer-cta-line {
