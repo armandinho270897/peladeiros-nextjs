@@ -1052,6 +1052,7 @@ body::before {
 }
 .pl-n-card.unread { border-left-color: var(--neon); background: rgba(166,255,0,0.04); }
 .pl-n-card.urgente.unread { border-left-color: var(--gold); }
+.pl-n-card:not(.unread) { opacity: 0.78; }
 .pl-n-icon {
   width: 34px; height: 34px; border-radius: var(--radius-sm); flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; font-size: 16px;
@@ -1059,13 +1060,20 @@ body::before {
 }
 .pl-n-card.unread .pl-n-icon { background: rgba(166,255,0,0.10); border-color: rgba(166,255,0,0.3); }
 .pl-n-card.urgente.unread .pl-n-icon { background: rgba(255,197,61,0.12); border-color: rgba(255,197,61,0.35); }
+.pl-n-icon-avatar { position: relative; background: none; border: none; }
+.pl-n-actor-badge {
+  position: absolute; bottom: -3px; right: -3px;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--neon); color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; line-height: 1;
+  border: 1.5px solid var(--card-bg);
+}
 .pl-n-body { flex: 1; min-width: 0; }
 .pl-n-top { display: flex; justify-content: flex-end; }
 .pl-n-time { font-size: 11px; color: var(--concrete); }
 .pl-n-msg { font-size: 13.5px; line-height: 1.45; color: var(--paper); margin: 0; }
 .pl-n-card:not(.unread) .pl-n-msg { color: var(--paper-dim); }
-.pl-n-actor { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
-.pl-n-actor span { font-size: 11.5px; color: var(--paper-dim); }
 .pl-n-dot {
   position: absolute; top: 12px; right: 12px; width: 7px; height: 7px;
   border-radius: 50%; background: var(--neon); box-shadow: 0 0 6px rgba(166,255,0,0.7);
@@ -1208,6 +1216,7 @@ body::before {
 
 .pl-glass-unlocked { border-color: var(--neon); animation: pl-unlock-glow 2.6s ease-in-out infinite; }
 .pl-glass-unlocked .pl-glass-icon { background: var(--neon); color: var(--ink); }
+.pl-glass-icon-avatar { position: relative; background: none; border-radius: 0; }
 @keyframes pl-unlock-glow {
   0%, 100% { box-shadow: 0 0 0px rgba(166,255,0,0); }
   50% { box-shadow: 0 0 18px rgba(166,255,0,0.45); }

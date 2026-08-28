@@ -3,7 +3,7 @@ import Link from 'next/link';
 import * as Sentry from '@sentry/nextjs';
 import Avatar from './Avatar';
 import { categoriaDe, iconeDe } from '@/lib/notifCategorias';
-import { tempoRelativo } from '@/lib/notificacoes';
+import { tempoRelativo, comNomeEmNegrito } from '@/lib/notificacoes';
 
 // Cada card é isolado no próprio try/catch — um registro com dado
 // inesperado (data inválida, mensagem vazia) não derruba a lista inteira,
@@ -14,22 +14,28 @@ export default function NotificationCard({ n, ator, onNavigate }) {
     const categoria = categoriaDe(n.tipo);
     const tempo = tempoRelativo(n.created_at);
     const mensagem = n.mensagem?.trim() || 'Aviso sem descrição.';
+    // Toda notificação com autor conhecido mostra quem é direto no lugar do
+    // ícone de categoria, em vez de um símbolo genérico — o selo "+" só faz
+    // sentido no caso de pedido pra entrar (é quando de fato "adiciona"
+    // alguém), então fica reservado só pra esse tipo.
+    const ehPedido = n.tipo === 'solicitacao_pendente';
 
     conteudo = (
       <div className={`pl-n-card ${categoria} ${n.lida ? '' : 'unread'}`}>
         {!n.lida && <span className="pl-n-dot" aria-hidden="true" />}
-        <span className="pl-n-icon" aria-hidden="true">{iconeDe(n.tipo)}</span>
+        {ator ? (
+          <span className="pl-n-icon pl-n-icon-avatar" aria-hidden="true">
+            <Avatar nome={ator.nome} fotoUrl={ator.foto_url} size={34} />
+            {ehPedido && <span className="pl-n-actor-badge">+</span>}
+          </span>
+        ) : (
+          <span className="pl-n-icon" aria-hidden="true">{iconeDe(n.tipo)}</span>
+        )}
         <div className="pl-n-body">
           <div className="pl-n-top">
             <span className="pl-n-time">{tempo}</span>
           </div>
-          <p className="pl-n-msg">{mensagem}</p>
-          {ator && (
-            <div className="pl-n-actor">
-              <Avatar nome={ator.nome} fotoUrl={ator.foto_url} size={20} />
-              <span>{ator.nome}</span>
-            </div>
-          )}
+          <p className="pl-n-msg">{comNomeEmNegrito(mensagem, ator?.nome)}</p>
         </div>
       </div>
     );
