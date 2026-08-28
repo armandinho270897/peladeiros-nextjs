@@ -8,6 +8,7 @@ import NotificationCard from '../components/NotificationCard';
 import BolaParadaIcon from '../components/BolaParadaIcon';
 import { categoriaDe } from '@/lib/notifCategorias';
 import { todayISO } from '@/lib/gameUtils';
+import { fetchNotificacoesComAtores } from '@/lib/notificacoes';
 
 function rotuloDia(iso) {
   if (!iso) return '';
@@ -35,22 +36,11 @@ export default function AvisosPage() {
 
   const load = useCallback(async () => {
     if (!user) return;
-    const { data, error } = await supabase
-      .from('notificacoes')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(60);
+    const { notificacoes: rows, atores: atoresMap, error } = await fetchNotificacoesComAtores(supabase, user.id, 60);
     if (error) { Sentry.captureException(error); setLoading(false); return; }
-    const rows = data || [];
     setNotificacoes(rows);
+    setAtores(atoresMap);
     setLoading(false);
-
-    const atorIds = [...new Set(rows.map((n) => n.ator_user_id).filter(Boolean))];
-    if (atorIds.length > 0) {
-      const { data: perfis } = await supabase.from('profiles').select('id, nome, foto_url').in('id', atorIds);
-      setAtores(Object.fromEntries((perfis || []).map((p) => [p.id, p])));
-    }
   }, [supabase, user]);
 
   useEffect(() => {
