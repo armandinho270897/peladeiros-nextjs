@@ -124,7 +124,7 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
       {buscando && <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: '4px 0 0' }}>Buscando...</p>}
 
       <div className="pl-location-map-wrap">
-        <MapContainer center={center} zoom={zoom} style={{ height: 220, width: '100%', borderRadius: 6 }}>
+        <MapContainer center={center} zoom={zoom} style={{ height: 220, width: '100%', borderRadius: 'var(--radius-lg)' }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

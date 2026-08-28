@@ -1536,6 +1536,45 @@ body::before {
   background: none; border: none; color: var(--paper-dim); font-size: 20px;
   cursor: pointer; padding: 4px 8px; line-height: 1;
 }
+.pl-map-sheet-actions { display: flex; gap: 8px; margin-top: 12px; }
+.pl-map-sheet-rota-btn {
+  flex: 1; background: none; border: 1px solid rgba(110,113,120,0.5);
+  color: var(--paper-dim); border-radius: var(--radius-sm); font-size: 12.5px;
+  font-weight: 600; font-family: var(--font-body); cursor: pointer; padding: 0 10px;
+}
+.pl-map-sheet-rota-btn:disabled { opacity: 0.6; cursor: default; }
+
+/* Ponto de posição do usuário no mapa — distinto dos pins de jogo/arena
+   (círculo sólido + anel pulsante, não o formato de gota). */
+.pl-map-user-dot {
+  width: 14px; height: 14px; border-radius: var(--radius-circle);
+  background: var(--neon); border: 2px solid var(--ink);
+  box-shadow: 0 0 8px rgba(166,255,0,0.8);
+  position: relative;
+}
+.pl-map-user-dot-pulse {
+  position: absolute; inset: -6px; border-radius: var(--radius-circle);
+  background: rgba(166,255,0,0.35);
+  animation: pl-map-user-pulse 2s ease-out infinite;
+}
+@keyframes pl-map-user-pulse {
+  0% { transform: scale(0.4); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-map-user-dot-pulse { animation: none; opacity: 0.3; }
+}
+
+/* Chrome nativo do Leaflet que ainda aparece (atribuição obrigatória do
+   OSM/CARTO) — tema escuro pra não destoar do resto do mapa. Controle de
+   zoom fica oculto (zoomControl={false} no MapContainer), mobile usa
+   gesto de pinça. */
+.leaflet-control-attribution {
+  background: rgba(10,10,10,0.7) !important; color: var(--paper-dim) !important;
+  font-size: 10px !important;
+}
+.leaflet-control-attribution a { color: var(--paper-dim) !important; }
+.leaflet-routing-container { display: none !important; }
 
 /* Onboarding — tela cheia, primeira visita só. Usa top/right/bottom/left
    explícitos em vez do atalho "inset" (alguns WebViews mobile não
