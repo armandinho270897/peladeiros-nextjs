@@ -56,10 +56,8 @@
 
 * { box-sizing: border-box; }
 
-/* Trava o "elástico" de overscroll (puxar além do topo/fim da página) — sem
-   isso, em iOS/alguns Android o conteúdo desliza visualmente pra fora da
-   borda neon (que é fixa e não acompanha o bounce) por uma fração de
-   segundo, deixando o topo aparentemente "sem moldura" enquanto rola. */
+/* Trava o "elástico" de overscroll (puxar além do topo/fim da página) —
+   evita o bounce/rubber-band que expõe o fundo do navegador atrás do app. */
 html {
   background: var(--ink);
   overscroll-behavior-y: none;
@@ -83,22 +81,6 @@ body::before {
   opacity: 0.05;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* Contorno neon ao redor de toda a tela — elemento real (não pseudo-elemento)
-   porque alguns navegadores mobile/WebView renderizam ::after com
-   position:fixed de forma instável durante resize/scroll. Usa top/right/
-   bottom/left explícitos em vez do atalho "inset" — alguns navegadores
-   mobile mais antigos não suportam o atalho e descartam a declaração
-   inteira, o que faz o elemento (sem largura/altura, position:fixed sem
-   offsets) colapsar num quadradinho fixo em vez de cobrir a tela. */
-.pl-app-border {
-  position: fixed;
-  top: 0; right: 0; bottom: 0; left: 0;
-  border: 3px solid var(--neon);
-  box-shadow: inset 0 0 18px rgba(166,255,0,0.25), 0 0 14px rgba(166,255,0,0.3);
-  pointer-events: none;
-  z-index: 9998;
 }
 
 /* Divisória "rasgada" sob títulos de seção — zigue-zague em vez de linha reta */
@@ -1294,7 +1276,7 @@ body::before {
   overflow: hidden;
 }
 /* textura de concreto de baixa opacidade — mesmo mecanismo de feTurbulence
-   já usado no fundo do app (ver .pl-app-border/noise acima) */
+   já usado no fundo do app (ver body::before acima) */
 .pl-bottom-nav::before {
   content: '';
   position: absolute; inset: 0;
