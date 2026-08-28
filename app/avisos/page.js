@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback } from 'react';
 import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
-import BackLink from '../components/BackLink';
 import NotificationCard from '../components/NotificationCard';
 import BolaParadaIcon from '../components/BolaParadaIcon';
 import { categoriaDe } from '@/lib/notifCategorias';
@@ -74,7 +73,6 @@ export default function AvisosPage() {
   if (authLoading || loading) {
     return (
       <div>
-        <div className="pl-header"><BackLink href="/" /></div>
         <div className="pl-list" style={{ paddingTop: 14 }}><div className="pl-skeleton" style={{ height: 200 }} /></div>
       </div>
     );
@@ -88,8 +86,6 @@ export default function AvisosPage() {
 
   return (
     <div>
-      <div className="pl-header"><BackLink href="/" /></div>
-
       <div className="pl-avisos-head">
         <h1>Avisos</h1>
         <div className="pl-avisos-tabs">

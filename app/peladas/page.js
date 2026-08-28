@@ -162,8 +162,7 @@ export default function PeladasPage() {
     <div>
       <div className="pl-header">
         <div className="pl-header-row">
-          <Link href="/" className="pl-link-muted" style={{ fontSize: 13 }}>← Início</Link>
-          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginLeft: 'auto' }}>
             {user?.id === ADMIN_USER_ID && (
               <Link href="/admin/arenas" className="pl-link-muted">🔒 Aprovar arenas</Link>
             )}
