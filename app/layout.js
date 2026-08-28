@@ -39,7 +39,6 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <div className="pl-app-border" aria-hidden="true" />
         <InAppBrowserBanner />
         <InstallBanner />
         <SplashScreen />
