@@ -4,8 +4,9 @@ import Link from 'next/link';
 import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
-import { fetchNotificacoesComAtores, tempoRelativo } from '@/lib/notificacoes';
+import { fetchNotificacoesComAtores, tempoRelativo, comNomeEmNegrito } from '@/lib/notificacoes';
 import { iconeDe } from '@/lib/notifCategorias';
+import Avatar from './Avatar';
 import BolaParadaIcon from './BolaParadaIcon';
 
 const CHAVE_CONQUISTAS_VISTAS = 'pl-conquistas-vistas';
@@ -41,13 +42,15 @@ export default function HomeFeed({ conquistas, proximaConquista }) {
   const { user } = useAuth();
   const [supabase] = useState(() => createClient());
   const [notificacoes, setNotificacoes] = useState(null); // null = carregando
+  const [atores, setAtores] = useState({});
   const recentes = useConquistasRecentes(conquistas);
 
   useEffect(() => {
     if (!user) return;
-    fetchNotificacoesComAtores(supabase, user.id, 6).then(({ notificacoes: rows, error }) => {
+    fetchNotificacoesComAtores(supabase, user.id, 6).then(({ notificacoes: rows, atores: atoresMap, error }) => {
       if (error) { Sentry.captureException(error); setNotificacoes([]); return; }
       setNotificacoes(rows);
+      setAtores(atoresMap);
     });
   }, [supabase, user?.id]);
 
@@ -113,15 +116,26 @@ export default function HomeFeed({ conquistas, proximaConquista }) {
           <p>Sem novidades ainda — confirma sua primeira pelada e o feed começa a rodar aqui.</p>
         </div>
       ) : (
-        notificacoes.map((n) => (
-          <Link key={n.id} href={n.game_id ? `/pelada/${n.game_id}` : '/avisos'} className="pl-glass-card">
-            <span className="pl-glass-icon" aria-hidden="true">{iconeDe(n.tipo)}</span>
-            <div className="pl-glass-body">
-              <p className="pl-glass-msg">{n.mensagem?.trim() || 'Aviso.'}</p>
-              <span className="pl-glass-time">{tempoRelativo(n.created_at)}</span>
-            </div>
-          </Link>
-        ))
+        notificacoes.map((n) => {
+          const ator = n.ator_user_id ? atores[n.ator_user_id] : null;
+          const mensagem = n.mensagem?.trim() || 'Aviso.';
+          return (
+            <Link key={n.id} href={n.game_id ? `/pelada/${n.game_id}` : '/avisos'} className="pl-glass-card">
+              {ator ? (
+                <span className="pl-glass-icon pl-glass-icon-avatar" aria-hidden="true">
+                  <Avatar nome={ator.nome} fotoUrl={ator.foto_url} size={38} />
+                  {n.tipo === 'solicitacao_pendente' && <span className="pl-n-actor-badge">+</span>}
+                </span>
+              ) : (
+                <span className="pl-glass-icon" aria-hidden="true">{iconeDe(n.tipo)}</span>
+              )}
+              <div className="pl-glass-body">
+                <p className="pl-glass-msg">{comNomeEmNegrito(mensagem, ator?.nome)}</p>
+                <span className="pl-glass-time">{tempoRelativo(n.created_at)}</span>
+              </div>
+            </Link>
+          );
+        })
       )}
 
       {!carregando && !vazio && (
