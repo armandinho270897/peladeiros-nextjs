@@ -1,11 +1,14 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import { peladaIcon, peladaLotadaIcon, userLocationIcon, CARTO_DARK_TILE_URL } from '@/lib/leafletIcon';
+import { ocupandoVagaDe } from '@/lib/gameUtils';
 
 const DEFAULT_CENTER = [-14.235, -51.9253]; // centro do Brasil
 const DEFAULT_ZOOM = 4;
 const PICK_ZOOM = 16;
+const GEO_TIMEOUT_MS = 10000;
 
 // Nominatim (OpenStreetMap) — geocoding público e gratuito, mesma filosofia
 // de "sem API paga" já usada no filtro de raio (Haversine).
@@ -47,6 +50,46 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
   const [flyTarget, setFlyTarget] = useState(null);
   const searchDebounce = useRef(null);
   const reverseDebounce = useRef(null);
+
+  // Ponto pulsante "aqui é onde você está de verdade" — puramente
+  // informativo, não mexe no pino central (esse é a localização da pelada
+  // sendo criada, coisa diferente). undefined = ainda buscando, null =
+  // negado/indisponível, {lat,lng} = obtido; nunca bloqueia a primeira
+  // renderização do mapa, só aparece se/quando resolver.
+  const [minhaLocalizacao, setMinhaLocalizacao] = useState(undefined);
+  useEffect(() => {
+    if (!navigator.geolocation) { setMinhaLocalizacao(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setMinhaLocalizacao({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setMinhaLocalizacao(null),
+      { timeout: GEO_TIMEOUT_MS }
+    );
+  }, []);
+
+  // Peladas futuras com coordenada, só pra dar contexto visual ("já tem
+  // jogo por aqui?") enquanto escolhe onde marcar a nova — pins não
+  // clicáveis, não é uma tela de navegação. Endpoint enxuto (sem as notas
+  // de avaliação que /api/games carrega), pra não repetir aquele custo
+  // só pra mostrar uns pontos no mapa.
+  const [peladasExistentes, setPeladasExistentes] = useState([]);
+  useEffect(() => {
+    fetch('/api/games/mapa')
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setPeladasExistentes)
+      .catch(() => {});
+  }, []);
+
+  // Arrastar o mapa dispara handleMoveEnd -> onPick -> re-render deste
+  // componente a cada frame; sem memoizar, o ícone de cada pelada existente
+  // (aberta/lotada) seria recalculado nesse ritmo à toa, já que a lista em
+  // si só muda uma vez (no fetch inicial).
+  const peladasComIcone = useMemo(
+    () => peladasExistentes.map((g) => ({
+      ...g,
+      icone: Math.max(0, g.vagas_totais - ocupandoVagaDe(g).length) > 0 ? peladaIcon : peladaLotadaIcon,
+    })),
+    [peladasExistentes]
+  );
 
   const center = lat != null && lng != null ? [lat, lng] : DEFAULT_CENTER;
   const zoom = lat != null && lng != null ? PICK_ZOOM : DEFAULT_ZOOM;
@@ -100,7 +143,7 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
         handleMoveEnd(la, lo);
       },
       () => {},
-      { timeout: 10000 }
+      { timeout: GEO_TIMEOUT_MS }
     );
   }
 
@@ -126,11 +169,22 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
       <div className="pl-location-map-wrap">
         <MapContainer center={center} zoom={zoom} style={{ height: 220, width: '100%', borderRadius: 'var(--radius-lg)' }}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url={CARTO_DARK_TILE_URL}
           />
           <MoveTracker onMoveEnd={handleMoveEnd} />
           <FlyTo target={flyTarget} />
+          {minhaLocalizacao && (
+            <Marker position={[minhaLocalizacao.lat, minhaLocalizacao.lng]} icon={userLocationIcon} interactive={false} />
+          )}
+          {peladasComIcone.map((g) => (
+            <Marker
+              key={g.id}
+              position={[Number(g.latitude), Number(g.longitude)]}
+              icon={g.icone}
+              interactive={false}
+            />
+          ))}
         </MapContainer>
         <div className="pl-location-center-pin" aria-hidden="true">
           <svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
@@ -139,7 +193,7 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
           </svg>
         </div>
       </div>
-      <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Arraste o mapa pra ajustar o pino no centro.</p>
+      <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Arraste o mapa pra ajustar o pino no centro. Os outros pontos são peladas que já existem por perto.</p>
     </div>
   );
 }

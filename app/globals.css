@@ -269,8 +269,6 @@ body::before {
 
 .pl-toolbar { display: flex; gap: 10px; max-width: 640px; margin: 12px auto 0; padding: 0 16px; align-items: center; flex-wrap: wrap; }
 .pl-select { background: var(--card-bg); border: 1.5px solid rgba(110,113,120,0.5); color: var(--paper); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 13px; transition: border-color 150ms ease, box-shadow 150ms ease; }
-.pl-toggle-map { background: transparent; border: 1.5px solid var(--concrete); color: var(--neon); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; margin-left: auto; }
-
 /* Chips de filtro horizontais roláveis — a barra de filtros atual vira um
    painel expansível (⚙ Filtros) pro resto (bairro, raio, mapa) */
 .pl-chips-row {

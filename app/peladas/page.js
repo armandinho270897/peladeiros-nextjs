@@ -186,6 +186,9 @@ export default function PeladasPage() {
           </div>
 
           <div className="pl-chips-row">
+            <button className={`pl-chip ${viewMode === 'mapa' ? 'active' : ''}`} onClick={() => setViewMode(viewMode === 'lista' ? 'mapa' : 'lista')}>
+              {viewMode === 'lista' ? '🗺️ Mapa' : '📋 Lista'}
+            </button>
             <button className={`pl-chip ${dataChip === 'hoje' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'hoje' ? '' : 'hoje')}>Hoje</button>
             <button className={`pl-chip ${dataChip === 'amanha' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'amanha' ? '' : 'amanha')}>Amanhã</button>
             <button className={`pl-chip ${raioAtivo ? 'active' : ''}`} onClick={toggleRaio}>📍 Perto</button>
@@ -211,9 +214,6 @@ export default function PeladasPage() {
                     <input type="range" min="1" max="50" value={raioKm} onChange={handleRaioChange} style={{ width: 90 }} aria-label="Raio em quilômetros" />
                   </label>
                 )}
-                <button className="pl-toggle-map" style={{ marginLeft: 0 }} onClick={() => setViewMode(viewMode === 'lista' ? 'mapa' : 'lista')}>
-                  {viewMode === 'lista' ? '🗺️ Ver no mapa' : '📋 Ver lista'}
-                </button>
               </div>
             </div>
           )}
