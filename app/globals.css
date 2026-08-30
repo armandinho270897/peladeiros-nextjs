@@ -1492,6 +1492,35 @@ body::before {
 }
 .pl-map-photo-pin img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
+/* Mapa — pino gamificado de pelada (arte da modalidade + anel de status).
+   Anel reaproveita as MESMAS 3 cores que já significam a mesma coisa em
+   peladaIcon/peladaLotadaIcon e no badge "últimas vagas" do card — não é
+   uma paleta nova. */
+.pl-map-modalidade-pin { position: relative; width: 36px; height: 36px; }
+.pl-map-modalidade-pin-photo {
+  width: 100%; height: 100%; border-radius: var(--radius-circle);
+  border: 3px solid var(--concrete); overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.pl-map-modalidade-pin-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pl-map-modalidade-pin.aberta .pl-map-modalidade-pin-photo { border-color: var(--neon); }
+.pl-map-modalidade-pin.ultimas .pl-map-modalidade-pin-photo { border-color: var(--gold); }
+.pl-map-modalidade-pin.lotada .pl-map-modalidade-pin-photo { border-color: var(--concrete); }
+
+/* Glow de "começa em ≤1h" — mesma animação (pl-map-user-pulse, definida
+   mais abaixo) já usada no ponto de localização do usuário nesse mesmo
+   mapa: transform+opacity (barato de compositar), não box-shadow, pra
+   aguentar vários pins pulsando ao mesmo tempo sem pesar. */
+.pl-map-modalidade-pin-glow {
+  position: absolute; inset: -7px; border-radius: var(--radius-circle);
+  background: rgba(166,255,0,0.35);
+  animation: pl-map-user-pulse 2s ease-out infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-map-modalidade-pin-glow { animation: none; opacity: 0.25; }
+}
+
 /* Cluster de pins — sobrescreve o visual padrão do leaflet.markercluster
    pra usar a paleta do app em vez do amarelo/laranja/vermelho de fábrica */
 .pl-map-cluster {
