@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
-import { peladaIcon, peladaLotadaIcon, userLocationIcon, CARTO_DARK_TILE_URL } from '@/lib/leafletIcon';
+import { peladaIcon, peladaLotadaIcon, userLocationIcon, DARK_TILE_URL } from '@/lib/leafletIcon';
 import { ocupandoVagaDe } from '@/lib/gameUtils';
 
 const DEFAULT_CENTER = [-14.235, -51.9253]; // centro do Brasil
@@ -169,8 +169,9 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
       <div className="pl-location-map-wrap">
         <MapContainer center={center} zoom={zoom} style={{ height: 220, width: '100%', borderRadius: 'var(--radius-lg)' }}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url={CARTO_DARK_TILE_URL}
+            attribution='Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, OpenStreetMap contributors, GIS User Community'
+            url={DARK_TILE_URL}
+            maxNativeZoom={16}
           />
           <MoveTracker onMoveEnd={handleMoveEnd} />
           <FlyTo target={flyTarget} />

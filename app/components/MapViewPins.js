@@ -5,7 +5,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
-import { arenaIcon, peladaIcon, peladaLotadaIcon, photoIcon, userLocationIcon, CARTO_DARK_TILE_URL } from '@/lib/leafletIcon';
+import { arenaIcon, peladaIcon, peladaLotadaIcon, photoIcon, userLocationIcon, DARK_TILE_URL } from '@/lib/leafletIcon';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import { fmtDate, ocupandoVagaDe, googleMapsDirectionsUrl } from '@/lib/gameUtils';
 import TicketButton from './TicketButton';
@@ -207,8 +207,9 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
       ) : (
         <MapContainer ref={mapRef} center={center} zoom={zoom} zoomControl={zoomControl} style={{ height: 420, width: '100%', borderRadius: 'var(--radius-lg)' }}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url={CARTO_DARK_TILE_URL}
+            attribution='Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, OpenStreetMap contributors, GIS User Community'
+            url={DARK_TILE_URL}
+            maxNativeZoom={16}
           />
           {localizacao && (
             <Marker position={[localizacao.lat, localizacao.lng]} icon={userLocationIcon} interactive={false} />
