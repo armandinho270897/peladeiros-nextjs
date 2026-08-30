@@ -42,7 +42,7 @@ function WizardProgress({ current }) {
 }
 
 export default function NewGameModal({ onCancel, onCreated }) {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { arenas } = useArenas();
   const [step, setStep] = useState(0);
   const [error, setError] = useState('');
@@ -144,16 +144,28 @@ export default function NewGameModal({ onCancel, onCreated }) {
     onCreated(result);
   }
 
+  // Mesma regra de preenchimento de POST /api/games: o capitão ocupa uma
+  // vaga automaticamente, então só os primeiros (vagasTotais - 1) outros
+  // jogadores entram como aprovado — o resto vai pra espera. Sem espelhar
+  // essa conta aqui, a revisão prometia "X de Y vagas preenchidas" com
+  // todo mundo aprovado, e depois de publicar o servidor mandava o último
+  // pra espera silenciosamente — divergência real encontrada em revisão.
+  const previewVagasTotais = parseInt(vagasTotais, 10) || jogadores.length + 1 || 1;
+  const previewVagasParaOutros = Math.max(0, previewVagasTotais - 1);
   const previewGame = {
     id: 'preview',
     local: local || 'Local da pelada',
     bairro: bairro || 'Bairro',
     data: data || toISODate(new Date()),
     horario: horario || '00:00',
-    vagas_totais: parseInt(vagasTotais, 10) || jogadores.length || 1,
+    vagas_totais: previewVagasTotais,
     capitao: profile?.nome || '',
-    confirmacoes: jogadores.map((j) => ({ id: j.key, user_id: j.id, nome: j.nome, status: 'aprovado' })),
+    owner_id: user?.id,
+    confirmacoes: jogadores.map((j, i) => ({
+      id: j.key, user_id: j.id, nome: j.nome, status: i < previewVagasParaOutros ? 'aprovado' : 'espera',
+    })),
   };
+  const previewAprovadosCount = Math.min(jogadores.length, previewVagasParaOutros) + 1;
 
   return (
     <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && onCancel()}>
@@ -276,7 +288,10 @@ export default function NewGameModal({ onCancel, onCreated }) {
               )}
               {jogadores.length > 0 && vagasTotais && (
                 <p style={{ fontSize: 11, color: 'var(--paper-dim)', marginTop: 4 }}>
-                  {jogadores.length} de {vagasTotais} vaga(s) já preenchida(s)
+                  {previewAprovadosCount} de {previewVagasTotais} vaga(s) já preenchida(s) (você conta como 1)
+                  {jogadores.length > previewVagasParaOutros && (
+                    <> — {jogadores.length - previewVagasParaOutros} vai(vão) pra espera, não cabe(m) nas vagas</>
+                  )}
                 </p>
               )}
             </div>
