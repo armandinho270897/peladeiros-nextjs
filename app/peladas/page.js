@@ -85,10 +85,12 @@ export default function PeladasPage() {
     if (win) showToast('📲 Pelada compartilhada');
   }
 
-  function handleArenaCreated() {
+  function handleArenaCreated(arena) {
     setModal(null);
     loadArenas();
-    showToast('Arena enviada! Aparece no mapa depois de aprovada.');
+    // Dono do app cadastra já aprovado (ver app/api/arenas/route.js) — a
+    // mensagem de "aguarde aprovação" seria enganosa nesse caso específico.
+    showToast(arena?.status === 'aprovada' ? 'Arena cadastrada — já está no mapa!' : 'Arena enviada! Aparece no mapa depois de aprovada.');
   }
 
   function handleConfirmed() {

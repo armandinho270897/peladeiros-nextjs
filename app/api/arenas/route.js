@@ -3,6 +3,7 @@ import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { errJson } from '@/lib/apiError';
+import { ADMIN_USER_ID } from '@/lib/adminConfig';
 
 const TIPOS_VALIDOS = ['quadra escolar', 'arena', 'quadra pública', 'rua', 'campo', 'estádio'];
 
@@ -39,6 +40,11 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Dados inválidos. Confere se preencheu tudo e escolheu um tipo válido.' }, { status: 400 });
   }
 
+  // O dono do app cadastra direto, já aprovada — não faz sentido ele
+  // aprovar a própria sugestão. Qualquer outro usuário segue o fluxo normal
+  // (pendente até passar pela fila em /admin/arenas).
+  const status = user.id === ADMIN_USER_ID ? 'aprovada' : 'pendente';
+
   const { data: arena, error } = await supabase
     .from('arenas')
     .insert({
@@ -46,7 +52,7 @@ export async function POST(request) {
       latitude: latitude ?? null,
       longitude: longitude ?? null,
       foto_url: fotoUrl || null,
-      status: 'pendente',
+      status,
       proposto_por_user_id: user.id,
     })
     .select()
