@@ -5,9 +5,10 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
-import { arenaIcon, peladaIcon, peladaLotadaIcon, photoIcon, userLocationIcon, DARK_TILE_URL, DARK_TILE_ATTRIBUTION, DARK_TILE_MAX_ZOOM } from '@/lib/leafletIcon';
+import { arenaIcon, photoIcon, userLocationIcon, modalidadePinIcon, DARK_TILE_URL, DARK_TILE_ATTRIBUTION, DARK_TILE_MAX_ZOOM } from '@/lib/leafletIcon';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
-import { fmtDate, ocupandoVagaDe, googleMapsDirectionsUrl } from '@/lib/gameUtils';
+import { fmtDate, ocupandoVagaDe, googleMapsDirectionsUrl, statusVagas, comecaEmBreve, inicioDoJogo } from '@/lib/gameUtils';
+import { imagemDoTipo } from '@/lib/tipoJogoImagem';
 import TicketButton from './TicketButton';
 import EmptyFieldIcon from './EmptyFieldIcon';
 
@@ -23,6 +24,23 @@ const ROTA_TIMEOUT_MS = 8000;
 const OSRM_DEMO_SERVICE_URL = 'https://router.project-osrm.org/route/v1';
 
 const ACESSO_LABEL = { publico: 'Público', privado: 'Privado', nao_confirmado: 'Acesso não confirmado' };
+
+// Mesmo fallback que TipoJogoIcon usa pra tipo desconhecido/vazio ("Outro"
+// cai no ícone genérico de campo) — aqui é a versão foto, pro pin do mapa.
+const FALLBACK_MODALIDADE_IMG = '/imagens_jogos/campo.jpg';
+
+// Teto de pins pulsando "começa em breve" ao mesmo tempo — sem isso, num
+// horário de pico numa cidade grande, dezenas de peladas podem começar na
+// mesma hora e todas ganhariam glow simultâneo (testado só até 15 nesta
+// leva). Prioriza quem começa primeiro; o resto mantém o anel de status
+// normal, só sem o pulso. Lotada nunca pulsa — glow verde-neon numa pelada
+// lotada mandaria o sinal errado (verde já significa "vaga aberta" no
+// resto do app).
+const MAX_PINS_COM_GLOW = 8;
+// Recalcula "começa em breve" periodicamente — sem isso, quem deixa o mapa
+// aberto vê o glow ligado pra sempre (nunca desliga quando o jogo começa
+// de verdade, já que o memo abaixo só reagia a mudança na lista de jogos).
+const RECALCULO_GLOW_MS = 60 * 1000;
 
 // Cluster com a cor/tipografia do app em vez do amarelo/laranja de fábrica
 // do leaflet.markercluster.
@@ -58,6 +76,16 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
   // "(hover: hover)" já usada em outros pontos do app pra distinguir mouse
   // de touch.
   const [zoomControl] = useState(() => typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches);
+
+  // Recomputa quem "começa em breve" a cada minuto — sem isso, um jogo que
+  // já rolou continuaria com o glow ligado indefinidamente enquanto a lista
+  // de peladas (games) não mudar de identidade (não há refetch automático
+  // aqui, só em ações pontuais). Não precisa de mais precisão que isso.
+  const [agoraTick, setAgoraTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setAgoraTick(Date.now()), RECALCULO_GLOW_MS);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!navigator.geolocation) { setLocalizacao(null); return; }
@@ -102,6 +130,40 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
     for (const g of jogosComCoordenadas) mapa[g.id] = Math.max(0, g.vagas_totais - ocupandoVagaDe(g).length);
     return mapa;
   }, [jogosComCoordenadas]);
+
+  // Ícone gamificado por pelada (arte da modalidade + anel de status +
+  // glow de "começa em breve") — memoizado junto com restantesPorJogo, pelo
+  // mesmo motivo: o Marker do Leaflet troca de ícone por identidade de
+  // objeto, então recriar um divIcon novo a cada render (ex: ao abrir o
+  // sheet) reiniciaria a animação de pulso à toa em todo pin na tela.
+  // agoraTick força recomputar a cada minuto (ver efeito acima) — sem isso
+  // o glow nunca desligaria sozinho quando o horário do jogo passasse.
+  const iconPorJogo = useMemo(() => {
+    // Teto de pins com glow simultâneo (MAX_PINS_COM_GLOW) — prioriza quem
+    // começa primeiro. Sem isso, um horário de pico numa cidade grande
+    // poderia pulsar dezenas de pins ao mesmo tempo, muito além do que foi
+    // testado.
+    const comecandoEmBreveIds = new Set(
+      jogosComCoordenadas
+        .filter((g) => comecaEmBreve(g))
+        .sort((a, b) => inicioDoJogo(a) - inicioDoJogo(b))
+        .slice(0, MAX_PINS_COM_GLOW)
+        .map((g) => g.id)
+    );
+
+    const mapa = {};
+    for (const g of jogosComCoordenadas) {
+      const restantes = Math.max(0, g.vagas_totais - ocupandoVagaDe(g).length);
+      const statusClasse = statusVagas(restantes, restantes === 0).className;
+      const imgUrl = imagemDoTipo(g.tipo) || FALLBACK_MODALIDADE_IMG;
+      // Lotada nunca pulsa: glow verde-neon numa pelada sem vaga mandaria o
+      // sinal errado (verde já significa "vaga aberta" no resto do app).
+      const comGlow = statusClasse !== 'lotada' && comecandoEmBreveIds.has(g.id);
+      mapa[g.id] = modalidadePinIcon(imgUrl, statusClasse, comGlow);
+    }
+    return mapa;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- agoraTick não é lido no corpo, só força o recálculo periódico do glow
+  }, [jogosComCoordenadas, agoraTick]);
 
   const center =
     todosOsPins.length > 0
@@ -223,7 +285,7 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
               <Marker
                 key={`pelada-${g.id}`}
                 position={[Number(g.latitude), Number(g.longitude)]}
-                icon={restantesPorJogo[g.id] > 0 ? peladaIcon : peladaLotadaIcon}
+                icon={iconPorJogo[g.id]}
                 eventHandlers={{ click: () => selecionar({ type: 'pelada', data: g }) }}
               />
             ))}
