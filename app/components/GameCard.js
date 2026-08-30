@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas } from '@/lib/gameUtils';
+import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas, souCapitaoDe } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
@@ -41,17 +41,33 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
   const router = useRouter();
   const g = game;
   const d = fmtDate(g.data);
-  const confirmados = aprovadosDe(g);
+  const aprovados = aprovadosDe(g);
+  // Capitão sempre aparece primeiro entre os confirmados. Peladas criadas
+  // depois do fix de 2026-08-30 já trazem a linha dele em confirmacoes (só
+  // reordena pra frente); peladas antigas ou um insert que falhou não têm
+  // essa linha — sintetiza uma entrada só com o nome (sem foto/moral) pra
+  // não sumir com o capitão da lista de qualquer forma.
+  // g.owner_id é null em peladas antigas sem capitão — sem o `!!g.owner_id`
+  // aqui, um convidado sem conta (user_id também null) seria confundido
+  // com "o capitão já tem linha" (null === null), e o sort logo abaixo
+  // colocaria esse convidado na frente como se fosse o capitão.
+  const capitaoTemLinha = !!g.owner_id && aprovados.some((c) => c.user_id === g.owner_id);
+  const confirmados = !g.owner_id
+    ? aprovados
+    : capitaoTemLinha
+      ? [...aprovados].sort((a, b) => (b.user_id === g.owner_id) - (a.user_id === g.owner_id))
+      : [{ id: `capitao-${g.id}`, user_id: g.owner_id, nome: g.capitao, moral: null, foto_url: null }, ...aprovados];
   const espera = esperaDe(g);
   const pendentes = pendentesDe(g);
   const restantes = Math.max(0, g.vagas_totais - ocupandoVagaDe(g).length);
   const lotado = restantes === 0;
   const status = statusVagas(restantes, lotado);
   const podeEditar = !g.owner_id || g.owner_id === currentUserId;
+  const souCapitao = souCapitaoDe(g, currentUserId);
   const minhaConfirmacao = (g.confirmacoes || []).find((c) => c.user_id === currentUserId);
-  const aguardandoAprovacao = minhaConfirmacao?.status === 'pendente';
-  const minhaPresencaAprovada = minhaConfirmacao?.status === 'aprovado';
-  const minhaVagaAguardandoConfirmacao = minhaConfirmacao?.status === 'aguardando_confirmacao';
+  const aguardandoAprovacao = !souCapitao && minhaConfirmacao?.status === 'pendente';
+  const minhaPresencaAprovada = souCapitao || minhaConfirmacao?.status === 'aprovado';
+  const minhaVagaAguardandoConfirmacao = !souCapitao && minhaConfirmacao?.status === 'aguardando_confirmacao';
 
   const [pulse, setPulse] = useState(false);
   const prevRestantes = useRef(restantes);
@@ -169,9 +185,14 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
           ) : minhaPresencaAprovada ? (
             <>
               <span className="pl-inside-badge">✓ Você está dentro</span>
-              <button className="pl-link-danger-small" onClick={pararPropagacao(() => onCancelPresenca(minhaConfirmacao.id, g))}>
-                Cancelar presença
-              </button>
+              {/* Capitão não cancela a própria presença por aqui — sairia
+                  do próprio jogo sem sair da posição de dono. Quem quer
+                  desmarcar a pelada inteira usa o fluxo de editar/encerrar. */}
+              {!souCapitao && (
+                <button className="pl-link-danger-small" onClick={pararPropagacao(() => onCancelPresenca(minhaConfirmacao.id, g))}>
+                  Cancelar presença
+                </button>
+              )}
             </>
           ) : (
             <TicketButton compact onClick={pararPropagacao(() => onConfirm(g))}>

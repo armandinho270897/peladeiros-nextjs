@@ -29,8 +29,13 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
         fetch(`/api/games/${game.id}/avaliar`).then((r) => r.json()),
       ]);
       const jaAvaliados = new Set(avaliarRes.avaliados || []);
+      // Exclui o capitão daqui: ele já tem seção própria ("Avalie o
+      // capitão", abaixo) desde que a criação da pelada passou a dar a ele
+      // uma linha normal em confirmacoes — sem isso ele apareceria duas
+      // vezes (como jogador comum E como capitão), inflando a Moral dele
+      // com peso dobrado (tipo 'capitao' vale 2x em lib/moral.js).
       const outros = (gameRes.confirmacoes || []).filter(
-        (c) => c.status === 'aprovado' && c.user_id && c.user_id !== user?.id && !jaAvaliados.has(c.user_id)
+        (c) => c.status === 'aprovado' && c.user_id && c.user_id !== user?.id && c.user_id !== game.owner_id && !jaAvaliados.has(c.user_id)
       );
       setAvaliaveis(outros);
       setMostraCapitao(!!game.owner_id && game.owner_id !== user?.id && !avaliarRes.capitaoAvaliado);
