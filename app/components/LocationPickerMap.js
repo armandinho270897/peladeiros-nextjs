@@ -1,9 +1,12 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
-import { peladaIcon, peladaLotadaIcon, userLocationIcon, DARK_TILE_URL, DARK_TILE_ATTRIBUTION, DARK_TILE_MAX_ZOOM } from '@/lib/leafletIcon';
-import { ocupandoVagaDe } from '@/lib/gameUtils';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import { userLocationIcon, modalidadePinIcon, arenaContextoPinIcon, DARK_TILE_URL, DARK_TILE_ATTRIBUTION, DARK_TILE_MAX_ZOOM } from '@/lib/leafletIcon';
+import { ocupandoVagaDe, statusVagas } from '@/lib/gameUtils';
+import { imagemDoTipo } from '@/lib/tipoJogoImagem';
+
+const FALLBACK_MODALIDADE_IMG = '/imagens_jogos/campo.jpg';
 
 const DEFAULT_CENTER = [-14.235, -51.9253]; // centro do Brasil
 const DEFAULT_ZOOM = 4;
@@ -43,13 +46,26 @@ function FlyTo({ target }) {
   return null;
 }
 
-export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved }) {
+export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved, onArenaPicked }) {
   const [query, setQuery] = useState('');
   const [sugestoes, setSugestoes] = useState([]);
   const [buscando, setBuscando] = useState(false);
   const [flyTarget, setFlyTarget] = useState(null);
   const searchDebounce = useRef(null);
   const reverseDebounce = useRef(null);
+  // setFlyTarget->FlyTo chama map.setView, que dispara moveend igual a um
+  // arraste manual — sem isso, escolher uma arena mostraria o nome certo
+  // (ex: "Quadra do CEMA") por 500ms e depois trocaria sozinho pro endereço
+  // genérico que o reverse-geocode desse mesmo ponto devolve. É uma
+  // CONTAGEM, não um boolean: cancelar uma animação de pan em andamento
+  // (ex: tocar em duas arenas rápido, antes da primeira terminar de mover
+  // o mapa) dispara um moveend "fantasma" extra pela própria cancelamento
+  // do Leaflet (map._stop() → PosAnimation.stop() → fire('moveend')) — um
+  // boolean simples seria consumido por esse fantasma e deixaria o moveend
+  // de verdade (da seleção mais recente) reativar o reverse-geocode por
+  // engano. A contagem garante 1 supressão pra cada seleção pendente,
+  // não importa quantos moveends (fantasmas ou reais) isso gere no total.
+  const suppressoesPendentes = useRef(0);
 
   // Ponto pulsante "aqui é onde você está de verdade" — puramente
   // informativo, não mexe no pino central (esse é a localização da pelada
@@ -79,23 +95,60 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
       .catch(() => {});
   }, []);
 
+  // Arenas aprovadas — mostradas como pino tocável ("usar este local"),
+  // igual à ideia das Poképaradas: dá pra ver de longe se um lugar já
+  // cadastrado tem pelada marcada ou não, e escolher batendo o olho no
+  // mapa em vez de só pelo dropdown "vincular arena existente". Só busca e
+  // mostra quando o pai passa onArenaPicked — é o sinal de que esse uso do
+  // seletor é "escolher local pra uma pelada nova" (NewGameModal). No
+  // cadastro de UMA NOVA arena (NewArenaModal) não faz sentido oferecer
+  // "usar o local de uma arena já existente": arriscaria a nova arena
+  // acabar com a mesma coordenada de outra por engano.
+  const [arenas, setArenas] = useState([]);
+  useEffect(() => {
+    if (!onArenaPicked) return;
+    fetch('/api/arenas')
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setArenas)
+      .catch(() => {});
+  }, []);
+
   // Arrastar o mapa dispara handleMoveEnd -> onPick -> re-render deste
   // componente a cada frame; sem memoizar, o ícone de cada pelada existente
   // (aberta/lotada) seria recalculado nesse ritmo à toa, já que a lista em
-  // si só muda uma vez (no fetch inicial).
+  // si só muda uma vez (no fetch inicial). Mesma arte+anel gamificados do
+  // mapa principal (modalidadePinIcon) — sem o glow de "começa em breve"
+  // aqui: esse contexto é só uma referência rápida enquanto se escolhe um
+  // local, não a tela de navegar/entrar num jogo, então a animação extra
+  // não paga o custo de complexidade a mais (tick periódico, teto etc.).
   const peladasComIcone = useMemo(
-    () => peladasExistentes.map((g) => ({
-      ...g,
-      icone: Math.max(0, g.vagas_totais - ocupandoVagaDe(g).length) > 0 ? peladaIcon : peladaLotadaIcon,
-    })),
+    () => peladasExistentes.map((g) => {
+      const restantes = Math.max(0, g.vagas_totais - ocupandoVagaDe(g).length);
+      const statusClasse = statusVagas(restantes, restantes === 0).className;
+      const imgUrl = imagemDoTipo(g.tipo) || FALLBACK_MODALIDADE_IMG;
+      return { ...g, icone: modalidadePinIcon(imgUrl, statusClasse, false) };
+    }),
     [peladasExistentes]
   );
+
+  // Uma arena "tem jogo" se alguma pelada futura (já carregada acima)
+  // referencia ela via arena_id — mesma lista, sem outro fetch.
+  const arenasComStatus = useMemo(() => {
+    const idsComJogo = new Set(peladasExistentes.map((g) => g.arena_id).filter(Boolean));
+    return arenas
+      .filter((a) => a.latitude != null && a.longitude != null)
+      .map((a) => ({ ...a, temJogo: idsComJogo.has(a.id) }));
+  }, [arenas, peladasExistentes]);
 
   const center = lat != null && lng != null ? [lat, lng] : DEFAULT_CENTER;
   const zoom = lat != null && lng != null ? PICK_ZOOM : DEFAULT_ZOOM;
 
   function handleMoveEnd(la, lo) {
     onPick(la, lo);
+    if (suppressoesPendentes.current > 0) {
+      suppressoesPendentes.current--;
+      return;
+    }
     clearTimeout(reverseDebounce.current);
     reverseDebounce.current = setTimeout(async () => {
       try {
@@ -127,6 +180,9 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
   }
 
   function selecionarSugestao(s) {
+    // Zera qualquer supressão pendente de uma arena escolhida antes — uma
+    // busca nova sempre quer o endereço de verdade, não herda a trava.
+    suppressoesPendentes.current = 0;
     const la = Number(s.lat), lo = Number(s.lon);
     setFlyTarget({ lat: la, lng: lo });
     setQuery('');
@@ -134,10 +190,29 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
     handleMoveEnd(la, lo);
   }
 
+  // Diferente de selecionarSugestao: já sabemos o nome/bairro exatos da
+  // arena, então NÃO passa pelo reverse-geocode de handleMoveEnd (que
+  // rodaria em cima e podia sobrescrever o nome certo por um endereço
+  // genérico quando o debounce disparasse). Cancela qualquer reverse-geocode
+  // pendente de um arraste anterior por segurança.
+  function selecionarArena(arena) {
+    clearTimeout(reverseDebounce.current);
+    suppressoesPendentes.current++;
+    const la = Number(arena.latitude), lo = Number(arena.longitude);
+    setFlyTarget({ lat: la, lng: lo });
+    onPick(la, lo);
+    onAddressResolved?.({ local: arena.nome, bairro: arena.bairro });
+    onArenaPicked?.(arena);
+  }
+
   function usarLocalizacaoAtual() {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        // Mesma lógica de selecionarSugestao: geolocalização real do
+        // usuário sempre quer o endereço de verdade, não herda supressão
+        // de uma arena escolhida um instante antes.
+        suppressoesPendentes.current = 0;
         const la = pos.coords.latitude, lo = pos.coords.longitude;
         setFlyTarget({ lat: la, lng: lo });
         handleMoveEnd(la, lo);
@@ -182,6 +257,19 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
               interactive={false}
             />
           ))}
+          {arenasComStatus.map((a) => (
+            <Marker
+              key={`arena-${a.id}`}
+              position={[Number(a.latitude), Number(a.longitude)]}
+              icon={arenaContextoPinIcon(a.temJogo)}
+            >
+              <Popup>
+                <p className="pl-map-popup-title">{a.nome}</p>
+                <p className="pl-map-popup-status">{a.temJogo ? '🟢 Tem pelada marcada aqui' : 'Nenhuma pelada marcada ainda'}</p>
+                <button type="button" className="pl-map-popup-btn" onClick={() => selecionarArena(a)}>Usar este local</button>
+              </Popup>
+            </Marker>
+          ))}
         </MapContainer>
         <div className="pl-location-center-pin" aria-hidden="true">
           <svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
@@ -190,7 +278,7 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved 
           </svg>
         </div>
       </div>
-      <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Arraste o mapa pra ajustar o pino no centro. Os outros pontos são peladas que já existem por perto.</p>
+      <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Arraste o mapa pra ajustar o pino no centro. As fotos são peladas marcadas por perto; os pinos dourados são arenas cadastradas — toque numa pra usar o local.</p>
     </div>
   );
 }

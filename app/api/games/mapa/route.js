@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const { data: games, error } = await supabase
     .from('games')
-    .select('id, local, data, horario, vagas_totais, latitude, longitude, confirmacoes(status)')
+    .select('id, local, data, horario, vagas_totais, latitude, longitude, arena_id, tipo, confirmacoes(status)')
     .not('latitude', 'is', null)
     .not('longitude', 'is', null)
     .gte('data', todayISO())
