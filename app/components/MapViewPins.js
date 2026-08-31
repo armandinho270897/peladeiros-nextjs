@@ -42,6 +42,18 @@ const MAX_PINS_COM_GLOW = 8;
 // de verdade, já que o memo abaixo só reagia a mudança na lista de jogos).
 const RECALCULO_GLOW_MS = 60 * 1000;
 
+// Mediana em vez de média pra centralizar o mapa: uma única coordenada
+// mal cravada (ex: geolocalização falhou e devolveu um ponto absurdo tipo
+// Atlântico Sul) não consegue puxar o centro pra longe de onde os pins de
+// verdade estão — a média simples deixava exatamente isso acontecer (bug
+// real encontrado em produção: um jogo com coordenada quebrada jogava o
+// mapa inteiro pra um lugar vazio, sem nenhum pin visível).
+function mediana(valores) {
+  const ordenado = [...valores].sort((a, b) => a - b);
+  const meio = Math.floor(ordenado.length / 2);
+  return ordenado.length % 2 === 0 ? (ordenado[meio - 1] + ordenado[meio]) / 2 : ordenado[meio];
+}
+
 // Cluster com a cor/tipografia do app em vez do amarelo/laranja de fábrica
 // do leaflet.markercluster.
 function clusterIcon(cluster) {
@@ -168,8 +180,8 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
   const center =
     todosOsPins.length > 0
       ? [
-          todosOsPins.reduce((s, p) => s + Number(p.latitude), 0) / todosOsPins.length,
-          todosOsPins.reduce((s, p) => s + Number(p.longitude), 0) / todosOsPins.length,
+          mediana(todosOsPins.map((p) => Number(p.latitude))),
+          mediana(todosOsPins.map((p) => Number(p.longitude))),
         ]
       : DEFAULT_CENTER;
   const zoom = todosOsPins.length > 0 ? 12 : DEFAULT_ZOOM;
