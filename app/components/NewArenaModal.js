@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import TicketButton from './TicketButton';
+import { ADMIN_USER_ID } from '@/lib/adminConfig';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 
@@ -63,7 +64,9 @@ export default function NewArenaModal({ onCancel, onCreated }) {
       <div className="pl-modal">
         <h3>Cadastrar arena</h3>
         <p style={{ fontSize: 12, color: 'var(--paper-dim)', marginTop: 0 }}>
-          Sua arena entra numa fila de aprovação antes de aparecer no mapa pra todo mundo.
+          {user?.id === ADMIN_USER_ID
+            ? 'Já entra aprovada e aparece direto no mapa.'
+            : 'Sua arena entra numa fila de aprovação antes de aparecer no mapa pra todo mundo.'}
         </p>
         <form onSubmit={handleCreate}>
           <div className="pl-field">
