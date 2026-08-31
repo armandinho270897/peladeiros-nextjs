@@ -1492,6 +1492,31 @@ body::before {
 }
 .pl-map-photo-pin img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
+/* Mapa — pino de arena no seletor de local (LocationPickerMap), com badge
+   de "tem pelada marcada" no canto — visível sem precisar tocar no pino. */
+.pl-map-arena-ctx-pin { position: relative; width: 28px; height: 40px; }
+.pl-map-arena-ctx-badge {
+  position: absolute; top: -2px; right: -2px; width: 11px; height: 11px;
+  border-radius: var(--radius-circle); background: var(--neon);
+  border: 2px solid var(--ink);
+}
+
+/* Popup do Leaflet (usado só no seletor de local, pro "usar este local" da
+   arena) — o padrão da lib é um card branco, destoa do resto do app. */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: var(--card-bg); color: var(--paper);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.leaflet-popup-content { margin: 10px 12px; font-family: var(--font-body); }
+.leaflet-popup-close-button { color: var(--paper-dim) !important; }
+.pl-map-popup-title { font-family: var(--font-display); text-transform: uppercase; font-size: 13px; margin: 0 0 4px; color: var(--paper); }
+.pl-map-popup-status { font-size: 12px; color: var(--paper-dim); margin: 0 0 8px; }
+.pl-map-popup-btn {
+  width: 100%; padding: 6px 10px; border-radius: var(--radius-pill);
+  background: var(--neon); color: var(--ink); border: none;
+  font-weight: 700; font-size: 12px; cursor: pointer;
+}
+
 /* Mapa — pino gamificado de pelada (arte da modalidade + anel de status).
    Anel reaproveita as MESMAS 3 cores que já significam a mesma coisa em
    peladaIcon/peladaLotadaIcon e no badge "últimas vagas" do card — não é
