@@ -5,6 +5,16 @@ import { authorizeGameOwner } from '@/lib/gameAuth';
 import { sweepExpiredConfirmacoes, promoverEsperaComConfirmacao } from '@/lib/confirmacoesExpiry';
 import { errJson } from '@/lib/apiError';
 
+// Bug real encontrado em produção num endpoint irmão (/api/games/mapa):
+// mesmo sem cookies/params (candidato a otimização estática) e mesmo com
+// force-dynamic sozinho, o Data Cache do Next pra chamadas fetch (usadas
+// pelo supabase-js por baixo) pode servir uma resposta cacheada antiga
+// entre deploys. force-no-store garante que cada request bate no banco de
+// verdade. Essa rota tem o mesmo formato de risco (supabaseAdmin, sem
+// leitura de cookie no GET), por isso o mesmo par de diretivas aqui.
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export async function GET(request, { params }) {
   await sweepExpiredConfirmacoes();
 
