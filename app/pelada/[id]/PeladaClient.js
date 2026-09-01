@@ -118,7 +118,7 @@ export default function PeladaClient({ id }) {
 
   return (
     <div>
-      <GameArtBanner tipo={game.tipo} variant="hero" priority />
+      <GameArtBanner tipo={game.tipo} gameId={game.id} variant="hero" priority />
 
       <div className="pl-header">
         <BackLink href="/">Todas as peladas</BackLink>

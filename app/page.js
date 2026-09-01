@@ -9,8 +9,6 @@ import PatenteCard from './components/PatenteCard';
 import HomeFooterCta from './components/HomeFooterCta';
 import NewGameModal from './components/NewGameModal';
 
-const TIPO_PADRAO = 'Futebol de campo';
-
 // Frase de status do topo — reaproveita a "moral" (lib/moral.js, já
 // calculada por /api/perfil), não inventa métrica nova.
 function fraseDeStatus(moral, totalPeladasPassadas) {
@@ -62,16 +60,11 @@ export default function Home() {
   }
 
   const proximaConfirmada = perfil?.proximaConfirmada || null;
-
-  // Arte do hero: modalidade da próxima confirmada > da última jogada >
-  // padrão fixo (não sorteia — sortear geraria um fundo diferente a cada
-  // carregamento, ruído visual em vez de identidade).
-  const tipoArte = proximaConfirmada?.tipo || perfil?.historico?.[0]?.tipo || TIPO_PADRAO;
   const statusFrase = fraseDeStatus(perfil?.stats?.moral, perfil?.stats?.totalPeladasPassadas);
 
   return (
     <div>
-      <HomeHero profile={profile} tipo={tipoArte} statusFrase={statusFrase} patenteId={perfil?.patente?.id} />
+      <HomeHero profile={profile} statusFrase={statusFrase} patenteId={perfil?.patente?.id} />
 
       <div className="pl-home-blocks">
         <PendingActionCards acaoPendente={perfil?.acaoPendente} onChanged={carregarPerfil} />

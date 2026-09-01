@@ -1187,12 +1187,24 @@ body::before {
 .pl-home-hero { position: relative; height: 300px; overflow: hidden; }
 .pl-home-hero-bg {
   position: absolute; top: -50px; left: 0; right: 0; height: 350px; z-index: 0;
-  background-size: cover; background-position: center;
   will-change: transform;
 }
 .pl-home-hero-bg::after {
-  content: ''; position: absolute; inset: 0;
+  content: ''; position: absolute; inset: 0; z-index: 1;
   background: linear-gradient(180deg, rgba(10,10,10,0.35) 0%, rgba(10,10,10,0.55) 55%, var(--ink) 100%);
+}
+/* Duas camadas fixas (sempre as mesmas 2 no DOM) que alternam opacity —
+   é isso que faz a troca periódica de imagem (HomeHero.js) parecer um
+   crossfade suave em vez de um corte abrupto. */
+.pl-home-hero-bg-layer {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+.pl-home-hero-bg-layer.is-visivel { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .pl-home-hero-bg-layer { transition: none; }
 }
 /* Camada intermediária: textura/silhueta de grafite, se move numa
    velocidade diferente da arte de fundo — dá profundidade real ao
