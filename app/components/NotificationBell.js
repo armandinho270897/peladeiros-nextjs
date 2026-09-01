@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import BellIcon from './BellIcon';
@@ -15,6 +16,7 @@ import { tapFlash, flashClass } from '@/lib/tapFlash';
 // página é o caminho mais testado que existe na web.
 export default function NotificationBell({ variant = 'header' }) {
   const { user } = useAuth();
+  const pathname = usePathname();
   const [supabase] = useState(() => createClient());
   const [naoLidas, setNaoLidas] = useState(0);
   const iconWrapRef = useRef(null);
@@ -68,9 +70,18 @@ export default function NotificationBell({ variant = 'header' }) {
   const isBottomNav = variant === 'bottomnav';
 
   if (isBottomNav) {
+    // Mesma checagem de pathname que os outros itens de BottomNav.js —
+    // faltava aqui porque esse item virou um componente à parte
+    // (NotificationBell) em vez de um Link direto ali, e ficou pra trás
+    // quando /avisos virou rota de verdade (era painel flutuante antes,
+    // sem pathname próprio pra comparar). Splat também estava faltando na
+    // marcação: sem o span, o CSS de destaque (.active .pl-bottom-nav-splat)
+    // não tinha o que estilizar, mesmo com a classe active certa.
+    const active = pathname === '/avisos';
     return (
-      <Link href="/avisos" className="pl-bottom-nav-item pl-bottom-nav-avisos" onClick={tapFlash}>
+      <Link href="/avisos" className={`pl-bottom-nav-item pl-bottom-nav-avisos ${active ? 'active' : ''}`} onClick={tapFlash}>
         <span className="pl-bottom-nav-icon" ref={iconWrapRef}>
+          <span className="pl-bottom-nav-splat" aria-hidden="true" />
           <span className="pl-bottom-nav-flash" aria-hidden="true" />
           <AvisoFlagIcon />
           {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}
