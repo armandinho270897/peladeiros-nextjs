@@ -8,6 +8,16 @@ import { createNotification } from '@/lib/notify';
 import { sweepExpiredConfirmacoes } from '@/lib/confirmacoesExpiry';
 import { errJson } from '@/lib/apiError';
 
+// Bug real encontrado em produção: esse GET (supabaseAdmin, sem leitura de
+// cookie) tem o mesmo formato de risco que já pegou /api/games/mapa — o
+// Data Cache do Next pra chamadas fetch (usadas pelo supabase-js por
+// baixo) pode servir uma resposta cacheada antiga entre deploys, mesmo o
+// endpoint sendo classificado como dinâmico. Esse aqui é o mais crítico
+// dos três: é a lista principal de peladas, carregada em quase toda
+// abertura do app.
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export async function GET() {
   await sweepExpiredConfirmacoes();
 

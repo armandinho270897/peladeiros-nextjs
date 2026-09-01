@@ -7,6 +7,16 @@ import { ADMIN_USER_ID } from '@/lib/adminConfig';
 
 const TIPOS_VALIDOS = ['quadra escolar', 'arena', 'quadra pública', 'rua', 'campo', 'estádio'];
 
+// Bug real encontrado em produção num endpoint irmão (/api/games/mapa): o
+// Data Cache do Next pra chamadas fetch (usadas pelo supabase-js por
+// baixo) pode servir uma resposta cacheada antiga entre deploys, mesmo o
+// GET sendo classificado como dinâmico. Esse GET tem o mesmo formato de
+// risco (supabaseAdmin, sem leitura de cookie) — sem isso, uma arena nova
+// (ou recém auto-aprovada) podia não aparecer no mapa nem no seletor de
+// "vincular arena existente" até o próximo deploy.
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 // Só arenas aprovadas aparecem no mapa público e no seletor de "vincular
 // arena existente" ao criar pelada — pendentes ficam de fora até passar
 // pela fila de aprovação (rota separada, admin-only).
