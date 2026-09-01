@@ -1502,9 +1502,15 @@ body::before {
 }
 
 /* Popup do Leaflet (usado só no seletor de local, pro "usar este local" da
-   arena) — o padrão da lib é um card branco, destoa do resto do app. */
+   arena) — o padrão da lib é um card branco, destoa do resto do app.
+   !important necessário: leaflet/dist/leaflet.css é importado dentro do
+   componente (LocationPickerMap.js), e o Next empacota esse CSS depois do
+   globals.css no bundle final — mesma especificidade de seletor, então
+   quem carrega por último vence o cascade (confirmado inspecionando as
+   stylesheets em produção: a regra do Leaflet com fundo branco aparecia
+   depois da nossa). */
 .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-  background: var(--card-bg); color: var(--paper);
+  background: var(--card-bg) !important; color: var(--paper) !important;
   border: 1px solid rgba(255,255,255,0.1);
 }
 .leaflet-popup-content { margin: 10px 12px; font-family: var(--font-body); }
