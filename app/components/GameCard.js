@@ -139,7 +139,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
           card embutido ficar sem nenhuma identidade visual própria não é
           um card "pelado" na prática. Um novo showArt={false} em outro
           lugar sem hero próprio precisaria de um fallback aqui também. */}
-      {showArt && <GameArtBanner tipo={g.tipo} variant="card" sizes={artSizes} />}
+      {showArt && <GameArtBanner tipo={g.tipo} gameId={g.id} variant="card" sizes={artSizes} />}
       {justLotou && <Confetti />}
       {lotado && <div className="pl-stamp">Lotado</div>}
 
