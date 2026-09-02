@@ -31,9 +31,22 @@ async function reverseGeocode(lat, lng) {
   return res.json();
 }
 
+// Só repassa moveend quando veio de um gesto de verdade (arrastar ou dar
+// zoom) — sem isso, o próprio Leaflet pode disparar um moveend sozinho ao
+// montar o mapa (ajuste interno de layout/invalidateSize, sem nenhum toque
+// do usuário) e isso virava uma "escolha de local" por engano. Achado em
+// produção: duas arenas reais cadastradas no mesmo dia sem coordenada
+// escolhida de propósito — uma com lat/lng nula (nunca tocou no mapa) e
+// outra bem perto do centro padrão do Brasil (moveend fantasma do mount).
+// setView programático (busca/geolocalização/arena) não passa por aqui —
+// essas funções já chamam onPick direto, sem depender desse listener.
 function MoveTracker({ onMoveEnd }) {
+  const interagiu = useRef(false);
   const map = useMapEvents({
+    dragstart() { interagiu.current = true; },
+    zoomstart() { interagiu.current = true; },
     moveend() {
+      if (!interagiu.current) return;
       const c = map.getCenter();
       onMoveEnd(c.lat, c.lng);
     },

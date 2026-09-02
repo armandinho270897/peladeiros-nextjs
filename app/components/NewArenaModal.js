@@ -27,6 +27,18 @@ export default function NewArenaModal({ onCancel, onCreated }) {
 
   async function handleCreate(e) {
     e.preventDefault();
+    // O mapa era opcional — dava pra enviar sem nunca ter tocado nele, e a
+    // arena entrava na fila com coordenada nula (ou, pior, com o centro do
+    // mapa por engano: um moveend de assentamento inicial do Leaflet, sem
+    // nenhum toque do usuário, também conta como "escolha" pro onPick).
+    // Achado em produção: duas arenas reais entraram assim no mesmo dia
+    // ("Quadra prime" nula, outra perto do centro do Brasil) — nenhuma das
+    // duas aparecia no mapa. Arena existe pra ser marcada no mapa; sem
+    // coordenada de verdade ela não cumpre esse papel.
+    if (coords.lat == null || coords.lng == null) {
+      setError('Marca o local no mapa antes de cadastrar — busca o endereço, usa sua localização ou arrasta até o pino certo.');
+      return;
+    }
     setLoading(true);
     setError('');
     const f = e.target;
@@ -91,7 +103,7 @@ export default function NewArenaModal({ onCancel, onCreated }) {
             </select>
           </div>
           <div className="pl-field">
-            <label>Local no mapa (opcional) — toque no mapa para marcar</label>
+            <label>Local no mapa — busque o endereço, use sua localização ou arraste até marcar</label>
             <LocationPickerMap lat={coords.lat} lng={coords.lng} onPick={(lat, lng) => setCoords({ lat, lng })} />
             {coords.lat != null && (
               <div style={{ marginTop: 6, fontSize: 12, color: 'var(--paper-dim)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
