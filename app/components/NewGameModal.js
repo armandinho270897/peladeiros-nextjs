@@ -89,7 +89,15 @@ export default function NewGameModal({ onCancel, onCreated }) {
   }
 
   const stepErrors = [
-    !local.trim() || !bairro.trim() ? 'Preenche o local e o bairro.' : '',
+    !local.trim() || !bairro.trim()
+      ? 'Preenche o local e o bairro.'
+      // Pelada sem coordenada não aparece nos filtros de mapa/perto de você
+      // em /peladas — mesmo problema já corrigido na criação de arena
+      // (achado real: rótulo dizia "opcional" mas o campo era, na prática,
+      // obrigatório pra pelada funcionar direito no app).
+      : coords.lat == null || coords.lng == null
+      ? 'Marca o local no mapa (ou vincula uma arena) antes de continuar.'
+      : '',
     !data || !horario ? 'Escolhe a data e o horário.' : '',
     !vagasTotais || Number(vagasTotais) < 1 ? 'Quantas vagas a pelada tem?' : '',
     '',
@@ -187,7 +195,7 @@ export default function NewGameModal({ onCancel, onCreated }) {
             <div className="pl-field"><label>Local</label><input placeholder="Ex: Quadra do Zé" value={local} onChange={(e) => setLocal(e.target.value)} /></div>
             <div className="pl-field"><label>Bairro</label><input placeholder="Ex: Centro" value={bairro} onChange={(e) => setBairro(e.target.value)} /></div>
             <div className="pl-field">
-              <label>Local no mapa (opcional) — busque o endereço ou arraste o mapa</label>
+              <label>Local no mapa — busque o endereço, use sua localização ou arraste até marcar</label>
               <LocationPickerMap
                 lat={coords.lat}
                 lng={coords.lng}
