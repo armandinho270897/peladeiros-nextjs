@@ -65,7 +65,7 @@ export default function AprovarArenasPage() {
 
   return (
     <div>
-      <div className="pl-header"><Link href="/peladas" style={{ color: 'var(--neon)', fontSize: 13, textDecoration: 'none' }}>&larr; Voltar</Link></div>
+      <div className="pl-header"><BackLink href="/peladas" /></div>
 
       <div className="pl-hero-title-row" style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px' }}>
         <h2 className="pl-hero-title">Aprovar arenas</h2>
