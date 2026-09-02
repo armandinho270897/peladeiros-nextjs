@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import { userLocationIcon, modalidadePinIcon, arenaTokenPinIcon, DARK_TILE_URL, DARK_TILE_ATTRIBUTION, DARK_TILE_MAX_ZOOM } from '@/lib/leafletIcon';
-import { ocupandoVagaDe, statusVagas } from '@/lib/gameUtils';
+import { ocupandoVagaDe, statusVagas, haversineKm } from '@/lib/gameUtils';
 import { imagemDoTipo } from '@/lib/tipoJogoImagem';
 import TicketButton from './TicketButton';
 
@@ -13,6 +13,11 @@ const DEFAULT_CENTER = [-14.235, -51.9253]; // centro do Brasil
 const DEFAULT_ZOOM = 4;
 const PICK_ZOOM = 16;
 const GEO_TIMEOUT_MS = 10000;
+// Mesma "faixa generosa" usada na auditoria de coordenadas suspeitas
+// (Luziânia gravada a 1647km de distância, achado por esse mesmo raciocínio
+// manualmente) — 150km cobre bem uma região metropolitana grande sem
+// disparar aviso à toa pra quem mora na borda da cidade.
+const DISTANCIA_SUSPEITA_KM = 150;
 
 // Nominatim (OpenStreetMap) — geocoding público e gratuito, mesma filosofia
 // de "sem API paga" já usada no filtro de raio (Haversine).
@@ -70,16 +75,21 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
   // setFlyTarget->FlyTo chama map.setView, que dispara moveend igual a um
   // arraste manual — sem isso, escolher uma arena mostraria o nome certo
   // (ex: "Quadra do CEMA") por 500ms e depois trocaria sozinho pro endereço
-  // genérico que o reverse-geocode desse mesmo ponto devolve. É uma
-  // CONTAGEM, não um boolean: cancelar uma animação de pan em andamento
-  // (ex: tocar em duas arenas rápido, antes da primeira terminar de mover
-  // o mapa) dispara um moveend "fantasma" extra pela própria cancelamento
-  // do Leaflet (map._stop() → PosAnimation.stop() → fire('moveend')) — um
-  // boolean simples seria consumido por esse fantasma e deixaria o moveend
-  // de verdade (da seleção mais recente) reativar o reverse-geocode por
-  // engano. A contagem garante 1 supressão pra cada seleção pendente,
-  // não importa quantos moveends (fantasmas ou reais) isso gere no total.
-  const suppressoesPendentes = useRef(0);
+  // genérico que o reverse-geocode desse mesmo ponto devolve. Guardamos a
+  // COORDENADA alvo em vez de CONTAR quantos moveends esperar: o Leaflet
+  // pode disparar 0, 1 ou 2 moveends pra um único setView (0 quando o
+  // ponto já é o centro atual e nada se move de fato; 2 quando cancela uma
+  // animação de pan em andamento — map._stop() → PosAnimation.stop() →
+  // fire('moveend') — e ainda dispara o moveend real ao chegar). Um
+  // contador fixo (ex.: sempre +1) fica fora de sincronia nesses casos e
+  // deixa escapar um moveend de verdade (da própria arena escolhida, não
+  // de uma anterior) pro reverse-geocode reativar por engano — foi assim
+  // que reproduzimos o campo LOCAL trocando sozinho ~1-2s depois de
+  // escolher a SEGUNDA arena numa sequência de duas seleções. Comparando a
+  // coordenada do moveend com o alvo programático, a supressão funciona
+  // não importa quantos eventos (fantasmas ou reais) aconteçam no total.
+  const alvoProgramatico = useRef(null);
+  const COORD_EPSILON = 1e-4; // ~11m — cobre arredondamento de projeção, não um arraste real
 
   // Ponto pulsante "aqui é onde você está de verdade" — puramente
   // informativo, não mexe no pino central (esse é a localização da pelada
@@ -87,13 +97,29 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
   // negado/indisponível, {lat,lng} = obtido; nunca bloqueia a primeira
   // renderização do mapa, só aparece se/quando resolver.
   const [minhaLocalizacao, setMinhaLocalizacao] = useState(undefined);
+  // Sem local pré-definido (nova pelada do zero, sem arena vinculada ainda),
+  // o mapa abria sempre no zoom do Brasil inteiro — usuário tinha que dar
+  // zoom manual até achar onde está. Guarda se HAVIA lat/lng nos props no
+  // instante do mount (só nesse caso o auto-centralizar faz sentido; não
+  // quando o pai já passou uma coordenada de verdade, tipo editando ou com
+  // arena pré-selecionada) — mesmo comportamento de voar+marcar o pino que
+  // o botão "Usar minha localização atual" sempre teve, só que automático.
+  const semLocalNoMount = useRef(lat == null && lng == null);
   useEffect(() => {
     if (!navigator.geolocation) { setMinhaLocalizacao(null); return; }
     navigator.geolocation.getCurrentPosition(
-      (pos) => setMinhaLocalizacao({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (pos) => {
+        const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setMinhaLocalizacao(p);
+        if (semLocalNoMount.current) {
+          setFlyTarget(p);
+          handleMoveEnd(p.lat, p.lng);
+        }
+      },
       () => setMinhaLocalizacao(null),
       { timeout: GEO_TIMEOUT_MS }
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Peladas futuras com coordenada, só pra dar contexto visual ("já tem
@@ -134,6 +160,25 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
   // Leaflet, igual ao padrão já usado no mapa principal (MapViewPins.js).
   const [arenaSelecionada, setArenaSelecionada] = useState(null);
 
+  // Centro geográfico de todas as arenas cadastradas — validação de
+  // plausibilidade (RF pendente desde a auditoria de coordenadas): avisa,
+  // sem bloquear, quando o ponto escolhido cai bem longe de onde o app é
+  // realmente usado (mesmo tipo de erro achado na auditoria manual — uma
+  // pelada gravada a 1647km de distância). Dinâmico (calculado no servidor
+  // a partir do banco), não um ponto fixo tipo São Luís/MA — continua
+  // válido se o app crescer pra outra região.
+  const [centro, setCentro] = useState(null);
+  useEffect(() => {
+    fetch('/api/geo/centro')
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setCentro)
+      .catch(() => {});
+  }, []);
+  const distanciaSuspeita = useMemo(() => {
+    if (!centro || lat == null || lng == null) return false;
+    return haversineKm(centro.lat, centro.lng, lat, lng) > DISTANCIA_SUSPEITA_KM;
+  }, [centro, lat, lng]);
+
   // Arrastar o mapa dispara handleMoveEnd -> onPick -> re-render deste
   // componente a cada frame; sem memoizar, o ícone de cada pelada existente
   // (aberta/lotada) seria recalculado nesse ritmo à toa, já que a lista em
@@ -166,8 +211,10 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
 
   function handleMoveEnd(la, lo) {
     onPick(la, lo);
-    if (suppressoesPendentes.current > 0) {
-      suppressoesPendentes.current--;
+    const alvo = alvoProgramatico.current;
+    if (alvo && Math.abs(alvo.lat - la) < COORD_EPSILON && Math.abs(alvo.lng - lo) < COORD_EPSILON) {
+      alvoProgramatico.current = null;
+      clearTimeout(reverseDebounce.current);
       return;
     }
     clearTimeout(reverseDebounce.current);
@@ -203,7 +250,7 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
   function selecionarSugestao(s) {
     // Zera qualquer supressão pendente de uma arena escolhida antes — uma
     // busca nova sempre quer o endereço de verdade, não herda a trava.
-    suppressoesPendentes.current = 0;
+    alvoProgramatico.current = null;
     const la = Number(s.lat), lo = Number(s.lon);
     setFlyTarget({ lat: la, lng: lo });
     setQuery('');
@@ -218,8 +265,8 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
   // pendente de um arraste anterior por segurança.
   function selecionarArena(arena) {
     clearTimeout(reverseDebounce.current);
-    suppressoesPendentes.current++;
     const la = Number(arena.latitude), lo = Number(arena.longitude);
+    alvoProgramatico.current = { lat: la, lng: lo };
     setFlyTarget({ lat: la, lng: lo });
     onPick(la, lo);
     onAddressResolved?.({ local: arena.nome, bairro: arena.bairro });
@@ -236,8 +283,8 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
   // já mostrando a pendente (achado testando esse fluxo ao vivo).
   function usarLocalPendente(arena) {
     clearTimeout(reverseDebounce.current);
-    suppressoesPendentes.current++;
     const la = Number(arena.latitude), lo = Number(arena.longitude);
+    alvoProgramatico.current = { lat: la, lng: lo };
     setFlyTarget({ lat: la, lng: lo });
     onPick(la, lo);
     onAddressResolved?.({ local: arena.nome, bairro: arena.bairro });
@@ -252,7 +299,7 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
         // Mesma lógica de selecionarSugestao: geolocalização real do
         // usuário sempre quer o endereço de verdade, não herda supressão
         // de uma arena escolhida um instante antes.
-        suppressoesPendentes.current = 0;
+        alvoProgramatico.current = null;
         const la = pos.coords.latitude, lo = pos.coords.longitude;
         setFlyTarget({ lat: la, lng: lo });
         handleMoveEnd(la, lo);
@@ -346,6 +393,11 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
           })()}
         </div>
       </div>
+      {distanciaSuspeita && (
+        <p style={{ fontSize: 11.5, color: 'var(--gold)', margin: '6px 0 0', fontWeight: 600 }}>
+          ⚠️ Esse local tá bem longe de onde as peladas costumam rolar. Confere se a coordenada tá certa antes de continuar.
+        </p>
+      )}
       <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Arraste o mapa pra ajustar o pino no centro. As fotos são peladas marcadas por perto; os tokens dourados são arenas — toque num pra ver detalhes e usar o local.</p>
     </div>
   );
