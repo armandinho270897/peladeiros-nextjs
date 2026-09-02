@@ -1138,13 +1138,38 @@ body::before {
 }
 .pl-date-shortcuts button:hover { border-color: var(--neon); color: var(--neon); }
 
-/* Picker de local no mapa (pino fixo no centro, mapa se move por baixo) */
-.pl-location-map-wrap { position: relative; margin-top: 8px; }
+/* Picker de local no mapa (pino fixo no centro, mapa se move por baixo).
+   Altura maior (era 220px fixo) — clamp pra não estourar em tela curta nem
+   ficar pequeno demais em tela alta. */
+.pl-location-map-wrap {
+  position: relative; margin-top: 8px;
+  height: clamp(320px, 45vh, 480px);
+  border-radius: var(--radius-lg); overflow: hidden;
+}
 .pl-location-center-pin {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%);
   z-index: 10; pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
 }
+
+/* Busca de endereço + botão de geolocalização flutuando sobre o mapa (antes
+   eram blocos normais empilhados acima dele) — melhor ergonomia mobile,
+   sem roubar espaço vertical do mapa em si. */
+.pl-location-map-controls {
+  position: absolute; top: 10px; left: 10px; right: 10px; z-index: 20;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pl-location-map-controls .pl-player-search input {
+  background: rgba(10,10,10,0.88); border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.pl-location-map-controls-geo-btn {
+  align-self: flex-start; background: rgba(10,10,10,0.88);
+  border: 1px solid rgba(255,255,255,0.15); color: var(--paper);
+  border-radius: var(--radius-pill); font-size: 12px; padding: 7px 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5); cursor: pointer;
+}
+.pl-location-map-controls-geo-btn:hover { border-color: var(--neon); color: var(--neon); }
 
 .pl-selected-players { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .pl-selected-player-chip {
@@ -1503,6 +1528,48 @@ body::before {
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 .pl-map-photo-pin img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Mapa — token circular de arena no seletor de local (LocationPickerMap),
+   "estilo Poképarada" (mesma linguagem visual de .pl-map-modalidade-pin,
+   só que sinalizando status da arena em vez de vaga da pelada): aprovada
+   ganha borda dourada + glow verde-neon, pendente fica cinza/translúcida
+   com um relógio no canto. Badge de "tem pelada marcada" (.pl-map-arena-ctx-badge,
+   já existe acima) continua reaproveitado só na variante aprovada. */
+.pl-map-arena-token-pin { position: relative; width: 38px; height: 38px; }
+.pl-map-arena-token-photo {
+  width: 100%; height: 100%; border-radius: var(--radius-circle);
+  overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--ink);
+}
+.pl-map-arena-token-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pl-map-arena-token-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.pl-map-arena-token-pin.aprovada .pl-map-arena-token-photo { border: 3px solid var(--gold); }
+.pl-map-arena-token-pin.pendente .pl-map-arena-token-photo { border: 3px solid var(--concrete); opacity: 0.55; }
+.pl-map-arena-token-glow {
+  position: absolute; inset: -7px; border-radius: var(--radius-circle);
+  background: rgba(166,255,0,0.35);
+  animation: pl-map-user-pulse 2s ease-out infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-map-arena-token-glow { animation: none; opacity: 0.25; }
+}
+.pl-map-arena-token-badge-clock {
+  position: absolute; bottom: -2px; right: -2px; width: 16px; height: 16px;
+  border-radius: var(--radius-circle); background: var(--concrete);
+  border: 2px solid var(--ink); font-size: 9px; line-height: 12px; text-align: center;
+}
+
+/* Tag de status no bottom sheet do seletor de local (arena oficial x
+   pendente de aprovação) */
+.pl-map-sheet-tag {
+  display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: var(--radius-pill);
+  margin: 2px 0 6px;
+}
+.pl-map-sheet-tag.oficial { background: rgba(166,255,0,0.15); color: var(--neon); border: 1px solid rgba(166,255,0,0.4); }
+.pl-map-sheet-tag.pendente { background: rgba(110,113,120,0.2); color: var(--paper-dim); border: 1px solid rgba(110,113,120,0.4); }
 
 /* Mapa — pino de arena no seletor de local (LocationPickerMap), com badge
    de "tem pelada marcada" no canto — visível sem precisar tocar no pino. */

@@ -196,7 +196,7 @@ export default function NewGameModal({ onCancel, onCreated }) {
                   if (l) setLocal(l);
                   if (b) setBairro(b);
                 }}
-                onArenaPicked={(arena) => setArenaId(arena.id)}
+                onArenaPicked={(arena) => setArenaId(arena ? arena.id : '')}
               />
               {coords.lat != null && (
                 <div style={{ marginTop: 6, fontSize: 12, color: 'var(--paper-dim)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

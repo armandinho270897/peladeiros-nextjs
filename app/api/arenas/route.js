@@ -20,12 +20,25 @@ export const fetchCache = 'force-no-store';
 // Só arenas aprovadas aparecem no mapa público e no seletor de "vincular
 // arena existente" ao criar pelada — pendentes ficam de fora até passar
 // pela fila de aprovação (rota separada, admin-only).
-export async function GET() {
-  const { data: arenas, error } = await supabase
-    .from('arenas')
-    .select('*')
-    .eq('status', 'aprovada')
-    .order('nome', { ascending: true });
+//
+// Exceção: ?todas=1 com sessão autenticada também traz as pendentes — usado
+// só pelo seletor de local de nova pelada, pra quem já vai criar uma pelada
+// ver que aquele lugar já foi proposto e evitar duplicar o cadastro. Sem
+// sessão o parâmetro é ignorado (mesmo comportamento de sempre), pra não
+// expor propostas pendentes (nome/foto/coordenada) a visitante anônimo.
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  let incluirPendentes = false;
+  if (searchParams.get('todas') === '1') {
+    const authClient = createServerClient();
+    const { data: { user } } = await authClient.auth.getUser();
+    incluirPendentes = !!user;
+  }
+
+  let query = supabase.from('arenas').select('*').order('nome', { ascending: true });
+  if (!incluirPendentes) query = query.eq('status', 'aprovada');
+
+  const { data: arenas, error } = await query;
 
   if (error) return errJson(error.message, 500);
 
