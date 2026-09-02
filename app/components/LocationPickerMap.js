@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import { userLocationIcon, modalidadePinIcon, arenaContextoPinIcon, DARK_TILE_URL, DARK_TILE_ATTRIBUTION, DARK_TILE_MAX_ZOOM } from '@/lib/leafletIcon';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import { userLocationIcon, modalidadePinIcon, arenaTokenPinIcon, DARK_TILE_URL, DARK_TILE_ATTRIBUTION, DARK_TILE_MAX_ZOOM } from '@/lib/leafletIcon';
 import { ocupandoVagaDe, statusVagas } from '@/lib/gameUtils';
 import { imagemDoTipo } from '@/lib/tipoJogoImagem';
+import TicketButton from './TicketButton';
 
 const FALLBACK_MODALIDADE_IMG = '/imagens_jogos/campo.jpg';
 
@@ -53,6 +54,19 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
   const [flyTarget, setFlyTarget] = useState(null);
   const searchDebounce = useRef(null);
   const reverseDebounce = useRef(null);
+  // O wizard de nova pelada desmonta esse componente ao trocar de passo
+  // (renderização condicional por step) — sem isso, um reverse-geocode
+  // ainda em voo (setTimeout de 500ms) sobrevive ao unmount e, ao disparar,
+  // chama onAddressResolved do pai (NewGameModal) mesmo com o mapa já fora
+  // da tela, sobrescrevendo o nome/bairro certo (ex: de uma arena escolhida)
+  // por um endereço genérico. Achado testando o fluxo real de escolher uma
+  // arena e avançar os passos em seguida.
+  useEffect(() => {
+    return () => {
+      clearTimeout(searchDebounce.current);
+      clearTimeout(reverseDebounce.current);
+    };
+  }, []);
   // setFlyTarget->FlyTo chama map.setView, que dispara moveend igual a um
   // arraste manual — sem isso, escolher uma arena mostraria o nome certo
   // (ex: "Quadra do CEMA") por 500ms e depois trocaria sozinho pro endereço
@@ -107,11 +121,18 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
   const [arenas, setArenas] = useState([]);
   useEffect(() => {
     if (!onArenaPicked) return;
-    fetch('/api/arenas')
+    // ?todas=1: também traz arenas pendentes (só quando logado, ver
+    // app/api/arenas/route.js) — mostradas em cinza no mapa, pra quem tá
+    // criando a pelada ver que aquele local já foi proposto e não duplicar.
+    fetch('/api/arenas?todas=1')
       .then((res) => (res.ok ? res.json() : []))
       .then(setArenas)
       .catch(() => {});
   }, []);
+
+  // Sheet de detalhes da arena tocada — substitui o Popup padrão do
+  // Leaflet, igual ao padrão já usado no mapa principal (MapViewPins.js).
+  const [arenaSelecionada, setArenaSelecionada] = useState(null);
 
   // Arrastar o mapa dispara handleMoveEnd -> onPick -> re-render deste
   // componente a cada frame; sem memoizar, o ícone de cada pelada existente
@@ -203,6 +224,25 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
     onPick(la, lo);
     onAddressResolved?.({ local: arena.nome, bairro: arena.bairro });
     onArenaPicked?.(arena);
+    setArenaSelecionada(null);
+  }
+
+  // Arena pendente: usa nome/bairro/coordenada como texto livre, igual a
+  // tocar em qualquer ponto do mapa — a pelada não fica vinculada (arena_id)
+  // a um local que ainda pode ser rejeitado na fila de aprovação. Chama
+  // onArenaPicked(null) pra limpar um vínculo que possa ter ficado de uma
+  // arena APROVADA escolhida antes nessa mesma sessão do formulário — sem
+  // isso o arenaId ficava "grudado" na arena errada mesmo com local/bairro
+  // já mostrando a pendente (achado testando esse fluxo ao vivo).
+  function usarLocalPendente(arena) {
+    clearTimeout(reverseDebounce.current);
+    suppressoesPendentes.current++;
+    const la = Number(arena.latitude), lo = Number(arena.longitude);
+    setFlyTarget({ lat: la, lng: lo });
+    onPick(la, lo);
+    onAddressResolved?.({ local: arena.nome, bairro: arena.bairro });
+    onArenaPicked?.(null);
+    setArenaSelecionada(null);
   }
 
   function usarLocalizacaoAtual() {
@@ -224,25 +264,8 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
 
   return (
     <div className="pl-location-picker">
-      <div className="pl-player-search">
-        <input type="text" value={query} onChange={handleQueryChange} placeholder="Buscar endereço..." autoComplete="off" />
-        {sugestoes.length > 0 && (
-          <div className="pl-player-search-results">
-            {sugestoes.map((s) => (
-              <button type="button" key={s.place_id} className="pl-player-search-item" onClick={() => selecionarSugestao(s)}>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.display_name}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      <button type="button" className="pl-share-btn" style={{ marginTop: 6 }} onClick={usarLocalizacaoAtual}>
-        📍 Usar minha localização atual
-      </button>
-      {buscando && <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: '4px 0 0' }}>Buscando...</p>}
-
       <div className="pl-location-map-wrap">
-        <MapContainer center={center} zoom={zoom} style={{ height: 220, width: '100%', borderRadius: 'var(--radius-lg)' }}>
+        <MapContainer center={center} zoom={zoom} zoomControl={false} style={{ height: '100%', width: '100%' }}>
           <TileLayer attribution={DARK_TILE_ATTRIBUTION} url={DARK_TILE_URL} maxZoom={DARK_TILE_MAX_ZOOM} />
           <MoveTracker onMoveEnd={handleMoveEnd} />
           <FlyTo target={flyTarget} />
@@ -261,14 +284,9 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
             <Marker
               key={`arena-${a.id}`}
               position={[Number(a.latitude), Number(a.longitude)]}
-              icon={arenaContextoPinIcon(a.temJogo)}
-            >
-              <Popup>
-                <p className="pl-map-popup-title">{a.nome}</p>
-                <p className="pl-map-popup-status">{a.temJogo ? '🟢 Tem pelada marcada aqui' : 'Nenhuma pelada marcada ainda'}</p>
-                <button type="button" className="pl-map-popup-btn" onClick={() => selecionarArena(a)}>Usar este local</button>
-              </Popup>
-            </Marker>
+              icon={arenaTokenPinIcon(a, a.temJogo)}
+              eventHandlers={{ click: () => setArenaSelecionada(a) }}
+            />
           ))}
         </MapContainer>
         <div className="pl-location-center-pin" aria-hidden="true">
@@ -277,8 +295,58 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
             <circle cx="14" cy="14" r="5.5" fill="#0A0A0A" />
           </svg>
         </div>
+
+        <div className="pl-location-map-controls">
+          <div className="pl-player-search">
+            <input type="text" value={query} onChange={handleQueryChange} placeholder="Buscar endereço..." autoComplete="off" />
+            {sugestoes.length > 0 && (
+              <div className="pl-player-search-results">
+                {sugestoes.map((s) => (
+                  <button type="button" key={s.place_id} className="pl-player-search-item" onClick={() => selecionarSugestao(s)}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.display_name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button type="button" className="pl-location-map-controls-geo-btn" onClick={usarLocalizacaoAtual}>
+            📍 Usar minha localização atual
+          </button>
+          {buscando && <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: 0 }}>Buscando...</p>}
+        </div>
+
+        <div className={`pl-map-sheet ${arenaSelecionada ? 'pl-map-sheet-open' : ''}`}>
+          {arenaSelecionada && (() => {
+            const a = arenaSelecionada;
+            const pendente = a.status === 'pendente';
+            return (
+              <>
+                <div className="pl-map-sheet-handle" />
+                <div className="pl-map-sheet-body">
+                  {a.foto_url ? (
+                    <img className="pl-map-sheet-photo" src={a.foto_url} alt={a.nome} />
+                  ) : (
+                    <div className="pl-map-sheet-photo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>⚽</div>
+                  )}
+                  <div style={{ flex: 1 }}>
+                    <span className={`pl-map-sheet-tag ${pendente ? 'pendente' : 'oficial'}`}>{pendente ? 'Pendente' : 'Oficial'}</span>
+                    <h3 className="pl-map-sheet-title">{a.nome}</h3>
+                    <p className="pl-map-sheet-meta">{a.bairro}</p>
+                    {!pendente && (
+                      <p className="pl-map-sheet-meta">{a.temJogo ? '🟢 Tem pelada marcada aqui' : 'Nenhuma pelada marcada ainda'}</p>
+                    )}
+                  </div>
+                  <button className="pl-map-sheet-close" onClick={() => setArenaSelecionada(null)} aria-label="Fechar">×</button>
+                </div>
+                <TicketButton compact style={{ marginTop: 12, width: '100%' }} onClick={() => (pendente ? usarLocalPendente(a) : selecionarArena(a))}>
+                  {pendente ? 'Usar esta localização' : 'Selecionar este local'}
+                </TicketButton>
+              </>
+            );
+          })()}
+        </div>
       </div>
-      <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Arraste o mapa pra ajustar o pino no centro. As fotos são peladas marcadas por perto; os pinos dourados são arenas cadastradas — toque numa pra usar o local.</p>
+      <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Arraste o mapa pra ajustar o pino no centro. As fotos são peladas marcadas por perto; os tokens dourados são arenas — toque num pra ver detalhes e usar o local.</p>
     </div>
   );
 }
