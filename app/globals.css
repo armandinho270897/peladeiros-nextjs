@@ -1336,6 +1336,30 @@ body::before {
 .pl-destaque-card.aberta .pl-destaque-card-vagas { color: var(--neon); }
 .pl-destaque-card.ultimas .pl-destaque-card-vagas { color: var(--gold); }
 
+/* Cards de "Seus times" na Home — mesma faixa rolável de .pl-destaque-row,
+   card mais estreito e centralizado (escudo + nome + papel) já que não tem
+   arte de banner como o card de pelada. */
+.pl-time-destaque-card {
+  flex-shrink: 0; width: 108px; padding: 14px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.35);
+  border-radius: var(--radius-md); text-decoration: none; color: inherit;
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+.pl-time-destaque-card:active { transform: scale(0.97); }
+.pl-time-destaque-nome {
+  font-size: 12.5px; font-weight: 700; color: var(--paper);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+.pl-time-destaque-papel { font-size: 10.5px; color: var(--paper-dim); }
+.pl-time-destaque-card-novo { border-style: dashed; border-color: rgba(166,255,0,0.4); justify-content: center; }
+.pl-time-destaque-card-novo:hover { border-color: var(--neon); }
+.pl-time-destaque-novo-icone {
+  width: 52px; height: 52px; border-radius: var(--radius-circle);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--neon); background: rgba(166,255,0,0.1);
+}
+
 .pl-reveal { opacity: 0; transform: translateY(14px); animation: pl-reveal-in 560ms ease forwards; }
 .pl-reveal-1 { animation-delay: 80ms; }
 .pl-reveal-2 { animation-delay: 220ms; }
