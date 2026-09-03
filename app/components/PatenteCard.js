@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import TrophyIcon from './TrophyIcon';
 
 const CHAVE_PATENTE_VISTA = 'pl-patente-vista';
 
@@ -38,7 +39,7 @@ export default function PatenteCard({ patente }) {
     <>
       {subiu && (
         <div className="pl-glass-card pl-glass-unlocked pl-patente-celebrate pl-reveal pl-reveal-3">
-          <span className="pl-glass-icon">🏆</span>
+          <span className="pl-glass-icon"><TrophyIcon size={20} /></span>
           <div className="pl-glass-body">
             <p className="pl-glass-msg">Você virou <b>{nome}</b>.</p>
           </div>

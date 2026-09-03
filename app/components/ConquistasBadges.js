@@ -21,7 +21,7 @@ export default function ConquistasBadges({ conquistas }) {
         const Icone = ICONE[c.id];
         return (
           <div key={c.id} className={`pl-conquista ${c.desbloqueada ? 'desbloqueada' : ''}`} title={c.descricao}>
-            <div className="pl-conquista-icone">{Icone ? <Icone size={40} /> : '🏅'}</div>
+            <div className="pl-conquista-icone">{Icone && <Icone size={40} />}</div>
             <div className="pl-conquista-titulo">{c.titulo}</div>
           </div>
         );

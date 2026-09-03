@@ -73,9 +73,9 @@ export default function PeladaClient({ id }) {
   function shareGame(g) {
     const confirmados = aprovadosDe(g).length;
     const restantes = Math.max(0, g.vagas_totais - confirmados);
-    const msg = `⚽ Pelada marcada!\n📍 ${g.local} (${g.bairro})\n📅 ${g.data} às ${g.horario}\n🔢 ${restantes} vaga(s) livre(s) de ${g.vagas_totais}\n👑 Capitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
+    const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${g.horario}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
     const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
-    if (win) showToast('📲 Pelada compartilhada');
+    if (win) showToast('Pelada compartilhada');
   }
 
   async function handleConfirmarVaga(confirmacaoId) {
@@ -83,7 +83,7 @@ export default function PeladaClient({ id }) {
     const result = await res.json();
     if (!res.ok) { showToast(result.error || 'Não consegui confirmar sua vaga.'); return; }
     loadGame();
-    showToast('🔥 Você entrou no jogo!');
+    showToast('Você entrou no jogo!');
   }
 
   function handleConfirmClick(g) {

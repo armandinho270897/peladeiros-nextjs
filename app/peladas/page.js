@@ -80,9 +80,9 @@ export default function PeladasPage() {
   function shareGame(g) {
     const confirmados = aprovadosDe(g).length;
     const restantes = Math.max(0, g.vagas_totais - confirmados);
-    const msg = `⚽ Pelada marcada!\n📍 ${g.local} (${g.bairro})\n📅 ${g.data} às ${g.horario}\n🔢 ${restantes} vaga(s) livre(s) de ${g.vagas_totais}\n👑 Capitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
+    const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${g.horario}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
     const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
-    if (win) showToast('📲 Pelada compartilhada');
+    if (win) showToast('Pelada compartilhada');
   }
 
   function handleArenaCreated(arena) {
@@ -104,7 +104,7 @@ export default function PeladasPage() {
     const result = await res.json();
     if (!res.ok) { showToast(result.error || 'Não consegui confirmar sua vaga.'); return; }
     loadGames();
-    showToast('🔥 Você entrou no jogo!');
+    showToast('Você entrou no jogo!');
   }
 
   const today = todayISO();
@@ -166,7 +166,7 @@ export default function PeladasPage() {
         <div className="pl-header-row">
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginLeft: 'auto' }}>
             {user?.id === ADMIN_USER_ID && (
-              <Link href="/admin/arenas" className="pl-link-muted">🔒 Aprovar arenas</Link>
+              <Link href="/admin/arenas" className="pl-link-muted">Aprovar arenas</Link>
             )}
             <button className="pl-link-muted" onClick={() => setModal('new-arena')}>Cadastrar arena</button>
           </div>
@@ -181,27 +181,27 @@ export default function PeladasPage() {
       {tab === 'todas' && (
         <>
           <div className="pl-hero-title-row">
-            <h2 className="pl-hero-title">⚽ Peladas perto de você</h2>
+            <h2 className="pl-hero-title">Peladas perto de você</h2>
             <span className="pl-hero-count">
               {filtradas.length} pelada{filtradas.length === 1 ? '' : 's'} encontrada{filtradas.length === 1 ? '' : 's'}
             </span>
           </div>
 
           <div className="pl-view-toggle">
-            <button type="button" className={`pl-view-toggle-btn ${viewMode === 'lista' ? 'active' : ''}`} onClick={() => setViewMode('lista')}>📋 Lista</button>
-            <button type="button" className={`pl-view-toggle-btn ${viewMode === 'mapa' ? 'active' : ''}`} onClick={() => setViewMode('mapa')}>🗺️ Mapa</button>
+            <button type="button" className={`pl-view-toggle-btn ${viewMode === 'lista' ? 'active' : ''}`} onClick={() => setViewMode('lista')}>Lista</button>
+            <button type="button" className={`pl-view-toggle-btn ${viewMode === 'mapa' ? 'active' : ''}`} onClick={() => setViewMode('mapa')}>Mapa</button>
           </div>
 
           <div className="pl-chips-row">
             <button className={`pl-chip ${dataChip === 'hoje' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'hoje' ? '' : 'hoje')}>Hoje</button>
             <button className={`pl-chip ${dataChip === 'amanha' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'amanha' ? '' : 'amanha')}>Amanhã</button>
-            <button className={`pl-chip ${raioAtivo ? 'active' : ''}`} onClick={toggleRaio}>📍 Perto</button>
+            <button className={`pl-chip ${raioAtivo ? 'active' : ''}`} onClick={toggleRaio}>Perto</button>
             <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futebol de campo' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de campo' ? '' : 'Futebol de campo')}><TipoJogoIcon tipo="Futebol de campo" size={14} /> Futebol</button>
             <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Society' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Society' ? '' : 'Society')}><TipoJogoIcon tipo="Society" size={14} /> Society</button>
             <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futsal' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futsal' ? '' : 'Futsal')}><TipoJogoIcon tipo="Futsal" size={14} /> Futsal</button>
             <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futebol de areia' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de areia' ? '' : 'Futebol de areia')}><TipoJogoIcon tipo="Futebol de areia" size={14} /> Areia</button>
             <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futebol de Rua' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de Rua' ? '' : 'Futebol de Rua')}><TipoJogoIcon tipo="Futebol de Rua" size={14} /> Rua</button>
-            <button className={`pl-chip pl-chip-filtros ${filtrosAbertos ? 'active' : ''}`} onClick={() => setFiltrosAbertos((v) => !v)}>⚙ Filtros</button>
+            <button className={`pl-chip pl-chip-filtros ${filtrosAbertos ? 'active' : ''}`} onClick={() => setFiltrosAbertos((v) => !v)}>Filtros</button>
           </div>
           {erroLocalizacao && <div style={{ maxWidth: 640, margin: '4px auto 0', padding: '0 16px', fontSize: 11, color: 'var(--tag-red)' }}>{erroLocalizacao}</div>}
 
@@ -236,7 +236,7 @@ export default function PeladasPage() {
         <div className="pl-empty">
           <EmptyFieldIcon />
           <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>
-            {tab === 'minhas' ? 'Você ainda não tá em nenhuma pelada 👀' : 'Tá quieto por aqui... 👀'}
+            {tab === 'minhas' ? 'Você ainda não tá em nenhuma pelada' : 'Tá quieto por aqui...'}
           </h3>
           <p>{tab === 'minhas' ? 'Dá uma olhada nas peladas rolando e confirma presença.' : 'Que tal criar a primeira pelada da semana?'}</p>
           {tab !== 'minhas' && (

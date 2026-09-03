@@ -35,7 +35,7 @@ export default function PeladaAbas({ game }) {
           onClick={() => setAba('chat')}
           aria-disabled={!souAprovado}
         >
-          <span className="ico" aria-hidden="true">💬</span> Chat
+          Chat
         </button>
       </div>
 
@@ -50,7 +50,6 @@ export default function PeladaAbas({ game }) {
       ) : (
         aba === 'chat' && (
           <div className="pl-abas-disabled-note">
-            <span className="ico" aria-hidden="true">🔒</span>
             <p>O chat só é liberado pra quem já está confirmado nessa pelada. Confirma sua presença aí em cima pra participar.</p>
           </div>
         )

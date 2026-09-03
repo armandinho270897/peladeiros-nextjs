@@ -50,7 +50,7 @@ export default function PendingActionCards({ acaoPendente, onChanged }) {
   async function confirmarVaga(confirmacaoId) {
     setAtuando(confirmacaoId);
     try {
-      const erro = await postAcao(confirmacaoId, `/api/confirmacoes/${confirmacaoId}/confirmar-vaga`, { successMsg: '🔥 Você entrou no jogo!' });
+      const erro = await postAcao(confirmacaoId, `/api/confirmacoes/${confirmacaoId}/confirmar-vaga`, { successMsg: 'Você entrou no jogo!' });
       if (erro) showToast(erro);
     } finally {
       setAtuando(null);

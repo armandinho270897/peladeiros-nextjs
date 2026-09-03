@@ -15,8 +15,8 @@ import NewGameModal from './components/NewGameModal';
 function fraseDeStatus(moral, totalPeladasPassadas) {
   if (moral == null) return null;
   if (totalPeladasPassadas === 0) return 'sua jornada começa agora';
-  if (moral >= 4) return `🔥 moral em alta — ${moral.toFixed(1)} de 5`;
-  if (moral >= 3) return `⚽ moral em dia — ${moral.toFixed(1)} de 5`;
+  if (moral >= 4) return `moral em alta — ${moral.toFixed(1)} de 5`;
+  if (moral >= 3) return `moral em dia — ${moral.toFixed(1)} de 5`;
   return `moral: ${moral.toFixed(1)} de 5`;
 }
 
@@ -57,7 +57,7 @@ export default function Home() {
   function handleCreated() {
     setModal(null);
     carregarPerfil();
-    showToast('⚽ Pelada criada!');
+    showToast('Pelada criada!');
   }
 
   const proximaConfirmada = perfil?.proximaConfirmada || null;

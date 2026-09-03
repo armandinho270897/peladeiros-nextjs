@@ -370,7 +370,7 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
             )}
           </div>
           <button type="button" className="pl-location-map-controls-geo-btn" onClick={usarLocalizacaoAtual}>
-            📍 Usar minha localização atual
+            Usar minha localização atual
           </button>
           {buscando && <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: 0 }}>Buscando...</p>}
         </div>
@@ -386,14 +386,14 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
                   {a.foto_url ? (
                     <img className="pl-map-sheet-photo" src={a.foto_url} alt={a.nome} />
                   ) : (
-                    <div className="pl-map-sheet-photo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>⚽</div>
+                    <div className="pl-map-sheet-photo" />
                   )}
                   <div style={{ flex: 1 }}>
                     <span className={`pl-map-sheet-tag ${pendente ? 'pendente' : 'oficial'}`}>{pendente ? 'Pendente' : 'Oficial'}</span>
                     <h3 className="pl-map-sheet-title">{a.nome}</h3>
                     <p className="pl-map-sheet-meta">{a.bairro}</p>
                     {!pendente && (
-                      <p className="pl-map-sheet-meta">{a.temJogo ? '🟢 Tem pelada marcada aqui' : 'Nenhuma pelada marcada ainda'}</p>
+                      <p className="pl-map-sheet-meta">{a.temJogo ? 'Tem pelada marcada aqui' : 'Nenhuma pelada marcada ainda'}</p>
                     )}
                   </div>
                   <button className="pl-map-sheet-close" onClick={() => setArenaSelecionada(null)} aria-label="Fechar">×</button>
@@ -408,7 +408,7 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
       </div>
       {distanciaSuspeita && (
         <p style={{ fontSize: 11.5, color: 'var(--gold)', margin: '6px 0 0', fontWeight: 600 }}>
-          ⚠️ Esse local tá bem longe de onde as peladas costumam rolar. Confere se a coordenada tá certa antes de continuar.
+          Esse local tá bem longe de onde as peladas costumam rolar. Confere se a coordenada tá certa antes de continuar.
         </p>
       )}
       <p style={{ fontSize: 11, color: 'var(--paper-dim)', margin: '6px 0 0' }}>Arraste o mapa pra ajustar o pino no centro. As fotos são peladas marcadas por perto; os tokens dourados são arenas — toque num pra ver detalhes e usar o local.</p>

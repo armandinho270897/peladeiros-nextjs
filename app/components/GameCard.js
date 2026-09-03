@@ -9,6 +9,8 @@ import TicketButton from './TicketButton';
 import Confetti from './Confetti';
 import TipoJogoIcon from './TipoJogoIcon';
 import GameArtBanner from './GameArtBanner';
+import EditIcon from './EditIcon';
+import ShareLinkIcon from './ShareLinkIcon';
 
 function ConfirmadoAvatar({ nome, moral, bench, fotoUrl, userId }) {
   // Convidado sem conta (userId null) não tem perfil pra ver — fica só o
@@ -99,10 +101,10 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
     if (!ehHoje) return null;
     const inicio = new Date(`${g.data}T${g.horario}`).getTime();
     const diff = inicio - agora;
-    if (diff <= 0) return '⚽ Acontecendo agora';
+    if (diff <= 0) return 'Acontecendo agora';
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
-    return h > 0 ? `⚡ Começa em ${h}h${String(m).padStart(2, '0')}min` : `⚡ Começa em ${m}min`;
+    return h > 0 ? `Começa em ${h}h${String(m).padStart(2, '0')}min` : `Começa em ${m}min`;
   })();
 
   // Contagem regressiva do prazo pra confirmar a vaga — dá pro jogador uma
@@ -155,11 +157,11 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
       <div className="pl-card-icon-actions">
         {podeEditar && (
           <button className="pl-icon-btn-sm" onClick={pararPropagacao(() => onEdit(g))} aria-label="Editar">
-            ✎
+            <EditIcon />
             {pendentes.length > 0 && <span className="pl-pending-badge">{pendentes.length}</span>}
           </button>
         )}
-        <button className="pl-icon-btn-sm" onClick={pararPropagacao(() => onShare(g))} aria-label="Compartilhar">🔗</button>
+        <button className="pl-icon-btn-sm" onClick={pararPropagacao(() => onShare(g))} aria-label="Compartilhar"><ShareLinkIcon /></button>
       </div>
 
       {/* Bloco central — data, local, horário, tags e a ação principal,
@@ -174,7 +176,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
           {g.tipo && <span className="pl-tipo-tag"><TipoJogoIcon tipo={g.tipo} size={13} /> {g.tipo}</span>}
           <span className="pl-bairro-tag">{g.bairro}</span>
           {distanciaKm != null && (
-            <span className="pl-distancia">📍 {distanciaKm.toFixed(1).replace('.', ',')} km</span>
+            <span className="pl-distancia">{distanciaKm.toFixed(1).replace('.', ',')} km</span>
           )}
         </div>
 

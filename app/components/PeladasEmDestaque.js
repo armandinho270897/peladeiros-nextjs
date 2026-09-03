@@ -42,7 +42,7 @@ export default function PeladasEmDestaque() {
 
   return (
     <div className="pl-reveal pl-reveal-3">
-      <div className="pl-destaque-title">⚡ Rolando por aí</div>
+      <div className="pl-destaque-title">Rolando por aí</div>
       <div className="pl-destaque-row">
         {destaques.map((g) => {
           const restantes = Math.max(0, g.vagas_totais - ocupandoVagaDe(g).length);

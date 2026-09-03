@@ -100,7 +100,6 @@ export default function PeladaChat({ game }) {
     <div className="pl-chat-card">
       {jaAconteceu ? (
         <div className="pl-chat-encerrado">
-          <span className="ico" aria-hidden="true">🔒</span>
           <b>Chat encerrado</b>
           <p>Essa pelada já rolou — o chat fechou junto com ela.</p>
         </div>
@@ -109,7 +108,6 @@ export default function PeladaChat({ game }) {
           <div className="pl-chat-list" ref={listRef}>
             {mensagens.length === 0 ? (
               <div className="pl-chat-empty">
-                <span className="ico" aria-hidden="true">👋</span>
                 Nenhuma mensagem ainda — chama a galera pra confirmar.
               </div>
             ) : (
