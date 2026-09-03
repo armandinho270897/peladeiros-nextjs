@@ -1601,6 +1601,10 @@ body::before {
    ganha borda dourada + glow verde-neon, pendente fica cinza/translúcida
    com um relógio no canto. Badge de "tem pelada marcada" (.pl-map-arena-ctx-badge,
    já existe acima) continua reaproveitado só na variante aprovada. */
+/* Wrapper de 52px — é ele que o Leaflet trata como o marcador clicável
+   (ver comentário em lib/leafletIcon.js); o círculo de 38px fica
+   centralizado dentro, sem mudar de tamanho visual. */
+.pl-map-arena-token-hit { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; }
 .pl-map-arena-token-pin { position: relative; width: 38px; height: 38px; }
 .pl-map-arena-token-photo {
   width: 100%; height: 100%; border-radius: var(--radius-circle);
