@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas, souCapitaoDe } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './CaptainIcon';
@@ -9,9 +10,15 @@ import Confetti from './Confetti';
 import TipoJogoIcon from './TipoJogoIcon';
 import GameArtBanner from './GameArtBanner';
 
-function ConfirmadoAvatar({ nome, moral, bench, fotoUrl }) {
+function ConfirmadoAvatar({ nome, moral, bench, fotoUrl, userId }) {
+  // Convidado sem conta (userId null) não tem perfil pra ver — fica só o
+  // avatar, sem virar link.
+  const Wrapper = userId ? Link : 'div';
+  const wrapperProps = userId
+    ? { href: `/perfil/${userId}`, onClick: pararPropagacao(() => {}) }
+    : {};
   return (
-    <div style={{ position: 'relative' }} className={bench ? 'pl-bench-avatar' : ''}>
+    <Wrapper {...wrapperProps} style={{ position: 'relative', display: 'inline-block' }} className={bench ? 'pl-bench-avatar' : ''}>
       <Avatar nome={nome} size={24} fotoUrl={fotoUrl} />
       {moral != null && (
         <div
@@ -26,7 +33,7 @@ function ConfirmadoAvatar({ nome, moral, bench, fotoUrl }) {
           ★{moral.toFixed(1)}
         </div>
       )}
-    </div>
+    </Wrapper>
   );
 }
 
@@ -209,7 +216,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
         {confirmados.length > 0 && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
             {confirmados.slice(0, 6).map((c) => (
-              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} fotoUrl={c.foto_url} />
+              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} fotoUrl={c.foto_url} userId={c.user_id} />
             ))}
             {confirmados.length > 6 && (
               <div style={{ fontSize: 11, color: 'var(--paper-dim)', alignSelf: 'center' }}>+{confirmados.length - 6}</div>
@@ -220,7 +227,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
           <div className="pl-bench">
             <span className="pl-bench-label">Banco:</span>
             {espera.slice(0, 6).map((c) => (
-              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} fotoUrl={c.foto_url} bench />
+              <ConfirmadoAvatar key={c.id} nome={c.nome} moral={c.moral} fotoUrl={c.foto_url} userId={c.user_id} bench />
             ))}
             {espera.length > 6 && <span style={{ fontSize: 11, color: 'var(--concrete)' }}>+{espera.length - 6}</span>}
           </div>
