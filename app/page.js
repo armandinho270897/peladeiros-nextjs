@@ -7,6 +7,7 @@ import PendingActionCards from './components/PendingActionCards';
 import SocialSummaryCard from './components/SocialSummaryCard';
 import PatenteCard from './components/PatenteCard';
 import PeladasEmDestaque from './components/PeladasEmDestaque';
+import MeusTimesDestaque from './components/MeusTimesDestaque';
 import HomeFooterCta from './components/HomeFooterCta';
 import NewGameModal from './components/NewGameModal';
 
@@ -74,6 +75,8 @@ export default function Home() {
       </div>
 
       <PeladasEmDestaque />
+
+      <MeusTimesDestaque times={perfil?.times} />
 
       <div className="pl-reveal pl-reveal-4">
         <HomeFooterCta game={proximaConfirmada} loading={perfil === null} />
