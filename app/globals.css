@@ -163,21 +163,22 @@ body::before {
   .pl-header-bell { display: none; }
 }
 
-/* Ação secundária discreta — texto pequeno, cinza, mas com a mesma borda
-   em degradê das outras ações secundárias (ver .pl-btn-secondary etc). */
+/* Ação secundária discreta — texto pequeno, cinza, mesma casca sólida das
+   outras ações secundárias (ver .pl-btn-secondary etc). */
 .pl-link-muted {
   color: var(--paper-dim);
+  font-family: var(--font-body); font-weight: 700;
   font-size: 12px;
   background: none;
-  border: 1px solid;
-  border-image: linear-gradient(90deg, var(--neon), var(--lilas)) 1;
+  border: 1.5px solid rgba(110,113,120,0.5);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   text-decoration: none;
   padding: 5px 10px;
   display: inline-block;
-  transition: transform 150ms ease, opacity 150ms ease;
+  transition: border-color 150ms ease, transform 150ms ease;
 }
-.pl-link-muted:hover { color: var(--paper); }
+.pl-link-muted:hover { color: var(--paper); border-color: var(--paper-dim); }
 .pl-link-muted:active { transform: scale(0.96); }
 
 /* Boas-vindas da página: tagline + ações principais (Criar pelada,
@@ -249,7 +250,10 @@ body::before {
 }
 
 .pl-tabs { display: flex; gap: 6px; max-width: 640px; margin: 16px auto 0; padding: 0 16px; }
-.pl-tab { background: transparent; border: 1px solid rgba(110,113,120,0.4); color: var(--paper-dim); font-family: var(--font-display); text-transform: uppercase; font-size: 13px; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; }
+/* Work Sans em vez de Anton maiúsculo — texto de botão pequeno (13px) na
+   fonte de pôster condensada cansava a leitura; Anton fica reservado pra
+   título grande, onde o tamanho carrega o traço condensado sem esforço. */
+.pl-tab { background: transparent; border: 1px solid rgba(110,113,120,0.45); color: var(--paper-dim); font-family: var(--font-body); font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; }
 .pl-tab.active { background: var(--neon); color: var(--ink); border-color: var(--neon); }
 
 /* Alternância Lista/Mapa — antes era só mais um chip de filtro (13px, igual
@@ -262,7 +266,7 @@ body::before {
 }
 .pl-view-toggle-btn {
   flex: 1; background: var(--card-bg); border: 1.5px solid rgba(110,113,120,0.45); color: var(--paper-dim);
-  font-family: var(--font-display); text-transform: uppercase; font-size: 15px; letter-spacing: 0.02em;
+  font-family: var(--font-body); font-weight: 700; font-size: 15px;
   padding: 12px 10px; border-radius: var(--radius-md); cursor: pointer;
   transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
 }
@@ -404,7 +408,7 @@ body::before {
    tudo centralizado como uma unidade só. */
 .pl-card-center { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
 .pl-date-pill {
-  font-family: var(--font-display); font-size: 11px; letter-spacing: 0.04em;
+  font-family: var(--font-body); font-weight: 700; font-size: 11px; letter-spacing: 0.02em;
   color: var(--paper-dim); background: rgba(0,0,0,0.4); padding: 3px 10px; border-radius: var(--radius-pill);
 }
 .pl-card-center h3 { font-family: var(--font-display); font-size: 20px; margin: 0; color: var(--paper); text-transform: none; overflow-wrap: break-word; }
@@ -512,7 +516,10 @@ body::before {
 .pl-ticket-stub::before { top: -6px; }
 .pl-ticket-stub::after { bottom: -6px; }
 
-.pl-ticket-compact .pl-ticket-label { padding: 6px 10px; font-size: 12px; }
+/* Compact (12px) troca pra Work Sans — Anton nesse tamanho ficava apertado.
+   O ticket normal (15px+) continua Anton: é grande o bastante pra carregar
+   bem o traço condensado, e é a peça mais "assinatura visual" do app. */
+.pl-ticket-compact .pl-ticket-label { padding: 6px 10px; font-size: 12px; font-family: var(--font-body); font-weight: 700; text-transform: none; }
 .pl-ticket-compact .pl-ticket-stub { width: 26px; font-size: 12px; }
 .pl-ticket-compact .pl-ticket-stub::before, .pl-ticket-compact .pl-ticket-stub::after { width: 8px; height: 8px; left: -5px; }
 .pl-ticket-compact .pl-ticket-stub::before { top: -5px; }
@@ -521,37 +528,47 @@ body::before {
 .pl-modal-actions .pl-ticket { flex: 1; margin: 0; }
 .pl-modal-actions .pl-ticket .pl-ticket-label { padding: 11px 8px; }
 
-/* Ações secundárias: borda fina em degradê neon→lilás, fundo transparente —
-   preserva a hierarquia (o botão primário sólido continua sendo "a" ação). */
+/* Ações secundárias: uma casca só (borda sólida neutra + texto neon) pra
+   5 classes que antes só diferiam em padding — a borda em degradê
+   neon→lilás saiu (destoava do resto do app, sem outro lugar usando lilás
+   fora dela) e a fonte trocou de Anton maiúsculo pra Work Sans: preserva a
+   hierarquia (o ticket sólido continua sendo "a" ação primária) sem a
+   fonte de pôster brigando pela atenção num botão secundário pequeno. */
 .pl-btn-secondary, .pl-share-btn, .pl-edit-link, .pl-see-all-link, .pl-back-link {
   color: var(--neon);
-  font-family: var(--font-display);
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-weight: 700;
   cursor: pointer;
   background: none;
-  border: 1px solid;
-  border-image: linear-gradient(90deg, var(--neon), var(--lilas)) 1;
+  border: 1.5px solid rgba(110,113,120,0.5);
+  border-radius: var(--radius-sm);
   text-decoration: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-  transition: transform 150ms ease, opacity 150ms ease, box-shadow 150ms ease;
+  transition: border-color 150ms ease, transform 150ms ease, opacity 150ms ease;
 }
 /* Levitação sutil — só em aparelhos com hover de verdade, pra não travar
    o estado de "hover" depois de um toque em touchscreen. */
 @media (hover: hover) {
   .pl-btn-secondary:hover, .pl-share-btn:hover, .pl-edit-link:hover, .pl-see-all-link:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+    border-color: var(--neon);
   }
 }
 .pl-btn-secondary:active, .pl-share-btn:active, .pl-edit-link:active, .pl-see-all-link:active {
-  transform: scale(0.96) translateY(1px);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  transform: scale(0.96);
 }
-.pl-btn-secondary:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+.pl-btn-secondary:disabled { opacity: 0.6; cursor: default; transform: none; }
 
-.pl-btn-secondary { flex: 1; padding: 10px 8px; font-size: 14px; text-align: center; }
-.pl-btn-danger { color: var(--tag-red); border: none; text-decoration: underline; text-decoration-style: wavy; text-underline-offset: 3px; }
-.pl-share-btn { display: inline-block; margin-top: 10px; padding: 5px 10px; font-size: 11px; text-align: left; }
+.pl-btn-secondary { flex: 1; padding: 10px 8px; font-size: 14px; text-align: center; border-radius: var(--radius-sm); }
+/* Destrutivo: mesma casca, só recolorida — antes tinha 3 tratamentos
+   diferentes pra "cancelar/excluir/remover" (sublinhado ondulado aqui,
+   pontilhado em .pl-link-danger-small, cor solta em cima de .pl-share-btn
+   no "Excluir time"); agora é um só, reaproveitado em toda ação destrutiva
+   de verdade (inclusive "Remover" e "Rejeitar", que antes não tinham
+   vermelho nenhum apesar de serem da mesma categoria). */
+.pl-btn-danger { color: var(--tag-red); border-color: rgba(232,54,43,0.5); }
+@media (hover: hover) {
+  .pl-btn-danger:hover { border-color: var(--tag-red); }
+}
+.pl-share-btn { display: inline-block; margin-top: 10px; padding: 5px 10px; font-size: 13px; border-radius: var(--radius-sm); text-align: left; }
 .pl-edit-link { position: absolute; top: 10px; right: 12px; padding: 3px 8px; font-size: 11px; }
 .pl-see-all-link { display: inline-block; font-size: 14px; padding: 8px 16px; }
 .pl-back-link { display: inline-flex; align-items: center; font-size: 13px; padding: 5px 10px; }
@@ -1005,7 +1022,12 @@ body::before {
   0% { transform: translateY(0) rotate(0deg); opacity: 1; }
   100% { transform: translateY(220px) rotate(360deg); opacity: 0; }
 }
-.pl-pending-actions { display: flex; align-items: center; gap: 6px; }
+/* Fileira Rejeitar/Aprovar — mesma classe usada tanto na fila de pedidos
+   do gerenciador (ManageModal) quanto no card de pendência da Home
+   (PendingActionCards): duas telas, mesma ação, mesmo visual, sem duplicar
+   regra (havia uma segunda definição incompleta de .pl-pending-actions só
+   pra Home, que perdia o align-items por causa da ordem no cascade). */
+.pl-pending-actions { display: flex; align-items: center; gap: 8px; }
 .pl-pending-actions .pl-btn-secondary { flex: none; padding: 4px 6px 8px; font-size: 12px; }
 .pl-pending-actions .pl-ticket { margin: 0; }
 
@@ -1038,8 +1060,8 @@ body::before {
 .pl-avisos-tabs { display: flex; gap: 6px; }
 .pl-avisos-tab {
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 9px 8px; font-family: var(--font-display); font-size: 12px;
-  letter-spacing: 0.02em; text-transform: uppercase; border-radius: var(--radius-sm);
+  padding: 9px 8px; font-family: var(--font-body); font-weight: 700; font-size: 12px;
+  border-radius: var(--radius-sm);
   cursor: pointer; border: 1px solid rgba(110,113,120,0.35); color: var(--paper-dim);
   background: var(--card-bg);
 }
@@ -1368,18 +1390,9 @@ body::before {
 .pl-pending-card { flex-direction: column; align-items: stretch; }
 .pl-pending-text { font-size: 13px; line-height: 1.4; margin: 0 0 10px; }
 .pl-pending-text b { color: var(--paper); }
-.pl-pending-actions { display: flex; gap: 8px; }
-.pl-btn-reject, .pl-btn-approve, .pl-btn-confirm-vaga {
-  border-radius: 8px; padding: 9px 12px; font-size: 12.5px; font-weight: 700;
-  font-family: var(--font-body); border: none; cursor: pointer;
-}
-.pl-btn-reject { flex: 1; background: transparent; border: 1px solid rgba(110,113,120,0.5); color: var(--paper-dim); font-weight: 600; }
-.pl-btn-approve { flex: 1; background: var(--neon); color: var(--ink); }
-.pl-btn-reject:disabled, .pl-btn-approve:disabled, .pl-btn-confirm-vaga:disabled { opacity: 0.55; cursor: default; }
 .pl-vaga-card { justify-content: space-between; }
 .pl-vaga-text { flex: 1; font-size: 13px; min-width: 0; }
 .pl-vaga-status { color: var(--neon); font-weight: 600; font-size: 12px; display: block; margin-bottom: 2px; }
-.pl-btn-confirm-vaga { background: var(--neon); color: var(--ink); white-space: nowrap; flex-shrink: 0; }
 
 /* -- Bloco 2: resumo social em frase -- */
 .pl-social-card { flex-direction: column; align-items: stretch; }

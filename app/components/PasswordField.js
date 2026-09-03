@@ -78,14 +78,9 @@ export default function PasswordField({ label, value, onChange, placeholder = 'â
         />
         <button
           type="button"
+          className="pl-password-toggle"
           onClick={() => setShow((s) => !s)}
           aria-label={show ? 'Ocultar senha' : 'Mostrar senha'}
-          style={{
-            position: 'absolute', top: '50%', right: 8, transform: 'translateY(-50%)',
-            background: 'none', border: 'none', padding: 4, margin: 0,
-            color: 'var(--paper-dim)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
         >
           {show ? <EyeOffIcon /> : <EyeIcon />}
         </button>
