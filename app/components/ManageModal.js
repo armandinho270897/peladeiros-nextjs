@@ -162,7 +162,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
                   />
                 </div>
                 <div className="pl-pending-actions">
-                  <button type="button" className="pl-btn-secondary" disabled={actingId === p.id} onClick={() => handleRejeitar(p.id)}>Rejeitar</button>
+                  <button type="button" className="pl-btn-secondary pl-btn-danger" disabled={actingId === p.id} onClick={() => handleRejeitar(p.id)}>Rejeitar</button>
                   <TicketButton compact disabled={actingId === p.id} onClick={() => handleAprovar(p.id)}>Aprovar</TicketButton>
                 </div>
               </div>

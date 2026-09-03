@@ -147,7 +147,7 @@ export default function TimeClient({ id }) {
                 </div>
               </Link>
               {podeRemover && (
-                <button type="button" className="pl-share-btn" onClick={() => removerMembro(m.id, p.nome)} disabled={busy}>Remover</button>
+                <button type="button" className="pl-share-btn pl-btn-danger" onClick={() => removerMembro(m.id, p.nome)} disabled={busy}>Remover</button>
               )}
             </div>
           );
@@ -192,7 +192,7 @@ export default function TimeClient({ id }) {
             {outrosMembrosAprovados.length > 0 && (
               <button type="button" className="pl-share-btn" onClick={() => setShowTransferir(true)} disabled={busy}>Transferir capitania</button>
             )}
-            <button type="button" className="pl-share-btn" style={{ color: 'var(--tag-red)' }} onClick={excluirTime} disabled={busy}>Excluir time</button>
+            <button type="button" className="pl-share-btn pl-btn-danger" onClick={excluirTime} disabled={busy}>Excluir time</button>
           </div>
         </>
       )}

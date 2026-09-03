@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useToast } from './ToastProvider';
+import TicketButton from './TicketButton';
 
 // Bloco 1 — o que precisa de você agora, direto no card, sem abrir o
 // gerenciador da pelada. Cada card some assim que resolvido (a Home
@@ -68,20 +69,19 @@ export default function PendingActionCards({ acaoPendente, onChanged }) {
           <div className="pl-pending-actions">
             <button
               type="button"
-              className="pl-btn-reject"
+              className="pl-btn-secondary pl-btn-danger"
               disabled={atuando === a.confirmacaoIds[0]}
               onClick={() => responderTodos(a.confirmacaoIds, 'rejeitar')}
             >
               Rejeitar
             </button>
-            <button
-              type="button"
-              className="pl-btn-approve"
+            <TicketButton
+              compact
               disabled={atuando === a.confirmacaoIds[0]}
               onClick={() => responderTodos(a.confirmacaoIds, 'aprovar')}
             >
               Aprovar
-            </button>
+            </TicketButton>
           </div>
         </div>
       ))}
@@ -92,14 +92,13 @@ export default function PendingActionCards({ acaoPendente, onChanged }) {
             <span className="pl-vaga-status">Aprovado — falta você confirmar</span>
             {vagaConfirmar.local} · {vagaConfirmar.bairro}
           </div>
-          <button
-            type="button"
-            className="pl-btn-confirm-vaga"
+          <TicketButton
+            compact
             disabled={atuando === vagaConfirmar.confirmacaoId}
             onClick={() => confirmarVaga(vagaConfirmar.confirmacaoId)}
           >
             Confirmar minha vaga
-          </button>
+          </TicketButton>
         </div>
       )}
     </div>

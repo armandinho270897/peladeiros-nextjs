@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/nextjs';
+import TicketButton from './components/TicketButton';
 import './globals.css';
 
 // Último recurso — só entra em cena se o erro acontecer no próprio
@@ -22,12 +23,9 @@ export default function GlobalError({ error, reset }) {
           <p style={{ color: 'var(--paper-dim)', fontSize: 14, lineHeight: 1.5 }}>
             O app quebrou de um jeito mais sério. Já ficamos sabendo — tenta recarregar a página.
           </p>
-          <button
-            onClick={() => reset()}
-            style={{ marginTop: 20, background: 'var(--neon)', color: 'var(--ink)', border: 'none', padding: '10px 20px', fontFamily: 'var(--font-display)', textTransform: 'uppercase', borderRadius: 6, cursor: 'pointer' }}
-          >
-            Tentar de novo
-          </button>
+          <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+            <TicketButton onClick={() => reset()}>Tentar de novo</TicketButton>
+          </div>
         </div>
       </body>
     </html>
