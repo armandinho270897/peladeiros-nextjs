@@ -289,7 +289,7 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
           <p>Nada no mapa ainda 🗺️ Assim que tiver pelada ou arena marcada, aparece aqui.</p>
         </div>
       ) : (
-        <MapContainer ref={mapRef} center={center} zoom={zoom} zoomControl={zoomControl} style={{ height: 420, width: '100%', borderRadius: 'var(--radius-lg)' }}>
+        <MapContainer ref={mapRef} center={center} zoom={zoom} zoomControl={zoomControl} style={{ height: 'clamp(360px, 55vh, 560px)', width: '100%', borderRadius: 'var(--radius-lg)' }}>
           <TileLayer attribution={DARK_TILE_ATTRIBUTION} url={DARK_TILE_URL} maxZoom={DARK_TILE_MAX_ZOOM} />
           {localizacao && (
             <Marker position={[localizacao.lat, localizacao.lng]} icon={userLocationIcon} interactive={false} />

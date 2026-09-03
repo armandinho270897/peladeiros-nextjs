@@ -187,10 +187,12 @@ export default function PeladasPage() {
             </span>
           </div>
 
+          <div className="pl-view-toggle">
+            <button type="button" className={`pl-view-toggle-btn ${viewMode === 'lista' ? 'active' : ''}`} onClick={() => setViewMode('lista')}>📋 Lista</button>
+            <button type="button" className={`pl-view-toggle-btn ${viewMode === 'mapa' ? 'active' : ''}`} onClick={() => setViewMode('mapa')}>🗺️ Mapa</button>
+          </div>
+
           <div className="pl-chips-row">
-            <button className={`pl-chip ${viewMode === 'mapa' ? 'active' : ''}`} onClick={() => setViewMode(viewMode === 'lista' ? 'mapa' : 'lista')}>
-              {viewMode === 'lista' ? '🗺️ Mapa' : '📋 Lista'}
-            </button>
             <button className={`pl-chip ${dataChip === 'hoje' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'hoje' ? '' : 'hoje')}>Hoje</button>
             <button className={`pl-chip ${dataChip === 'amanha' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'amanha' ? '' : 'amanha')}>Amanhã</button>
             <button className={`pl-chip ${raioAtivo ? 'active' : ''}`} onClick={toggleRaio}>📍 Perto</button>
