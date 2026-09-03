@@ -5,7 +5,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
-import { arenaIcon, photoIcon, userLocationIcon, modalidadePinIcon, DARK_TILE_URL, DARK_TILE_ATTRIBUTION, DARK_TILE_MAX_ZOOM } from '@/lib/leafletIcon';
+import { arenaTokenPinIcon, userLocationIcon, modalidadePinIcon, DARK_TILE_URL, DARK_TILE_ATTRIBUTION, DARK_TILE_MAX_ZOOM } from '@/lib/leafletIcon';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import { fmtDate, ocupandoVagaDe, googleMapsDirectionsUrl, statusVagas, comecaEmBreve, inicioDoJogo } from '@/lib/gameUtils';
 import { imagemDoTipo } from '@/lib/tipoJogoImagem';
@@ -132,6 +132,16 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
   const jogosComCoordenadas = useMemo(() => games.filter((g) => g.latitude != null && g.longitude != null), [games]);
   const arenasComCoordenadas = useMemo(() => arenas.filter((a) => a.latitude != null && a.longitude != null), [arenas]);
   const todosOsPins = useMemo(() => [...jogosComCoordenadas, ...arenasComCoordenadas], [jogosComCoordenadas, arenasComCoordenadas]);
+
+  // Mesmo token circular "estilo Poképarada" do seletor de local
+  // (LocationPickerMap) — antes esse mapa usava um pino em gota separado
+  // pra arena sem foto, inconsistente com o resto do app. "Tem jogo" (badge
+  // no canto) reaproveita a mesma lista de peladas já carregada aqui, sem
+  // fetch extra.
+  const arenasComStatus = useMemo(() => {
+    const idsComJogo = new Set(jogosComCoordenadas.map((g) => g.arena_id).filter(Boolean));
+    return arenasComCoordenadas.map((a) => ({ ...a, temJogo: idsComJogo.has(a.id) }));
+  }, [arenasComCoordenadas, jogosComCoordenadas]);
 
   // Vagas restantes por pelada, calculado uma vez só (não a cada render) e
   // reaproveitado tanto na cor do pin quanto no texto do sheet — mesma
@@ -285,11 +295,11 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
             <Marker position={[localizacao.lat, localizacao.lng]} icon={userLocationIcon} interactive={false} />
           )}
           <MarkerClusterGroup iconCreateFunction={clusterIcon} showCoverageOnHover={false}>
-            {arenasComCoordenadas.map((a) => (
+            {arenasComStatus.map((a) => (
               <Marker
                 key={`arena-${a.id}`}
                 position={[Number(a.latitude), Number(a.longitude)]}
-                icon={a.foto_url ? photoIcon(a.foto_url) : arenaIcon}
+                icon={arenaTokenPinIcon(a, a.temJogo)}
                 eventHandlers={{ click: () => selecionar({ type: 'arena', data: a }) }}
               />
             ))}
