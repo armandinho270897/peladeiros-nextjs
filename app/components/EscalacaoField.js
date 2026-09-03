@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { aprovadosDe, POSICAO_ZONA } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 
@@ -38,12 +39,17 @@ export default function EscalacaoField({ game }) {
               <span className="pl-field-zone-label">{ZONA_LABEL[zona]}</span>
             )}
             <div className="pl-field-zone">
-              {(porZona[zona] || []).map((c) => (
-                <div key={c.id} className="pl-field-player">
-                  <Avatar nome={c.nome} size={36} fotoUrl={c.foto_url} />
-                  <span className="pl-field-player-name">{c.nome}</span>
-                </div>
-              ))}
+              {(porZona[zona] || []).map((c) => {
+                // Convidado sem conta (user_id null) não tem perfil pra ver.
+                const Wrapper = c.user_id ? Link : 'div';
+                const props = c.user_id ? { href: `/perfil/${c.user_id}`, style: { textDecoration: 'none' } } : {};
+                return (
+                  <Wrapper key={c.id} {...props} className="pl-field-player">
+                    <Avatar nome={c.nome} size={36} fotoUrl={c.foto_url} />
+                    <span className="pl-field-player-name">{c.nome}</span>
+                  </Wrapper>
+                );
+              })}
               {(porZona[zona] || []).length === 0 && (
                 <span className="pl-field-zone-empty">{ZONA_LABEL[zona]}</span>
               )}
@@ -55,12 +61,16 @@ export default function EscalacaoField({ game }) {
         <span className="pl-field-reservas-label">Reservas</span>
         {reservas.length > 0 ? (
           <div className="pl-field-reservas-chips">
-            {reservas.map((c) => (
-              <div key={c.id} className="pl-field-reserva-chip">
-                <Avatar nome={c.nome} size={24} fotoUrl={c.foto_url} />
-                <span>{c.nome}</span>
-              </div>
-            ))}
+            {reservas.map((c) => {
+              const Wrapper = c.user_id ? Link : 'div';
+              const props = c.user_id ? { href: `/perfil/${c.user_id}`, style: { textDecoration: 'none' } } : {};
+              return (
+                <Wrapper key={c.id} {...props} className="pl-field-reserva-chip">
+                  <Avatar nome={c.nome} size={24} fotoUrl={c.foto_url} />
+                  <span>{c.nome}</span>
+                </Wrapper>
+              );
+            })}
           </div>
         ) : (
           <p className="pl-field-reservas-empty">Sem reservas no momento.</p>

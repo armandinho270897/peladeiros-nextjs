@@ -140,13 +140,25 @@ async function resumoSocial(userId) {
   return { tipo: 'pedidos', quantidade: doTipo.length };
 }
 
-export async function GET() {
+// Aceita ?userId= pra ver o perfil de OUTRO jogador (read-only) — mesma
+// rota, mesma forma de resposta, só que: (1) os 3 blocos "minhas
+// pendências"/"meu feed" (aprovacoesPendentes/vagaAConfirmar/resumoSocial)
+// só rodam pro dono de verdade (não fazem sentido — e vazariam contexto —
+// pro perfil de outra pessoa); (2) whatsapp/notif_prefs somem da resposta
+// quando não é o dono (dado de contato/preferência pessoal, não reputação
+// pública). RLS de profiles já é pública pra leitura (using(true)) — o
+// filtro que importa é esse aqui, não a policy do banco.
+export async function GET(request) {
   const authClient = createServerClient();
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login.' }, { status: 401 });
 
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
-  if (!profile) return NextResponse.json({ error: 'Complete seu perfil.' }, { status: 400 });
+  const { searchParams } = new URL(request.url);
+  const targetId = searchParams.get('userId') || user.id;
+  const souEu = targetId === user.id;
+
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', targetId).maybeSingle();
+  if (!profile) return NextResponse.json({ error: souEu ? 'Complete seu perfil.' : 'Jogador não encontrado.' }, { status: souEu ? 400 : 404 });
 
   const today = todayISO();
 
@@ -160,14 +172,14 @@ export async function GET() {
     acaoVaga,
     resumoSocialEvento,
   ] = await Promise.all([
-    supabase.from('confirmacoes').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'aprovado'),
-    supabase.from('games').select('id', { count: 'exact', head: true }).eq('owner_id', user.id),
-    supabase.from('avaliacoes').select('nota, tipo').eq('avaliado_id', user.id),
-    supabase.from('confirmacoes').select('game_id, presente').eq('user_id', user.id).eq('status', 'aprovado'),
-    supabase.from('time_membros').select('papel, times(id, nome, escudo_url, bairro, modalidade)').eq('user_id', user.id).eq('status', 'aprovado'),
-    aprovacoesPendentes(user.id),
-    vagaAConfirmar(user.id),
-    resumoSocial(user.id),
+    supabase.from('confirmacoes').select('id', { count: 'exact', head: true }).eq('user_id', targetId).eq('status', 'aprovado'),
+    supabase.from('games').select('id', { count: 'exact', head: true }).eq('owner_id', targetId),
+    supabase.from('avaliacoes').select('nota, tipo').eq('avaliado_id', targetId),
+    supabase.from('confirmacoes').select('game_id, presente').eq('user_id', targetId).eq('status', 'aprovado'),
+    supabase.from('time_membros').select('papel, times(id, nome, escudo_url, bairro, modalidade)').eq('user_id', targetId).eq('status', 'aprovado'),
+    souEu ? aprovacoesPendentes(targetId) : Promise.resolve([]),
+    souEu ? vagaAConfirmar(targetId) : Promise.resolve(null),
+    souEu ? resumoSocial(targetId) : Promise.resolve(null),
   ]);
 
   const times = (meusTimes || []).map((m) => ({ ...m.times, papel: m.papel }));
@@ -204,11 +216,11 @@ export async function GET() {
 
   const totalPeladasPassadas = historico.length;
   const peladasJogadas = historico.filter((g) => g.presente !== false).length;
-  const brabo = await peladasBoasComoCapitao(user.id, today);
+  const brabo = await peladasBoasComoCapitao(targetId, today);
   const ehCapitao = brabo >= BRABO_THRESHOLD;
   const temAvaliacaoCinco = (avaliacoesRecebidas || []).some((a) => a.nota === 5);
 
-  const faltas = await faltasDoUsuario(user.id, historico);
+  const faltas = await faltasDoUsuario(targetId, historico);
   const moral = calcularMoral({ notaMedia, presencas: peladasJogadas, faltas, contaCriadaEm: profile.created_at });
 
   // atual/meta só preenchidos pras conquistas com uma meta numérica clara
@@ -225,7 +237,8 @@ export async function GET() {
   const patente = patenteDe(peladasJogadas, ehCapitao);
 
   return NextResponse.json({
-    profile,
+    profile: souEu ? profile : { ...profile, whatsapp: undefined, notif_prefs: undefined },
+    souEu,
     stats: { peladasConfirmadas, peladasComoCapitao, notaMedia, totalAvaliacoes, peladasJogadas, totalPeladasPassadas, moral },
     historico,
     conquistas,

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Avatar from '../../components/Avatar';
 import CaptainIcon from '../../components/CaptainIcon';
 import PlayerSearch from '../../components/PlayerSearch';
@@ -134,11 +135,17 @@ export default function TimeClient({ id }) {
           const podeRemover = souCapitao && m.papel !== 'capitao';
           return (
             <div key={m.id} className="pl-card">
-              <Avatar nome={p.nome} size={48} fotoUrl={p.foto_url} />
-              <div className="pl-info">
-                <h3>{p.nome}{m.papel === 'capitao' && ' · Capitão'}</h3>
-                {p.posicoes?.length > 0 && <p className="meta">{p.posicoes.map((s) => POSICAO_LABEL[s] || s).join(' / ')}</p>}
-              </div>
+              {/* display:contents — o Link some da árvore de layout, os
+                  filhos (Avatar + .pl-info) continuam exatamente onde
+                  estavam dentro do .pl-card; só o botão Remover, fora
+                  daqui, fica de fora da área clicável do perfil. */}
+              <Link href={`/perfil/${p.id}`} style={{ display: 'contents', color: 'inherit', textDecoration: 'none' }}>
+                <Avatar nome={p.nome} size={48} fotoUrl={p.foto_url} />
+                <div className="pl-info">
+                  <h3>{p.nome}{m.papel === 'capitao' && ' · Capitão'}</h3>
+                  {p.posicoes?.length > 0 && <p className="meta">{p.posicoes.map((s) => POSICAO_LABEL[s] || s).join(' / ')}</p>}
+                </div>
+              </Link>
               {podeRemover && (
                 <button type="button" className="pl-share-btn" onClick={() => removerMembro(m.id, p.nome)} disabled={busy}>Remover</button>
               )}
