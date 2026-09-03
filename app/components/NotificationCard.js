@@ -44,7 +44,7 @@ export default function NotificationCard({ n, ator, onNavigate }) {
     Sentry.captureException(err instanceof Error ? err : new Error(`NotificationCard falhou renderizando ${n?.id}: ${err}`));
     conteudo = (
       <div className="pl-n-card">
-        <span className="pl-n-icon" aria-hidden="true">🔔</span>
+        <span className="pl-n-icon" aria-hidden="true" />
         <div className="pl-n-body"><p className="pl-n-msg">Aviso.</p></div>
       </div>
     );

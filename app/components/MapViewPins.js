@@ -286,7 +286,7 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
       {todosOsPins.length === 0 ? (
         <div className="pl-empty" style={{ padding: '40px 20px' }}>
           <EmptyFieldIcon width={110} />
-          <p>Nada no mapa ainda 🗺️ Assim que tiver pelada ou arena marcada, aparece aqui.</p>
+          <p>Nada no mapa ainda. Assim que tiver pelada ou arena marcada, aparece aqui.</p>
         </div>
       ) : (
         <MapContainer ref={mapRef} center={center} zoom={zoom} zoomControl={zoomControl} style={{ height: 'clamp(360px, 55vh, 560px)', width: '100%', borderRadius: 'var(--radius-lg)' }}>
@@ -326,7 +326,7 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
                 {a.foto_url ? (
                   <img className="pl-map-sheet-photo" src={a.foto_url} alt={a.nome} />
                 ) : (
-                  <div className="pl-map-sheet-photo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>📍</div>
+                  <div className="pl-map-sheet-photo" />
                 )}
                 <div style={{ flex: 1 }}>
                   <h3 className="pl-map-sheet-title">{a.nome}</h3>
@@ -337,7 +337,7 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
                 <button className="pl-map-sheet-close" onClick={fecharSheet} aria-label="Fechar">×</button>
               </div>
               <TicketButton compact style={{ marginTop: 12, width: '100%' }} onClick={() => window.open(gmapsUrl, '_blank')}>
-                📍 Como chegar
+                Como chegar
               </TicketButton>
             </>
           );

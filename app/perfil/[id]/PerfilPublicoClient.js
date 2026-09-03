@@ -44,7 +44,7 @@ export default function PerfilPublicoClient({ id }) {
         {erro ? (
           <div className="pl-empty">
             <EmptyFieldIcon />
-            <p>Não achei esse jogador 👀</p>
+            <p>Não achei esse jogador.</p>
           </div>
         ) : (
           <>
@@ -130,7 +130,7 @@ export default function PerfilPublicoClient({ id }) {
       {historico.length === 0 ? (
         <div className="pl-empty">
           <EmptyFieldIcon />
-          <p>Ainda sem histórico por aqui 👀</p>
+          <p>Ainda sem histórico por aqui.</p>
         </div>
       ) : (
         <div className="pl-list" style={{ paddingBottom: 24 }}>

@@ -107,7 +107,7 @@ export default function NewArenaModal({ onCancel, onCreated }) {
             <LocationPickerMap lat={coords.lat} lng={coords.lng} onPick={(lat, lng) => setCoords({ lat, lng })} />
             {coords.lat != null && (
               <div style={{ marginTop: 6, fontSize: 12, color: 'var(--paper-dim)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>📍 {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</span>
+                <span>{coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</span>
                 <button type="button" className="pl-share-btn" onClick={() => setCoords({ lat: null, lng: null })}>Limpar</button>
               </div>
             )}

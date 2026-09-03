@@ -23,7 +23,7 @@ export default function HomeFooterCta({ game, loading }) {
     <div className="pl-footer-cta-empty">
       <p className="pl-footer-cta-headline">Só falta <span className="accent">você</span>.</p>
       <p className="pl-footer-cta-sub">Nenhuma pelada confirmada por enquanto.</p>
-      <Link href="/peladas" className="pl-footer-cta-btn">Ver peladas ⚽</Link>
+      <Link href="/peladas" className="pl-footer-cta-btn">Ver peladas</Link>
     </div>
   );
 }

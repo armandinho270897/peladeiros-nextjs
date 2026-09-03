@@ -1611,7 +1611,7 @@ body::before {
 .pl-map-arena-token-badge-clock {
   position: absolute; bottom: -2px; right: -2px; width: 16px; height: 16px;
   border-radius: var(--radius-circle); background: var(--concrete);
-  border: 2px solid var(--ink); font-size: 9px; line-height: 12px; text-align: center;
+  border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center;
 }
 
 /* Tag de status no bottom sheet do seletor de local (arena oficial x
