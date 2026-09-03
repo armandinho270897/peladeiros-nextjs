@@ -1278,6 +1278,42 @@ body::before {
 
 /* Entrada em sequência (scroll reveal simplificado como fade + subida no
    carregamento — o "scroll" de verdade só existe rolando o app real). */
+/* Faixa "Rolando por aí" na Home — cards compactos, rolagem horizontal,
+   mesmo padrão de scroll sem barra visível já usado em .pl-chips-row.
+   Borda esquerda colorida reaproveita o mesmo significado semântico das
+   outras cores de status de vaga no app (neon=aberta, gold=últimas,
+   concrete=lotada — mesmas cores do anel dos pins gamificados do mapa). */
+.pl-destaque-title {
+  max-width: 640px; margin: 18px auto 0; padding: 0 16px;
+  font-family: var(--font-display); color: var(--neon); text-transform: uppercase; font-size: 15px;
+}
+.pl-destaque-row {
+  display: flex; gap: 10px; max-width: 640px; margin: 10px auto 0; padding: 0 16px 4px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.pl-destaque-row::-webkit-scrollbar { display: none; }
+.pl-destaque-card {
+  flex-shrink: 0; width: 148px; background: var(--card-bg);
+  border: 1px solid rgba(110,113,120,0.35); border-left: 3px solid var(--concrete);
+  border-radius: var(--radius-md); overflow: hidden; text-decoration: none; color: inherit;
+  transition: transform 150ms ease;
+}
+.pl-destaque-card:active { transform: scale(0.97); }
+.pl-destaque-card.aberta { border-left-color: var(--neon); }
+.pl-destaque-card.ultimas { border-left-color: var(--gold); }
+.pl-destaque-card-art {
+  height: 78px; background-color: var(--ink); background-size: cover; background-position: center;
+}
+.pl-destaque-card-body { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 2px; }
+.pl-destaque-card-date { font-size: 10px; color: var(--paper-dim); text-transform: uppercase; }
+.pl-destaque-card-local {
+  font-size: 12.5px; font-weight: 700; color: var(--paper);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pl-destaque-card-vagas { font-size: 11px; color: var(--paper-dim); }
+.pl-destaque-card.aberta .pl-destaque-card-vagas { color: var(--neon); }
+.pl-destaque-card.ultimas .pl-destaque-card-vagas { color: var(--gold); }
+
 .pl-reveal { opacity: 0; transform: translateY(14px); animation: pl-reveal-in 560ms ease forwards; }
 .pl-reveal-1 { animation-delay: 80ms; }
 .pl-reveal-2 { animation-delay: 220ms; }

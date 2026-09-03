@@ -6,6 +6,7 @@ import HomeHero from './components/HomeHero';
 import PendingActionCards from './components/PendingActionCards';
 import SocialSummaryCard from './components/SocialSummaryCard';
 import PatenteCard from './components/PatenteCard';
+import PeladasEmDestaque from './components/PeladasEmDestaque';
 import HomeFooterCta from './components/HomeFooterCta';
 import NewGameModal from './components/NewGameModal';
 
@@ -71,6 +72,8 @@ export default function Home() {
         <SocialSummaryCard resumoSocial={perfil?.resumoSocial} />
         <PatenteCard patente={perfil?.patente} />
       </div>
+
+      <PeladasEmDestaque />
 
       <div className="pl-reveal pl-reveal-4">
         <HomeFooterCta game={proximaConfirmada} loading={perfil === null} />
