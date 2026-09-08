@@ -23,7 +23,7 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: '#0A0A0A',
+  themeColor: '#161412',
   width: 'device-width',
   initialScale: 1,
 };
@@ -39,6 +39,16 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        {/* Filtro de borda áspera/stencil, compartilhado por qualquer elemento
+            que aplique `filter: url(#pl-rough-filter)` (ticket CTA, ícones da
+            navegação) — definido uma vez aqui pra existir em toda página,
+            inclusive as sem BottomNav montado (login, splash). */}
+        <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+          <filter id="pl-rough-filter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.3" />
+          </filter>
+        </svg>
         <InAppBrowserBanner />
         <InstallBanner />
         <SplashScreen />

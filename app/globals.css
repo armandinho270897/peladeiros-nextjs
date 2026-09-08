@@ -33,8 +33,8 @@
  *   --radius-circle (50%)  → avatares, botões de ícone circulares
  */
 :root {
-  --ink: #0A0A0A;
-  --card-bg: #141814;
+  --ink: #161412;
+  --card-bg: #211E19;
   --neon: #A6FF00;
   --neon-dim: #7FCC00;
   --paper: #F3F3EE;
@@ -71,16 +71,18 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* Textura de ruído/concreto no fundo preto — sutil, não compete com o conteúdo */
+/* Textura de ruído/concreto no fundo — aprofundada pro reskin urbano (era
+   0.05/0.9, sutil demais pra ler como parede; concreto de verdade tem grão
+   mais grosso e mais visível). */
 body::before {
   content: '';
   position: fixed;
   top: 0; right: 0; bottom: 0; left: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.05;
+  opacity: 0.09;
   mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* Divisória "rasgada" sob títulos de seção — zigue-zague em vez de linha reta */
@@ -471,7 +473,9 @@ body::before {
   opacity: 0.35;
 }
 
-/* Ticket: botões de ação primária */
+/* Ticket: botões de ação primária. filter: url(#pl-rough-filter) (definido
+   em app/layout.js) dá um contorno levemente irregular, tipo adesivo colado
+   à mão, em vez da borda perfeitamente reta do neon-glass anterior. */
 .pl-ticket {
   position: relative;
   display: inline-flex;
@@ -484,6 +488,7 @@ body::before {
   cursor: pointer;
   overflow: visible;
   box-shadow: 0 0 14px rgba(166,255,0,0.3);
+  filter: url(#pl-rough-filter);
   transition: transform 150ms ease, opacity 150ms ease, box-shadow 150ms ease;
 }
 .pl-ticket:active { transform: scale(0.96); }
@@ -668,10 +673,12 @@ body::before {
 .pl-error { color: var(--tag-red); font-size: 12px; }
 
 .pl-authpage { position: relative; overflow: hidden; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+/* Painel opaco tipo cartaz colado na parede, não mais vidro fosco — o
+   blur/glassmorphism (backdrop-filter) saiu do reskin urbano: mistura
+   chapada com o fundo (card-bg) em vez de deixar a cena atrás transparecer. */
 .pl-authcard {
   position: relative; z-index: 2;
-  background: rgba(19,23,18,0.82);
-  backdrop-filter: blur(14px) saturate(1.1); -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  background: var(--card-bg);
   border: 1px solid rgba(255,255,255,0.09); border-radius: var(--radius-lg);
   padding: 32px 24px 26px; width: 100%; max-width: 340px;
   box-shadow: 0 30px 80px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.05) inset;
@@ -1280,11 +1287,27 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='350'%3E%3Cg fill='none' stroke='%23F3F3EE' stroke-opacity='0.045' stroke-width='2'%3E%3Ccircle cx='240' cy='60' r='34'/%3E%3Cpath d='M20 300 L60 260 L110 300 L150 250'/%3E%3Cpath d='M180 200 L220 170 L260 210'/%3E%3C/g%3E%3C/svg%3E");
 }
 .pl-home-hero-aura { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+/* Respingo de spray em vez de orb desfocado uniforme — mesma técnica de
+   radiais desalinhados que .pl-bottom-nav-splat já usa, só maior e mais
+   lento. Borda mais dura (blur menor) lê como tinta batendo na parede em
+   vez de um brilho suave tipo glassmorphism. */
 .pl-home-hero-orb {
-  position: absolute; z-index: 1; border-radius: 50%; filter: blur(38px); pointer-events: none;
+  position: absolute; z-index: 1; filter: blur(18px); pointer-events: none;
 }
-.pl-home-hero-orb-1 { width: 180px; height: 180px; background: var(--neon); opacity: 0.14; top: 20px; left: -60px; animation: pl-orb-drift-1 22s ease-in-out infinite; }
-.pl-home-hero-orb-2 { width: 220px; height: 220px; background: var(--lilas); opacity: 0.12; top: 120px; right: -80px; animation: pl-orb-drift-2 28s ease-in-out infinite; }
+.pl-home-hero-orb-1 {
+  width: 200px; height: 200px; top: 10px; left: -70px;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(166,255,0,0.5), transparent 55%),
+    radial-gradient(circle at 65% 70%, rgba(166,255,0,0.3), transparent 50%);
+  animation: pl-orb-drift-1 22s ease-in-out infinite;
+}
+.pl-home-hero-orb-2 {
+  width: 240px; height: 240px; top: 110px; right: -90px;
+  background:
+    radial-gradient(circle at 40% 35%, rgba(184,127,232,0.42), transparent 55%),
+    radial-gradient(circle at 68% 65%, rgba(184,127,232,0.26), transparent 50%);
+  animation: pl-orb-drift-2 28s ease-in-out infinite;
+}
 @keyframes pl-orb-drift-1 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(24px, 30px); } }
 @keyframes pl-orb-drift-2 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-20px, -24px); } }
 @media (prefers-reduced-motion: reduce) {
@@ -1370,23 +1393,19 @@ body::before {
   .pl-reveal { animation: none; opacity: 1; transform: none; }
 }
 
-/* backdrop-filter custa GPU em aparelhos fracos — @supports garante um
-   fundo sólido (sem blur) em navegadores sem suporte. Se um teste real
-   em Android de gama média mostrar custo alto mesmo com suporte, a
-   saída mais simples é trocar --glass-bg pra opaco aqui, sem mexer nos
-   componentes. */
+/* Painel opaco (cartaz colado na parede), não mais vidro fosco — o
+   backdrop-filter/glassmorphism saiu do reskin urbano (mesma decisão do
+   .pl-authcard acima). Canto superior direito rasgado em diagonal, mesmo
+   princípio do zigue-zague de .pl-section-title::after: silhueta reta em
+   vez de arredondada nesse canto, como um pôster com a quina arrancada. */
 .pl-glass-card {
   display: flex; align-items: center; gap: 12px;
-  --glass-bg: rgba(20,24,20,0.5);
-  background: var(--glass-bg);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: var(--card-bg);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: var(--radius-lg);
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
   padding: 12px 14px;
   text-decoration: none; color: inherit;
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .pl-glass-card { background: rgba(18,20,18,0.94); }
 }
 .pl-glass-icon {
   flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
@@ -1501,7 +1520,7 @@ body::before {
   content: '';
   position: absolute; inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.07;
+  opacity: 0.1;
   mix-blend-mode: overlay;
   pointer-events: none;
 }
@@ -1528,7 +1547,9 @@ body::before {
 .pl-bottom-nav-item.active .pl-bottom-nav-icon {
   border-image: linear-gradient(135deg, var(--neon), var(--lilas)) 1;
 }
-.pl-bottom-nav-icon svg { position: relative; z-index: 2; color: inherit; }
+/* traço levemente torto/stencil, agora que o filtro é global (definido em
+   app/layout.js) em vez de local a este componente */
+.pl-bottom-nav-icon svg { position: relative; z-index: 2; color: inherit; filter: url(#pl-rough-filter); }
 
 /* respingo neon irregular atrás do ícone ativo, no lugar de um indicador
    geométrico — três radiais desalinhados + blur, tipo spray */
