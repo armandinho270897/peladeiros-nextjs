@@ -49,6 +49,13 @@ export async function POST(request) {
   const horarioJogo = form.get('horarioJogo')?.toString().trim() || null;
   const maxJogadores = Number(form.get('maxJogadores')) || 15;
   const recrutamento = form.get('recrutamento')?.toString().trim() || 'fechado';
+  const anoFundacao = Number(form.get('anoFundacao')) || null;
+  const corPrimaria = form.get('corPrimaria')?.toString().trim() || null;
+  const corSecundaria = form.get('corSecundaria')?.toString().trim() || null;
+  const nivelCompetitivo = form.get('nivelCompetitivo')?.toString().trim() || null;
+  const aceitaDesafios = form.get('aceitaDesafios') === 'true';
+  const faixaEtaria = form.get('faixaEtaria')?.toString().trim() || null;
+  const whatsappResponsavel = form.get('whatsappResponsavel')?.toString().trim() || null;
   const escudo = form.get('escudo');
 
   if (!nome) return NextResponse.json({ error: 'Dá um nome pro time.' }, { status: 400 });
@@ -67,6 +74,13 @@ export async function POST(request) {
       horario_jogo: horarioJogo,
       max_jogadores: maxJogadores,
       recrutamento,
+      ano_fundacao: anoFundacao,
+      cor_primaria: corPrimaria,
+      cor_secundaria: corSecundaria,
+      nivel_competitivo: nivelCompetitivo,
+      aceita_desafios: aceitaDesafios,
+      faixa_etaria: faixaEtaria,
+      whatsapp_responsavel: whatsappResponsavel,
     })
     .select()
     .single();
