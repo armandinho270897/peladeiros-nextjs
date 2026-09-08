@@ -22,16 +22,6 @@ export default function BottomNav() {
 
   return (
     <nav className="pl-bottom-nav" aria-label="Navegação principal">
-      {/* filtro compartilhado que dá o traço levemente torto/stencil pros
-          ícones de Peladas e da bola central — definido uma vez só aqui,
-          já que BottomNav nunca desmonta entre navegações. */}
-      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
-        <filter id="pl-rough-filter">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.3" />
-        </filter>
-      </svg>
-
       <Link href="/" className={`pl-bottom-nav-item ${pathname === '/' ? 'active' : ''}`} onClick={tapFlash}>
         <span className="pl-bottom-nav-icon">
           <span className="pl-bottom-nav-splat" aria-hidden="true" />
