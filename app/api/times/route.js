@@ -42,13 +42,32 @@ export async function POST(request) {
   const nome = form.get('nome')?.toString().trim();
   const bairro = form.get('bairro')?.toString().trim() || null;
   const modalidade = form.get('modalidade')?.toString().trim() || null;
+  const sigla = form.get('sigla')?.toString().trim().toUpperCase() || null;
+  const tecnico = form.get('tecnico')?.toString().trim() || null;
+  const arenaId = form.get('arenaId')?.toString().trim() || null;
+  const diaJogo = form.get('diaJogo')?.toString().trim() || null;
+  const horarioJogo = form.get('horarioJogo')?.toString().trim() || null;
+  const maxJogadores = Number(form.get('maxJogadores')) || 15;
+  const recrutamento = form.get('recrutamento')?.toString().trim() || 'fechado';
   const escudo = form.get('escudo');
 
   if (!nome) return NextResponse.json({ error: 'Dá um nome pro time.' }, { status: 400 });
 
   const { data: time, error } = await supabase
     .from('times')
-    .insert({ nome, bairro, modalidade, criado_por: user.id })
+    .insert({
+      nome,
+      bairro,
+      modalidade,
+      criado_por: user.id,
+      sigla,
+      tecnico,
+      arena_id: arenaId,
+      dia_jogo: diaJogo,
+      horario_jogo: horarioJogo,
+      max_jogadores: maxJogadores,
+      recrutamento,
+    })
     .select()
     .single();
 

@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
 import { useToast } from '../components/ToastProvider';
@@ -9,7 +8,7 @@ import EmptyFieldIcon from '../components/EmptyFieldIcon';
 import TicketButton from '../components/TicketButton';
 import NewTimeModal from '../components/NewTimeModal';
 import BackLink from '../components/BackLink';
-import { MODALIDADE_LABEL } from '@/lib/gameUtils';
+import TimeCard from '../components/TimeCard';
 
 export default function TimesPage() {
   const { user } = useAuth();
@@ -24,7 +23,7 @@ export default function TimesPage() {
     setLoading(true);
     const supabase = createClient();
     const [{ data: meusTimes }, { data: pendentes }] = await Promise.all([
-      supabase.from('time_membros').select('papel, times(id, nome, escudo_url, bairro, modalidade)').eq('user_id', user.id).eq('status', 'aprovado'),
+      supabase.from('time_membros').select('papel, times(id, nome, escudo_url, bairro, modalidade, sigla, tecnico, dia_jogo, horario_jogo, recrutamento, max_jogadores)').eq('user_id', user.id).eq('status', 'aprovado'),
       supabase.from('time_membros').select('id, times(id, nome, escudo_url, bairro, modalidade)').eq('user_id', user.id).eq('status', 'pendente'),
     ]);
     setTimes((meusTimes || []).map((m) => ({ ...m.times, papel: m.papel })));
@@ -89,20 +88,8 @@ export default function TimesPage() {
           <p>Tá sem time ainda. Cria o seu ou espera um convite.</p>
         </div>
       ) : (
-        <div className="pl-list" style={{ paddingBottom: 24 }}>
-          {times.map((t) => (
-            <Link key={t.id} href={`/time/${t.id}`} className="pl-card" style={{ textDecoration: 'none' }}>
-              <Avatar nome={t.nome} size={48} fotoUrl={t.escudo_url} />
-              <div className="pl-info">
-                <h3>{t.nome}</h3>
-                <p className="meta">
-                  {t.papel === 'capitao' ? 'Capitão' : 'Membro'}
-                  {t.modalidade && ` · ${MODALIDADE_LABEL[t.modalidade] || t.modalidade}`}
-                </p>
-                {t.bairro && <span className="pl-bairro-tag">{t.bairro}</span>}
-              </div>
-            </Link>
-          ))}
+        <div className="pl-list" style={{ paddingBottom: 24, gap: 10 }}>
+          {times.map((t) => <TimeCard key={t.id} time={t} />)}
         </div>
       )}
 
