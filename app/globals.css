@@ -71,18 +71,36 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* Textura de ruído/concreto no fundo — aprofundada pro reskin urbano (era
-   0.05/0.9, sutil demais pra ler como parede; concreto de verdade tem grão
-   mais grosso e mais visível). */
+/* Textura de parede de concreto no fundo — duas camadas, mesma técnica que
+   concreto de verdade tem: grão fino (::before, o ruído que já existia,
+   mais forte agora) + manchas grandes e irregulares (::after, novo — sem
+   isso o ruído fino sozinho lê como "estática de TV", não como parede).
+   As duas ficam fixed + z-index:0 atrás do conteúdo; cards/headers têm
+   fundo opaco (--card-bg/--ink) por cima, então nada disso passa por trás
+   de texto de verdade — só aparece nos vãos entre elementos. */
 body::before {
   content: '';
   position: fixed;
   top: 0; right: 0; bottom: 0; left: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.09;
+  opacity: 0.16;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+  background:
+    radial-gradient(ellipse 620px 480px at 8% 6%, rgba(110,113,120,0.16), transparent 60%),
+    radial-gradient(ellipse 520px 700px at 96% 22%, rgba(0,0,0,0.32), transparent 65%),
+    radial-gradient(ellipse 700px 500px at 20% 78%, rgba(110,113,120,0.13), transparent 62%),
+    radial-gradient(ellipse 480px 620px at 88% 92%, rgba(0,0,0,0.28), transparent 60%),
+    radial-gradient(ellipse 900px 400px at 50% 45%, rgba(110,113,120,0.08), transparent 70%);
 }
 
 /* Divisória "rasgada" sob títulos de seção — zigue-zague em vez de linha reta */
