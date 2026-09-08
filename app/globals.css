@@ -1397,6 +1397,29 @@ body::before {
 .pl-glass-msg { font-size: 13px; margin: 0; line-height: 1.35; color: var(--paper); }
 
 .pl-glass-unlocked { border-color: var(--neon); animation: pl-unlock-glow 2.6s ease-in-out infinite; }
+
+/* Card de time — estende .pl-glass-card com layout em coluna (topo:
+   escudo+nome+recrutamento; embaixo: tags de contexto), mesmo glow sutil
+   que o resto do app já usa em vez de um efeito novo. */
+.pl-time-card {
+  flex-direction: column; align-items: stretch; gap: 10px;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+.pl-time-card:hover { border-color: rgba(166,255,0,0.35); }
+.pl-time-card:active { transform: scale(0.98); }
+.pl-time-card-top { display: flex; align-items: center; gap: 12px; }
+.pl-time-card-info { flex: 1; min-width: 0; }
+.pl-time-card-nome-row { display: flex; align-items: baseline; gap: 6px; }
+.pl-time-card-nome-row h3 { margin: 0; font-family: var(--font-display); color: var(--paper); text-transform: uppercase; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-time-card-sigla { flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--paper-dim); letter-spacing: 0.04em; }
+.pl-time-card-recrutamento {
+  flex-shrink: 0; font-size: 10.5px; font-weight: 700; padding: 4px 9px;
+  border-radius: var(--radius-pill); text-align: center; white-space: nowrap;
+}
+.pl-time-card-recrutamento.aberto { background: rgba(166,255,0,0.14); color: var(--neon); }
+.pl-time-card-recrutamento.goleiro { background: rgba(255,197,61,0.16); color: var(--gold); }
+.pl-time-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.pl-time-card-meta-tag { font-size: 11.5px; color: var(--paper-dim); background: rgba(110,113,120,0.16); padding: 3px 9px; border-radius: var(--radius-pill); }
 .pl-glass-unlocked .pl-glass-icon { background: var(--neon); color: var(--ink); }
 .pl-glass-icon-avatar { position: relative; background: none; border-radius: 0; }
 @keyframes pl-unlock-glow {
