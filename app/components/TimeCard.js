@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Avatar from './Avatar';
 import { MODALIDADE_LABEL } from '@/lib/gameUtils';
+import { DIA_SEMANA_LABEL } from '@/lib/timeConstants';
 
 // Card de time — estilo clube (escudo com anel neon, sigla, badge de
 // recrutamento, tags de contexto). Reaproveita .pl-glass-card (mesmo
@@ -44,7 +45,7 @@ export default function TimeCard({ time }) {
           {time.bairro && <span className="pl-bairro-tag">{time.bairro}</span>}
           {time.tecnico && <span className="pl-time-card-meta-tag">Técnico: {time.tecnico}</span>}
           {time.dia_jogo && (
-            <span className="pl-time-card-meta-tag">{time.dia_jogo}{time.horario_jogo ? ` · ${time.horario_jogo}` : ''}</span>
+            <span className="pl-time-card-meta-tag">{DIA_SEMANA_LABEL[time.dia_jogo] || time.dia_jogo}{time.horario_jogo ? ` · ${time.horario_jogo}` : ''}</span>
           )}
           {time.jogadoresAtual != null && time.max_jogadores && (
             <span className="pl-time-card-meta-tag">{time.jogadoresAtual}/{time.max_jogadores} jogadores</span>
