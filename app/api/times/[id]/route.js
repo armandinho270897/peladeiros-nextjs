@@ -10,7 +10,9 @@ import { errJson } from '@/lib/apiError';
 export async function GET(request, { params }) {
   const { id } = params;
 
-  const { data: time, error } = await supabase.from('times').select('*').eq('id', id).single();
+  // Embeda a arena vinculada (FK times.arena_id -> arenas.id) pra ficha
+  // técnica mostrar o nome dela sem uma segunda consulta.
+  const { data: time, error } = await supabase.from('times').select('*, arenas(nome, bairro)').eq('id', id).single();
   if (error || !time) return NextResponse.json({ error: 'Time não encontrado.' }, { status: 404 });
 
   const authClient = createServerClient();

@@ -1439,6 +1439,17 @@ body::before {
 .pl-time-card-recrutamento.goleiro { background: rgba(255,197,61,0.16); color: var(--gold); }
 .pl-time-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .pl-time-card-meta-tag { font-size: 11.5px; color: var(--paper-dim); background: rgba(110,113,120,0.16); padding: 3px 9px; border-radius: var(--radius-pill); }
+
+/* Grade de info da ficha técnica do time (horário, local, contato) —
+   mesma casca de .pl-stat (cartão neutro), mas texto em vez de número. */
+.pl-ficha-grid { display: flex; gap: 10px; flex-wrap: wrap; max-width: 640px; margin: 0 auto 18px; padding: 0 16px; }
+.pl-ficha-card {
+  flex: 1; min-width: 140px;
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.35); border-radius: var(--radius-md);
+  padding: 10px 14px;
+}
+.pl-ficha-card-label { display: block; font-size: 10px; text-transform: uppercase; color: var(--paper-dim); margin-bottom: 3px; }
+.pl-ficha-card-value { display: block; font-size: 14px; color: var(--paper); font-weight: 600; }
 .pl-glass-unlocked .pl-glass-icon { background: var(--neon); color: var(--ink); }
 .pl-glass-icon-avatar { position: relative; background: none; border-radius: 0; }
 @keyframes pl-unlock-glow {
