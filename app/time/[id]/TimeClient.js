@@ -10,7 +10,18 @@ import EditTimeModal from '../../components/EditTimeModal';
 import TransferirCapitaniaModal from '../../components/TransferirCapitaniaModal';
 import { useToast } from '../../components/ToastProvider';
 import { useAuth } from '../../components/AuthProvider';
-import { MODALIDADE_LABEL, POSICAO_LABEL } from '@/lib/gameUtils';
+import UniformPreview from '../../components/UniformPreview';
+import { MODALIDADE_LABEL, POSICAO_LABEL, POSICAO_ZONA } from '@/lib/gameUtils';
+import { DIA_SEMANA_LABEL, NIVEL_COMPETITIVO_LABEL } from '@/lib/timeConstants';
+
+const RECRUTAMENTO_INFO = {
+  procurando_jogadores: { label: 'Recrutando', className: 'aberto' },
+  procurando_goleiro: { label: 'Precisa de goleiro', className: 'goleiro' },
+};
+
+// Ordem fixa de exibição do elenco por zona — "Outros" pega quem não tem
+// posição cadastrada no perfil, sem sumir da lista.
+const ZONAS_ORDEM = ['Goleiro', 'Defesa', 'Meio-campo', 'Ataque', 'Outros'];
 
 export default function TimeClient({ id }) {
   const router = useRouter();
@@ -103,6 +114,43 @@ export default function TimeClient({ id }) {
   const membrosIds = membros.map((m) => m.profiles?.id).filter(Boolean);
   const minhaMembresia = user ? membros.find((m) => m.user_id === user.id) : null;
   const outrosMembrosAprovados = membros.filter((m) => m.user_id !== user?.id && m.profiles).map((m) => m.profiles);
+  const recrutamento = RECRUTAMENTO_INFO[time.recrutamento];
+
+  // Agrupa o elenco por zona (Goleiro/Defesa/Meio-campo/Ataque), a partir
+  // da primeira posição cadastrada no perfil de cada jogador — mesma fonte
+  // que a lista simples já usava (profiles.posicoes), só reorganizada.
+  // time_membros.posicao (por-time) ainda não tem UI pra ser preenchido,
+  // então não é usado aqui (fora de escopo, ver plano).
+  const membrosPorZona = ZONAS_ORDEM.reduce((acc, zona) => ({ ...acc, [zona]: [] }), {});
+  membros.forEach((m) => {
+    if (!m.profiles) return;
+    const primeiraPosicao = m.profiles.posicoes?.[0];
+    const zona = (primeiraPosicao && POSICAO_ZONA[primeiraPosicao]) || 'Outros';
+    membrosPorZona[zona].push(m);
+  });
+
+  function renderMembro(m) {
+    const p = m.profiles;
+    const podeRemover = souCapitao && m.papel !== 'capitao';
+    return (
+      <div key={m.id} className="pl-card">
+        {/* display:contents — o Link some da árvore de layout, os
+            filhos (Avatar + .pl-info) continuam exatamente onde
+            estavam dentro do .pl-card; só o botão Remover, fora
+            daqui, fica de fora da área clicável do perfil. */}
+        <Link href={`/perfil/${p.id}`} style={{ display: 'contents', color: 'inherit', textDecoration: 'none' }}>
+          <Avatar nome={p.nome} size={48} fotoUrl={p.foto_url} />
+          <div className="pl-info">
+            <h3>{p.nome}{m.papel === 'capitao' && ' · Capitão'}</h3>
+            {p.posicoes?.length > 0 && <p className="meta">{p.posicoes.map((s) => POSICAO_LABEL[s] || s).join(' / ')}</p>}
+          </div>
+        </Link>
+        {podeRemover && (
+          <button type="button" className="pl-share-btn pl-btn-danger" onClick={() => removerMembro(m.id, p.nome)} disabled={busy}>Remover</button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -118,41 +166,74 @@ export default function TimeClient({ id }) {
       <div className="pl-perfil-header">
         <Avatar nome={time.nome} size={80} ring fotoUrl={time.escudo_url} />
         <div className="pl-perfil-info">
-          <h2>{time.nome}</h2>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+            <h2 style={{ margin: 0 }}>{time.nome}</h2>
+            {time.sigla && <span className="pl-time-card-sigla">{time.sigla}</span>}
+          </div>
           <p>{time.bairro || 'Bairro não informado'}</p>
-          {time.modalidade && <p className="meta">{MODALIDADE_LABEL[time.modalidade] || time.modalidade}</p>}
+          <p className="meta">
+            {time.modalidade && (MODALIDADE_LABEL[time.modalidade] || time.modalidade)}
+            {time.nivel_competitivo && ` · ${NIVEL_COMPETITIVO_LABEL[time.nivel_competitivo] || time.nivel_competitivo}`}
+            {time.ano_fundacao && ` · Desde ${time.ano_fundacao}`}
+          </p>
           {capitao && <p className="meta"><CaptainIcon /> Capitão: <b>{capitao.nome}</b></p>}
+          {(recrutamento || time.aceita_desafios) && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+              {recrutamento && <span className={`pl-time-card-recrutamento ${recrutamento.className}`}>{recrutamento.label}</span>}
+              {time.aceita_desafios && <span className="pl-time-card-recrutamento aberto">Aceita desafios</span>}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>
-        Membros ({membros.length})
-      </div>
-      <div className="pl-list" style={{ paddingBottom: souCapitao ? 0 : 24 }}>
-        {membros.map((m) => {
-          const p = m.profiles;
-          if (!p) return null;
-          const podeRemover = souCapitao && m.papel !== 'capitao';
-          return (
-            <div key={m.id} className="pl-card">
-              {/* display:contents — o Link some da árvore de layout, os
-                  filhos (Avatar + .pl-info) continuam exatamente onde
-                  estavam dentro do .pl-card; só o botão Remover, fora
-                  daqui, fica de fora da área clicável do perfil. */}
-              <Link href={`/perfil/${p.id}`} style={{ display: 'contents', color: 'inherit', textDecoration: 'none' }}>
-                <Avatar nome={p.nome} size={48} fotoUrl={p.foto_url} />
-                <div className="pl-info">
-                  <h3>{p.nome}{m.papel === 'capitao' && ' · Capitão'}</h3>
-                  {p.posicoes?.length > 0 && <p className="meta">{p.posicoes.map((s) => POSICAO_LABEL[s] || s).join(' / ')}</p>}
-                </div>
-              </Link>
-              {podeRemover && (
-                <button type="button" className="pl-share-btn pl-btn-danger" onClick={() => removerMembro(m.id, p.nome)} disabled={busy}>Remover</button>
-              )}
+      {(time.cor_primaria || time.cor_secundaria) && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, maxWidth: 640, margin: '0 auto 14px', padding: '0 16px' }}>
+          <UniformPreview corPrimaria={time.cor_primaria} corSecundaria={time.cor_secundaria} size={40} />
+          <span className="meta">Uniforme do time</span>
+        </div>
+      )}
+
+      {(time.dia_jogo || time.arenas?.nome || time.whatsapp_responsavel) && (
+        <div className="pl-ficha-grid">
+          {time.dia_jogo && (
+            <div className="pl-ficha-card">
+              <span className="pl-ficha-card-label">Horário fixo</span>
+              <span className="pl-ficha-card-value">{DIA_SEMANA_LABEL[time.dia_jogo] || time.dia_jogo}{time.horario_jogo ? ` · ${time.horario_jogo}` : ''}</span>
             </div>
-          );
-        })}
-      </div>
+          )}
+          {time.arenas?.nome && (
+            <div className="pl-ficha-card">
+              <span className="pl-ficha-card-label">Arena</span>
+              <span className="pl-ficha-card-value">{time.arenas.nome}</span>
+            </div>
+          )}
+          {time.whatsapp_responsavel && (
+            <div className="pl-ficha-card">
+              <span className="pl-ficha-card-label">Contato</span>
+              <button
+                type="button"
+                className="pl-ficha-card-value"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--neon)', textAlign: 'left' }}
+                onClick={() => window.open(`https://wa.me/55${time.whatsapp_responsavel.replace(/\D/g, '')}`, '_blank')}
+              >
+                Chamar no WhatsApp
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {ZONAS_ORDEM.filter((zona) => membrosPorZona[zona].length > 0).map((zona) => (
+        <div key={zona}>
+          <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>
+            {zona} ({membrosPorZona[zona].length})
+          </div>
+          <div className="pl-list" style={{ paddingBottom: 0 }}>
+            {membrosPorZona[zona].map(renderMembro)}
+          </div>
+        </div>
+      ))}
+      <div style={{ height: souCapitao ? 8 : 24 }} />
 
       {minhaMembresia && minhaMembresia.papel !== 'capitao' && (
         <div style={{ maxWidth: 640, margin: '0 auto 24px', padding: '0 16px' }}>
