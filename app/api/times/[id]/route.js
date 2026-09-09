@@ -27,9 +27,17 @@ export async function GET(request, { params }) {
   const souCapitao = !!user && (membrosRows || []).some((m) => m.papel === 'capitao' && m.user_id === user.id);
 
   let pendentesRows = [];
+  let desafiosRecebidos = [];
+  let desafiosEnviados = [];
   if (souCapitao) {
-    const { data } = await supabase.from('time_membros').select('id, user_id').eq('time_id', id).eq('status', 'pendente');
-    pendentesRows = data || [];
+    const [{ data: pendData }, { data: recebidosData }, { data: enviadosData }] = await Promise.all([
+      supabase.from('time_membros').select('id, user_id').eq('time_id', id).eq('status', 'pendente'),
+      supabase.from('desafios').select('*, times!desafios_time_desafiante_id_fkey(nome, escudo_url)').eq('time_desafiado_id', id).eq('status', 'pendente').order('created_at', { ascending: false }),
+      supabase.from('desafios').select('*, times!desafios_time_desafiado_id_fkey(nome, escudo_url)').eq('time_desafiante_id', id).eq('status', 'pendente').order('created_at', { ascending: false }),
+    ]);
+    pendentesRows = pendData || [];
+    desafiosRecebidos = (recebidosData || []).map((d) => ({ ...d, timeAdversario: d.times }));
+    desafiosEnviados = (enviadosData || []).map((d) => ({ ...d, timeAdversario: d.times }));
   }
 
   // profiles não tem FK direta com time_membros (ambos só referenciam
@@ -51,6 +59,8 @@ export async function GET(request, { params }) {
     capitao,
     membros,
     pendentes,
+    desafiosRecebidos,
+    desafiosEnviados,
     souCapitao,
   });
 }
