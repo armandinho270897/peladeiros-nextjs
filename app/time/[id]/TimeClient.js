@@ -9,6 +9,7 @@ import BackLink from '../../components/BackLink';
 import EditTimeModal from '../../components/EditTimeModal';
 import TransferirCapitaniaModal from '../../components/TransferirCapitaniaModal';
 import DesafiarTimeModal from '../../components/DesafiarTimeModal';
+import EditarElencoModal from '../../components/EditarElencoModal';
 import TicketButton from '../../components/TicketButton';
 import { useToast } from '../../components/ToastProvider';
 import { useAuth } from '../../components/AuthProvider';
@@ -34,6 +35,7 @@ export default function TimeClient({ id }) {
   const [showEdit, setShowEdit] = useState(false);
   const [showTransferir, setShowTransferir] = useState(false);
   const [showDesafiar, setShowDesafiar] = useState(false);
+  const [editandoMembro, setEditandoMembro] = useState(null);
   const [busy, setBusy] = useState(false);
 
   async function load() {
@@ -181,22 +183,22 @@ export default function TimeClient({ id }) {
   const recrutamento = RECRUTAMENTO_INFO[time.recrutamento];
   const podePedirEntrada = !!user && !minhaMembresia && time.recrutamento !== 'fechado' && minhaRelacao !== 'solicitado' && minhaRelacao !== 'pendente';
 
-  // Agrupa o elenco por zona (Goleiro/Defesa/Meio-campo/Ataque), a partir
-  // da primeira posição cadastrada no perfil de cada jogador — mesma fonte
-  // que a lista simples já usava (profiles.posicoes), só reorganizada.
-  // time_membros.posicao (por-time) ainda não tem UI pra ser preenchido,
-  // então não é usado aqui (fora de escopo, ver plano).
+  // Agrupa o elenco por zona (Goleiro/Defesa/Meio-campo/Ataque) — prioriza
+  // a posição atribuída pelo capitão NESSE time (time_membros.posicao,
+  // agora editável); sem isso, cai pra primeira posição do perfil do
+  // jogador (o que ele mesmo diz que joga, em qualquer time).
   const membrosPorZona = ZONAS_ORDEM.reduce((acc, zona) => ({ ...acc, [zona]: [] }), {});
   membros.forEach((m) => {
     if (!m.profiles) return;
-    const primeiraPosicao = m.profiles.posicoes?.[0];
-    const zona = (primeiraPosicao && POSICAO_ZONA[primeiraPosicao]) || 'Outros';
+    const posicaoEfetiva = m.posicao || m.profiles.posicoes?.[0];
+    const zona = (posicaoEfetiva && POSICAO_ZONA[posicaoEfetiva]) || 'Outros';
     membrosPorZona[zona].push(m);
   });
 
   function renderMembro(m) {
     const p = m.profiles;
     const podeRemover = souCapitao && m.papel !== 'capitao';
+    const posicaoLabel = m.posicao ? POSICAO_LABEL[m.posicao] || m.posicao : p.posicoes?.length > 0 ? p.posicoes.map((s) => POSICAO_LABEL[s] || s).join(' / ') : null;
     return (
       <div key={m.id} className="pl-card">
         {/* display:contents — o Link some da árvore de layout, os
@@ -206,10 +208,15 @@ export default function TimeClient({ id }) {
         <Link href={`/perfil/${p.id}`} style={{ display: 'contents', color: 'inherit', textDecoration: 'none' }}>
           <Avatar nome={p.nome} size={48} fotoUrl={p.foto_url} />
           <div className="pl-info">
-            <h3>{p.nome}{m.papel === 'capitao' && ' · Capitão'}</h3>
-            {p.posicoes?.length > 0 && <p className="meta">{p.posicoes.map((s) => POSICAO_LABEL[s] || s).join(' / ')}</p>}
+            <h3>{m.numero_camisa != null && `#${m.numero_camisa} `}{p.nome}{m.papel === 'capitao' && ' · Capitão'}</h3>
+            {(posicaoLabel || m.mensalista) && (
+              <p className="meta">{[posicaoLabel, m.mensalista && 'Mensalista'].filter(Boolean).join(' · ')}</p>
+            )}
           </div>
         </Link>
+        {souCapitao && (
+          <button type="button" className="pl-share-btn" onClick={() => setEditandoMembro(m)} disabled={busy}>Editar</button>
+        )}
         {podeRemover && (
           <button type="button" className="pl-share-btn pl-btn-danger" onClick={() => removerMembro(m.id, p.nome)} disabled={busy}>Remover</button>
         )}
@@ -452,6 +459,15 @@ export default function TimeClient({ id }) {
           time={time}
           onClose={() => setShowDesafiar(false)}
           onDesafiado={() => { setShowDesafiar(false); showToast(`Desafio enviado pro ${time.nome}!`); }}
+        />
+      )}
+
+      {editandoMembro && (
+        <EditarElencoModal
+          membro={editandoMembro}
+          modalidade={time.modalidade}
+          onClose={() => setEditandoMembro(null)}
+          onSaved={() => { setEditandoMembro(null); showToast('Elenco atualizado!'); load(); }}
         />
       )}
     </div>
