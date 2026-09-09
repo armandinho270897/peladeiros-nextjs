@@ -8,6 +8,8 @@ import PlayerSearch from '../../components/PlayerSearch';
 import BackLink from '../../components/BackLink';
 import EditTimeModal from '../../components/EditTimeModal';
 import TransferirCapitaniaModal from '../../components/TransferirCapitaniaModal';
+import DesafiarTimeModal from '../../components/DesafiarTimeModal';
+import TicketButton from '../../components/TicketButton';
 import { useToast } from '../../components/ToastProvider';
 import { useAuth } from '../../components/AuthProvider';
 import UniformPreview from '../../components/UniformPreview';
@@ -31,6 +33,7 @@ export default function TimeClient({ id }) {
   const [loading, setLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
   const [showTransferir, setShowTransferir] = useState(false);
+  const [showDesafiar, setShowDesafiar] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function load() {
@@ -78,6 +81,37 @@ export default function TimeClient({ id }) {
     router.push('/times');
   }
 
+  async function aceitarDesafio(desafioId) {
+    setBusy(true);
+    const res = await fetch(`/api/desafios/${desafioId}/aceitar`, { method: 'POST' });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { showToast(json.error || 'Não consegui aceitar o desafio.', 'error'); return; }
+    showToast('Desafio aceito! Partida marcada.');
+    router.push(`/pelada/${json.gameId}`);
+  }
+
+  async function recusarDesafio(desafioId) {
+    setBusy(true);
+    const res = await fetch(`/api/desafios/${desafioId}/recusar`, { method: 'POST' });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { showToast(json.error || 'Não consegui recusar o desafio.', 'error'); return; }
+    showToast('Desafio recusado.');
+    load();
+  }
+
+  async function cancelarDesafio(desafioId) {
+    if (!confirm('Cancelar esse desafio?')) return;
+    setBusy(true);
+    const res = await fetch(`/api/desafios/${desafioId}/cancelar`, { method: 'POST' });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { showToast(json.error || 'Não consegui cancelar o desafio.', 'error'); return; }
+    showToast('Desafio cancelado.');
+    load();
+  }
+
   async function excluirTime() {
     if (!confirm(`Excluir o time ${data.time.nome} pra sempre? Todos os membros perdem acesso e isso não pode ser desfeito.`)) return;
     setBusy(true);
@@ -110,7 +144,7 @@ export default function TimeClient({ id }) {
     );
   }
 
-  const { time, capitao, membros, pendentes, souCapitao } = data;
+  const { time, capitao, membros, pendentes, souCapitao, desafiosRecebidos = [], desafiosEnviados = [] } = data;
   const membrosIds = membros.map((m) => m.profiles?.id).filter(Boolean);
   const minhaMembresia = user ? membros.find((m) => m.user_id === user.id) : null;
   const outrosMembrosAprovados = membros.filter((m) => m.user_id !== user?.id && m.profiles).map((m) => m.profiles);
@@ -159,6 +193,9 @@ export default function TimeClient({ id }) {
           <BackLink href="/times" />
           {souCapitao && (
             <button type="button" className="pl-share-btn" style={{ marginTop: 0 }} onClick={() => setShowEdit(true)} disabled={busy}>Editar time</button>
+          )}
+          {user && !minhaMembresia && time.aceita_desafios && (
+            <TicketButton compact style={{ marginTop: 0 }} onClick={() => setShowDesafiar(true)}>Desafiar</TicketButton>
           )}
         </div>
       </div>
@@ -266,6 +303,49 @@ export default function TimeClient({ id }) {
             </>
           )}
 
+          {desafiosRecebidos.length > 0 && (
+            <>
+              <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>
+                Desafios recebidos
+              </div>
+              <div className="pl-list" style={{ paddingBottom: 24 }}>
+                {desafiosRecebidos.map((d) => (
+                  <div key={d.id} className="pl-card">
+                    <Avatar nome={d.timeAdversario?.nome || '?'} size={48} fotoUrl={d.timeAdversario?.escudo_url} />
+                    <div className="pl-info">
+                      <h3>{d.timeAdversario?.nome}</h3>
+                      <p className="meta">{d.local} · {d.data} às {d.horario}</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" className="pl-btn-secondary" onClick={() => recusarDesafio(d.id)} disabled={busy}>Recusar</button>
+                      <TicketButton compact onClick={() => aceitarDesafio(d.id)} disabled={busy}>Aceitar</TicketButton>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {desafiosEnviados.length > 0 && (
+            <>
+              <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>
+                Desafios enviados
+              </div>
+              <div className="pl-list" style={{ paddingBottom: 24 }}>
+                {desafiosEnviados.map((d) => (
+                  <div key={d.id} className="pl-card">
+                    <Avatar nome={d.timeAdversario?.nome || '?'} size={48} fotoUrl={d.timeAdversario?.escudo_url} />
+                    <div className="pl-info">
+                      <h3>{d.timeAdversario?.nome}</h3>
+                      <p className="meta">{d.local} · {d.data} às {d.horario} · Aguardando resposta</p>
+                    </div>
+                    <button type="button" className="pl-share-btn" onClick={() => cancelarDesafio(d.id)} disabled={busy}>Cancelar</button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
           <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>
             Gerenciar time
           </div>
@@ -292,6 +372,14 @@ export default function TimeClient({ id }) {
           membros={outrosMembrosAprovados}
           onClose={() => setShowTransferir(false)}
           onTransferred={() => { setShowTransferir(false); load(); }}
+        />
+      )}
+
+      {showDesafiar && (
+        <DesafiarTimeModal
+          time={time}
+          onClose={() => setShowDesafiar(false)}
+          onDesafiado={() => { setShowDesafiar(false); showToast(`Desafio enviado pro ${time.nome}!`); }}
         />
       )}
     </div>
