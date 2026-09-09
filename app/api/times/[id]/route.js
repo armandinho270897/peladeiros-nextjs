@@ -7,6 +7,14 @@ import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
 
+// Mesmo bug de cache já corrigido em /api/games e /api/games/mapa: o Data
+// Cache do Next pra chamadas fetch (usadas pelo supabase-js por baixo) pode
+// servir uma resposta antiga mesmo a rota sendo dinâmica. Achado ao vivo
+// aqui: minhaRelacao ficava "null" na tela depois de pedir pra entrar,
+// mesmo a linha já existindo no banco — a rota GET servia cache.
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export async function GET(request, { params }) {
   const { id } = params;
 
