@@ -29,7 +29,7 @@ export async function GET(request, { params }) {
 
   const { data: membrosRows } = await supabase
     .from('time_membros')
-    .select('id, papel, status, user_id')
+    .select('id, papel, status, user_id, posicao, numero_camisa, mensalista')
     .eq('time_id', id)
     .eq('status', 'aprovado');
 
