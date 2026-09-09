@@ -277,7 +277,7 @@ export default function NewGameModal({ onCancel, onCreated }) {
                 </select>
                 {timeVinculado && (
                   <p style={{ fontSize: 11, color: 'var(--paper-dim)', marginTop: 4 }}>
-                    Todos os membros aprovados do time entram como solicitação pendente assim que a pelada for publicada.
+                    Todos os membros aprovados do time já entram confirmados assim que a pelada for publicada (ou no banco de reservas, se a vaga já tiver estourado).
                   </p>
                 )}
               </div>

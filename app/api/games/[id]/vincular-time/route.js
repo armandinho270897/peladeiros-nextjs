@@ -4,9 +4,12 @@ import { authorizeGameOwner } from '@/lib/gameAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 
-// Vincula um time a uma pelada: cria solicitação PENDENTE pra cada membro
-// aprovado do time de uma vez (o capitão da pelada segue aprovando cada um
-// normalmente, igual qualquer outra solicitação) — não entra direto aprovado.
+// Vincula um time a uma pelada: os membros aprovados do time entram DIRETO
+// (aprovado, dentro da capacidade restante — mesmo critério que
+// jogadoresIniciais já usa em POST /api/games; espera se estourar), sem
+// passar pela fila de aprovação do capitão — é essa a vantagem real de
+// fazer parte do time, que antes não existia (todo mundo virava só mais
+// uma solicitação pendente igual um estranho).
 export async function POST(request, { params }) {
   if (!checkRateLimit(`games:vincular-time:${getClientIp(request)}`)) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
@@ -19,7 +22,7 @@ export async function POST(request, { params }) {
   const auth = await authorizeGameOwner(id, codigo);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { data: game } = await supabase.from('games').select('local').eq('id', id).single();
+  const { data: game } = await supabase.from('games').select('local, vagas_totais').eq('id', id).single();
   if (!game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
 
   const { data: time } = await supabase.from('times').select('nome').eq('id', timeId).single();
@@ -34,8 +37,9 @@ export async function POST(request, { params }) {
     ? await supabase.from('profiles').select('id, nome, whatsapp, bairro').in('id', idsMembros)
     : { data: [] };
 
-  const { data: jaConfirmados } = await supabase.from('confirmacoes').select('user_id').eq('game_id', id);
+  const { data: jaConfirmados } = await supabase.from('confirmacoes').select('user_id, status').eq('game_id', id);
   const idsExistentes = new Set((jaConfirmados || []).map((c) => c.user_id));
+  let vagasRestantes = game.vagas_totais - (jaConfirmados || []).filter((c) => ['aprovado', 'aguardando_confirmacao'].includes(c.status)).length;
 
   let convidados = 0;
   let jaExistentes = 0;
@@ -43,17 +47,22 @@ export async function POST(request, { params }) {
   for (const p of perfis || []) {
     if (idsExistentes.has(p.id)) { jaExistentes++; continue; }
 
+    const status = vagasRestantes > 0 ? 'aprovado' : 'espera';
+
     const { error } = await supabase
       .from('confirmacoes')
-      .insert({ game_id: id, user_id: p.id, nome: p.nome, whatsapp: p.whatsapp, bairro: p.bairro, status: 'pendente' });
+      .insert({ game_id: id, user_id: p.id, nome: p.nome, whatsapp: p.whatsapp, bairro: p.bairro, status });
     if (error) continue;
 
+    if (status === 'aprovado') vagasRestantes--;
     convidados++;
     await createNotification({
       userId: p.id,
       tipo: 'convite_time_pelada',
       gameId: id,
-      mensagem: `Seu time ${time.nome} foi vinculado à pelada em ${game.local}. Sua presença está pendente de aprovação do capitão.`,
+      mensagem: status === 'aprovado'
+        ? `Seu time ${time.nome} foi vinculado à pelada em ${game.local}. Você já está confirmado!`
+        : `Seu time ${time.nome} foi vinculado à pelada em ${game.local}, mas sem vaga agora — você entrou no banco de reservas.`,
     });
   }
 
