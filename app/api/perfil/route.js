@@ -225,11 +225,10 @@ export async function GET(request) {
 
   // atual/meta só preenchidos pras conquistas com uma meta numérica clara
   // ("x de y"); pra binárias (avaliacao_cinco) ficam null — ver
-  // ConquistasBadges.js, único consumidor hoje (Perfil).
+  // ConquistasBadges.js, único consumidor hoje (Perfil). "Primeira pelada"/
+  // "5 peladas"/"10 peladas" saíram daqui — redundantes com a patente
+  // (lib/patentes.js), que já mede exatamente peladas jogadas.
   const conquistas = [
-    { id: 'primeira_pelada', titulo: 'Primeira pelada', descricao: 'Jogou a primeira pelada', desbloqueada: peladasJogadas >= 1, atual: peladasJogadas, meta: 1 },
-    { id: 'cinco_peladas', titulo: '5 peladas', descricao: 'Já jogou 5 peladas', desbloqueada: peladasJogadas >= 5, atual: peladasJogadas, meta: 5 },
-    { id: 'dez_peladas', titulo: '10 peladas', descricao: 'Já jogou 10 peladas', desbloqueada: peladasJogadas >= 10, atual: peladasJogadas, meta: 10 },
     { id: 'avaliacao_cinco', titulo: 'Cinco estrelas', descricao: 'Recebeu uma avaliação 5 estrelas', desbloqueada: temAvaliacaoCinco, atual: null, meta: null },
     { id: 'brabo_que_comanda', titulo: 'O Brabo que Comanda', descricao: `Comandou ${BRABO_THRESHOLD} peladas sem perrengue de última hora`, desbloqueada: ehCapitao, atual: brabo, meta: BRABO_THRESHOLD },
   ];
