@@ -40,11 +40,12 @@ function urlOtimizada(src) {
 // (não pelo nome de exibição) — um ajuste de copy no nome da patente não
 // pode silenciosamente quebrar essa tabela.
 const AURA_POR_PATENTE_ID = {
-  novato: { opacity: 0.05, w: 220, h: 160 },
-  cria: { opacity: 0.09, w: 260, h: 190 },
-  estrela: { opacity: 0.14, w: 300, h: 220 },
-  referencia: { opacity: 0.19, w: 340, h: 250 },
-  lenda: { opacity: 0.26, w: 400, h: 300 },
+  gandula: { opacity: 0.05, w: 220, h: 160 },
+  cafeleite: { opacity: 0.09, w: 256, h: 188 },
+  fraudinha: { opacity: 0.13, w: 292, h: 216 },
+  classico: { opacity: 0.18, w: 328, h: 244 },
+  firulamen: { opacity: 0.22, w: 364, h: 272 },
+  bradock: { opacity: 0.26, w: 400, h: 300 },
 };
 // Confere em tempo de import que toda patente conhecida tem aura definida —
 // se uma nova patente for adicionada em lib/patentes.js e essa tabela não
@@ -53,7 +54,7 @@ const AURA_POR_PATENTE_ID = {
 for (const p of PATENTES) {
   if (!AURA_POR_PATENTE_ID[p.id]) console.error(`HomeHero: falta aura pra patente "${p.id}" (${p.nome})`);
 }
-const AURA_PADRAO = AURA_POR_PATENTE_ID.novato;
+const AURA_PADRAO = AURA_POR_PATENTE_ID.gandula;
 
 // Parallax em 3 camadas, sem lib: um listener de scroll com rAF move o
 // fundo (arte artística sorteada, quase parado) e a camada intermediária

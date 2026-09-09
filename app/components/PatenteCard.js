@@ -7,7 +7,7 @@ const CHAVE_PATENTE_VISTA = 'pl-patente-vista';
 // Mesma lógica de "primeira vez roda, só semeia" que o antigo card de
 // conquista recém-desbloqueada usava (localStorage com o último estado
 // visto) — evita mostrar a celebração pra quem só acabou de logar num
-// aparelho novo e já tinha, digamos, "Cria da Rua" há meses.
+// aparelho novo e já tinha, digamos, "Fraudinha" há meses.
 // `ativo=false` desliga a checagem inteira (não só a celebração visual) —
 // necessário pra reaproveitar o card no perfil PÚBLICO de outra pessoa:
 // sem isso, a chave de localStorage (global, não por-usuário-visitado)
@@ -32,8 +32,10 @@ function usePatenteSubiu(nomeAtual, ativo) {
 }
 
 // Bloco 3 — patente atual + progresso até a próxima, com o selo "· Capitão"
-// pra quem já desbloqueou "O Brabo que Comanda". Patente máxima (Lenda do
-// Bairro) não tem próxima, então some a barra sem frase substituta.
+// pra quem já desbloqueou "O Brabo que Comanda". Patente máxima (Bradock
+// Peladeiros) não tem próxima, então some a barra sem frase substituta.
+// Só mostra a patente atual (e, no máximo, o nome da próxima na barra de
+// progresso) — nunca a lista completa das 6.
 // `celebrar=false` no perfil de outra pessoa (ver usePatenteSubiu acima).
 export default function PatenteCard({ patente, celebrar = true }) {
   const subiu = usePatenteSubiu(patente?.nome, celebrar);
