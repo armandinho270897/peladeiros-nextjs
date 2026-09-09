@@ -27,24 +27,36 @@ export async function GET(request, { params }) {
   const souCapitao = !!user && (membrosRows || []).some((m) => m.papel === 'capitao' && m.user_id === user.id);
 
   let pendentesRows = [];
+  let solicitacoesRows = [];
   let desafiosRecebidos = [];
   let desafiosEnviados = [];
   if (souCapitao) {
-    const [{ data: pendData }, { data: recebidosData }, { data: enviadosData }] = await Promise.all([
+    const [{ data: pendData }, { data: solicData }, { data: recebidosData }, { data: enviadosData }] = await Promise.all([
       supabase.from('time_membros').select('id, user_id').eq('time_id', id).eq('status', 'pendente'),
+      supabase.from('time_membros').select('id, user_id').eq('time_id', id).eq('status', 'solicitado'),
       supabase.from('desafios').select('*, times!desafios_time_desafiante_id_fkey(nome, escudo_url)').eq('time_desafiado_id', id).eq('status', 'pendente').order('created_at', { ascending: false }),
       supabase.from('desafios').select('*, times!desafios_time_desafiado_id_fkey(nome, escudo_url)').eq('time_desafiante_id', id).eq('status', 'pendente').order('created_at', { ascending: false }),
     ]);
     pendentesRows = pendData || [];
+    solicitacoesRows = solicData || [];
     desafiosRecebidos = (recebidosData || []).map((d) => ({ ...d, timeAdversario: d.times }));
     desafiosEnviados = (enviadosData || []).map((d) => ({ ...d, timeAdversario: d.times }));
+  }
+
+  // Status da relação do próprio visitante com este time (fora do que já
+  // vem em `membros`, que só traz aprovados) — deixa a ficha técnica saber
+  // se mostra "Pedir pra entrar", "Pedido enviado" ou nada.
+  let minhaRelacao = null;
+  if (user) {
+    const { data } = await supabase.from('time_membros').select('status').eq('time_id', id).eq('user_id', user.id).maybeSingle();
+    minhaRelacao = data?.status || null;
   }
 
   // profiles não tem FK direta com time_membros (ambos só referenciam
   // auth.users) — PostgREST não consegue embedar automaticamente, então
   // busca à parte e junta em JS, mesmo padrão usado em toda rota que
   // cruza confirmacoes/time_membros com profiles.
-  const idsRelevantes = [...new Set([...(membrosRows || []).map((m) => m.user_id), ...pendentesRows.map((p) => p.user_id)])];
+  const idsRelevantes = [...new Set([...(membrosRows || []).map((m) => m.user_id), ...pendentesRows.map((p) => p.user_id), ...solicitacoesRows.map((s) => s.user_id)])];
   const { data: perfis } = idsRelevantes.length > 0
     ? await supabase.from('profiles').select('id, nome, foto_url, modalidade_principal, posicoes').in('id', idsRelevantes)
     : { data: [] };
@@ -52,6 +64,7 @@ export async function GET(request, { params }) {
 
   const membros = (membrosRows || []).map((m) => ({ ...m, profiles: perfilPorId[m.user_id] || null }));
   const pendentes = pendentesRows.map((p) => ({ ...p, profiles: perfilPorId[p.user_id] || null }));
+  const solicitacoes = solicitacoesRows.map((s) => ({ ...s, profiles: perfilPorId[s.user_id] || null }));
   const capitao = membros.find((m) => m.papel === 'capitao')?.profiles || null;
 
   return NextResponse.json({
@@ -59,6 +72,8 @@ export async function GET(request, { params }) {
     capitao,
     membros,
     pendentes,
+    solicitacoes,
+    minhaRelacao,
     desafiosRecebidos,
     desafiosEnviados,
     souCapitao,

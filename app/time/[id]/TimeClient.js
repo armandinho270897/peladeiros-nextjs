@@ -101,6 +101,36 @@ export default function TimeClient({ id }) {
     load();
   }
 
+  async function pedirEntrada() {
+    setBusy(true);
+    const res = await fetch(`/api/times/${id}/pedir-entrada`, { method: 'POST' });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { showToast(json.error || 'Não consegui enviar o pedido.', 'error'); return; }
+    showToast('Pedido enviado! O capitão vai responder em breve.');
+    load();
+  }
+
+  async function aprovarSolicitacao(solicitacaoId, nome) {
+    setBusy(true);
+    const res = await fetch(`/api/time-membros/${solicitacaoId}/aprovar-solicitacao`, { method: 'POST' });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { showToast(json.error || 'Não consegui aprovar o pedido.', 'error'); return; }
+    showToast(`${nome} agora é do time!`);
+    load();
+  }
+
+  async function rejeitarSolicitacao(solicitacaoId) {
+    setBusy(true);
+    const res = await fetch(`/api/time-membros/${solicitacaoId}/rejeitar-solicitacao`, { method: 'POST' });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { showToast(json.error || 'Não consegui recusar o pedido.', 'error'); return; }
+    showToast('Pedido recusado.');
+    load();
+  }
+
   async function cancelarDesafio(desafioId) {
     if (!confirm('Cancelar esse desafio?')) return;
     setBusy(true);
@@ -144,11 +174,12 @@ export default function TimeClient({ id }) {
     );
   }
 
-  const { time, capitao, membros, pendentes, souCapitao, desafiosRecebidos = [], desafiosEnviados = [] } = data;
+  const { time, capitao, membros, pendentes, solicitacoes = [], minhaRelacao, souCapitao, desafiosRecebidos = [], desafiosEnviados = [] } = data;
   const membrosIds = membros.map((m) => m.profiles?.id).filter(Boolean);
   const minhaMembresia = user ? membros.find((m) => m.user_id === user.id) : null;
   const outrosMembrosAprovados = membros.filter((m) => m.user_id !== user?.id && m.profiles).map((m) => m.profiles);
   const recrutamento = RECRUTAMENTO_INFO[time.recrutamento];
+  const podePedirEntrada = !!user && !minhaMembresia && time.recrutamento !== 'fechado' && minhaRelacao !== 'solicitado' && minhaRelacao !== 'pendente';
 
   // Agrupa o elenco por zona (Goleiro/Defesa/Meio-campo/Ataque), a partir
   // da primeira posição cadastrada no perfil de cada jogador — mesma fonte
@@ -194,9 +225,17 @@ export default function TimeClient({ id }) {
           {souCapitao && (
             <button type="button" className="pl-share-btn" style={{ marginTop: 0 }} onClick={() => setShowEdit(true)} disabled={busy}>Editar time</button>
           )}
-          {user && !minhaMembresia && time.aceita_desafios && (
-            <TicketButton compact style={{ marginTop: 0 }} onClick={() => setShowDesafiar(true)}>Desafiar</TicketButton>
-          )}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {user && !minhaMembresia && time.aceita_desafios && (
+              <TicketButton compact style={{ marginTop: 0 }} onClick={() => setShowDesafiar(true)}>Desafiar</TicketButton>
+            )}
+            {podePedirEntrada && (
+              <TicketButton compact style={{ marginTop: 0 }} onClick={pedirEntrada} disabled={busy}>Pedir pra entrar</TicketButton>
+            )}
+            {minhaRelacao === 'solicitado' && (
+              <span className="pl-time-card-recrutamento aberto">Pedido enviado</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -297,6 +336,26 @@ export default function TimeClient({ id }) {
                   <div key={m.id} className="pl-card">
                     <Avatar nome={m.profiles?.nome || '?'} size={48} fotoUrl={m.profiles?.foto_url} />
                     <div className="pl-info"><h3>{m.profiles?.nome}</h3><p className="meta">Aguardando resposta</p></div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {solicitacoes.length > 0 && (
+            <>
+              <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>
+                Pedidos pra entrar
+              </div>
+              <div className="pl-list" style={{ paddingBottom: 24 }}>
+                {solicitacoes.map((s) => (
+                  <div key={s.id} className="pl-card">
+                    <Avatar nome={s.profiles?.nome || '?'} size={48} fotoUrl={s.profiles?.foto_url} />
+                    <div className="pl-info"><h3>{s.profiles?.nome}</h3></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" className="pl-btn-secondary" onClick={() => rejeitarSolicitacao(s.id)} disabled={busy}>Recusar</button>
+                      <TicketButton compact onClick={() => aprovarSolicitacao(s.id, s.profiles?.nome)} disabled={busy}>Aprovar</TicketButton>
+                    </div>
                   </div>
                 ))}
               </div>
