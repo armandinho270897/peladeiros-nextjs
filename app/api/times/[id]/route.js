@@ -6,6 +6,7 @@ import { authorizeTimeCaptain } from '@/lib/timeAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
+import { notaMediaPonderada } from '@/lib/moral';
 
 // Mesmo bug de cache já corrigido em /api/games e /api/games/mapa: o Data
 // Cache do Next pra chamadas fetch (usadas pelo supabase-js por baixo) pode
@@ -51,6 +52,23 @@ export async function GET(request, { params }) {
     desafiosEnviados = (enviadosData || []).map((d) => ({ ...d, timeAdversario: d.times }));
   }
 
+  // Estatística simples da ficha técnica — só agrega o que já existe, sem
+  // conceito novo de "moral de time"/ranking. Confrontos = desafios aceitos
+  // (o único vínculo formal time<->pelada que existe hoje); nota do elenco
+  // = mesma ponderação (capitão pesa mais) já usada pra nota individual,
+  // aplicada ao conjunto de avaliações de todos os membros aprovados.
+  const membrosAprovadosIds = (membrosRows || []).map((m) => m.user_id);
+  const [{ count: confrontosDisputados }, { data: avaliacoesElenco }] = await Promise.all([
+    supabase.from('desafios').select('id', { count: 'exact', head: true }).eq('status', 'aceito').or(`time_desafiante_id.eq.${id},time_desafiado_id.eq.${id}`),
+    membrosAprovadosIds.length > 0
+      ? supabase.from('avaliacoes').select('nota, tipo').in('avaliado_id', membrosAprovadosIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+  const stats = {
+    confrontosDisputados: confrontosDisputados || 0,
+    notaMediaElenco: notaMediaPonderada(avaliacoesElenco),
+  };
+
   // Status da relação do próprio visitante com este time (fora do que já
   // vem em `membros`, que só traz aprovados) — deixa a ficha técnica saber
   // se mostra "Pedir pra entrar", "Pedido enviado" ou nada.
@@ -82,6 +100,7 @@ export async function GET(request, { params }) {
     pendentes,
     solicitacoes,
     minhaRelacao,
+    stats,
     desafiosRecebidos,
     desafiosEnviados,
     souCapitao,

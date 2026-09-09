@@ -174,7 +174,7 @@ export default function TimeClient({ id }) {
     );
   }
 
-  const { time, capitao, membros, pendentes, solicitacoes = [], minhaRelacao, souCapitao, desafiosRecebidos = [], desafiosEnviados = [] } = data;
+  const { time, capitao, membros, pendentes, solicitacoes = [], minhaRelacao, souCapitao, desafiosRecebidos = [], desafiosEnviados = [], stats } = data;
   const membrosIds = membros.map((m) => m.profiles?.id).filter(Boolean);
   const minhaMembresia = user ? membros.find((m) => m.user_id === user.id) : null;
   const outrosMembrosAprovados = membros.filter((m) => m.user_id !== user?.id && m.profiles).map((m) => m.profiles);
@@ -261,6 +261,19 @@ export default function TimeClient({ id }) {
           )}
         </div>
       </div>
+
+      {stats && (stats.confrontosDisputados > 0 || stats.notaMediaElenco != null) && (
+        <div className="pl-perfil-stats">
+          <div className="pl-stat">
+            <div className="num">{stats.confrontosDisputados}</div>
+            <div className="label">Confrontos disputados</div>
+          </div>
+          <div className="pl-stat">
+            <div className="num">{stats.notaMediaElenco != null ? stats.notaMediaElenco.toFixed(1) : '—'}</div>
+            <div className="label">Nota média do elenco</div>
+          </div>
+        </div>
+      )}
 
       {(time.cor_primaria || time.cor_secundaria) && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, maxWidth: 640, margin: '0 auto 14px', padding: '0 16px' }}>
