@@ -1,13 +1,7 @@
-import ConquistaPrimeiraPeladaIcon from './ConquistaPrimeiraPeladaIcon';
-import ConquistaCincoPeladasIcon from './ConquistaCincoPeladasIcon';
-import ConquistaDezPeladasIcon from './ConquistaDezPeladasIcon';
 import ConquistaAvaliacaoCincoIcon from './ConquistaAvaliacaoCincoIcon';
 import ConquistaBraboQueComandaIcon from './ConquistaBraboQueComandaIcon';
 
 const ICONE = {
-  primeira_pelada: ConquistaPrimeiraPeladaIcon,
-  cinco_peladas: ConquistaCincoPeladasIcon,
-  dez_peladas: ConquistaDezPeladasIcon,
   avaliacao_cinco: ConquistaAvaliacaoCincoIcon,
   brabo_que_comanda: ConquistaBraboQueComandaIcon,
 };
