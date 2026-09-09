@@ -174,7 +174,7 @@ export async function GET(request) {
   ] = await Promise.all([
     supabase.from('confirmacoes').select('id', { count: 'exact', head: true }).eq('user_id', targetId).eq('status', 'aprovado'),
     supabase.from('games').select('id', { count: 'exact', head: true }).eq('owner_id', targetId),
-    supabase.from('avaliacoes').select('nota, tipo').eq('avaliado_id', targetId),
+    supabase.from('avaliacoes').select('nota, tipo, tag').eq('avaliado_id', targetId),
     supabase.from('confirmacoes').select('game_id, presente').eq('user_id', targetId).eq('status', 'aprovado'),
     supabase.from('time_membros').select('papel, times(id, nome, escudo_url, bairro, modalidade)').eq('user_id', targetId).eq('status', 'aprovado'),
     souEu ? aprovacoesPendentes(targetId) : Promise.resolve([]),
@@ -236,6 +236,21 @@ export async function GET(request) {
 
   const patente = patenteDe(peladasJogadas, ehCapitao);
 
+  // Tags são texto livre digitado em cada avaliação (ex: "bom de bola",
+  // "Bom De Bola") — agrupa por texto normalizado (trim+minúsculo) pra não
+  // espalhar a mesma tag em várias entradas, mas mostra com a capitalização
+  // da primeira ocorrência. Só as mais recebidas (top 8) viram selo.
+  const contagemTags = new Map();
+  for (const a of avaliacoesRecebidas || []) {
+    const bruta = (a.tag || '').trim();
+    if (!bruta) continue;
+    const chave = bruta.toLowerCase();
+    const atual = contagemTags.get(chave);
+    if (atual) atual.count++;
+    else contagemTags.set(chave, { tag: bruta, count: 1 });
+  }
+  const tags = Array.from(contagemTags.values()).sort((a, b) => b.count - a.count).slice(0, 8);
+
   return NextResponse.json({
     profile: souEu ? profile : { ...profile, whatsapp: undefined, notif_prefs: undefined },
     souEu,
@@ -243,6 +258,7 @@ export async function GET(request) {
     historico,
     conquistas,
     patente,
+    tags,
     proximaConfirmada,
     times,
     acaoPendente: { aprovacoes: acaoAprovacoes, vagaConfirmar: acaoVaga },

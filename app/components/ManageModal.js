@@ -2,9 +2,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getCaptainCode, saveCaptainCode } from '@/lib/captainCodes';
 import { pendentesDe, aguardandoConfirmacaoDe, POSICAO_LABEL, emCimaDaHora } from '@/lib/gameUtils';
+import { useArenas } from '@/lib/useArenas';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
 import PlayerSearch from './PlayerSearch';
+import TipoJogoIcon, { TIPOS_JOGO } from './TipoJogoIcon';
 
 export default function ManageModal({ game, onClose, onSaved }) {
   const semOwner = !game.owner_id;
@@ -15,6 +17,37 @@ export default function ManageModal({ game, onClose, onSaved }) {
   const [gameData, setGameData] = useState(game);
   const [actingId, setActingId] = useState(null);
   const [respostas, setRespostas] = useState({});
+  const { arenas } = useArenas();
+
+  // Arena/tipo/nível/valor/regras precisam de estado controlado (o resto do
+  // form usa `f.campo.value` sem state) pra escolher uma arena já preencher
+  // local/bairro sozinho, igual ao wizard de criar pelada.
+  const [arenaId, setArenaId] = useState(game.arena_id || '');
+  const [local, setLocal] = useState(game.local || '');
+  const [bairro, setBairro] = useState(game.bairro || '');
+  const [tipo, setTipo] = useState(game.tipo || '');
+  const [nivel, setNivel] = useState(game.nivel || '');
+  const [valor, setValor] = useState(game.valor != null ? String(game.valor) : '');
+  const [regras, setRegras] = useState(game.regras || '');
+
+  useEffect(() => {
+    setArenaId(gameData.arena_id || '');
+    setLocal(gameData.local || '');
+    setBairro(gameData.bairro || '');
+    setTipo(gameData.tipo || '');
+    setNivel(gameData.nivel || '');
+    setValor(gameData.valor != null ? String(gameData.valor) : '');
+    setRegras(gameData.regras || '');
+  }, [gameData]);
+
+  function handleArenaChange(id) {
+    setArenaId(id);
+    if (!id) return;
+    const arena = arenas.find((a) => a.id === id);
+    if (!arena) return;
+    setLocal(arena.nome);
+    setBairro(arena.bairro);
+  }
 
   function setResposta(id, valor) {
     setRespostas((prev) => ({ ...prev, [id]: valor }));
@@ -43,11 +76,16 @@ export default function ManageModal({ game, onClose, onSaved }) {
     const f = e.target;
     const body = {
       codigo,
-      local: f.local.value.trim(),
-      bairro: f.bairro.value.trim(),
+      local: local.trim(),
+      bairro: bairro.trim(),
       data: f.data.value,
       horario: f.horario.value,
       vagasTotais: parseInt(f.vagas.value, 10),
+      arenaId: arenaId || null,
+      tipo: tipo || null,
+      nivel: nivel || null,
+      valor: valor ? parseFloat(valor) : null,
+      regras: regras.trim() || null,
     };
     const res = await fetch(`/api/games/${game.id}`, { method: 'PATCH', body: JSON.stringify(body) });
     if (!res.ok) { const r = await res.json(); setError(r.error); return; }
@@ -190,11 +228,47 @@ export default function ManageModal({ game, onClose, onSaved }) {
         )}
 
         <form key="edit-form" onSubmit={handleSave}>
-          <div className="pl-field"><label>Local</label><input name="local" defaultValue={gameData.local} /></div>
-          <div className="pl-field"><label>Bairro</label><input name="bairro" defaultValue={gameData.bairro} /></div>
+          {arenas.length > 0 && (
+            <div className="pl-field">
+              <label>Vincular a uma arena existente (opcional)</label>
+              <select className="pl-select" style={{ width: '100%' }} value={arenaId} onChange={(e) => handleArenaChange(e.target.value)}>
+                <option value="">Nenhuma — local livre</option>
+                {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome} ({a.bairro})</option>)}
+              </select>
+            </div>
+          )}
+          <div className="pl-field"><label>Local</label><input value={local} onChange={(e) => setLocal(e.target.value)} /></div>
+          <div className="pl-field"><label>Bairro</label><input value={bairro} onChange={(e) => setBairro(e.target.value)} /></div>
           <div className="pl-field"><label>Data</label><input type="date" name="data" defaultValue={gameData.data} /></div>
           <div className="pl-field"><label>Horário</label><input type="time" name="horario" defaultValue={gameData.horario} /></div>
           <div className="pl-field"><label>Vagas totais</label><input type="number" name="vagas" defaultValue={gameData.vagas_totais} /></div>
+          <div className="pl-field">
+            <label>Tipo de jogo (opcional)</label>
+            <div className="pl-tipo-jogo-chips">
+              {TIPOS_JOGO.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  className={`pl-chip pl-tipo-jogo-chip ${tipo === t ? 'active' : ''}`}
+                  onClick={() => setTipo(tipo === t ? '' : t)}
+                >
+                  <TipoJogoIcon tipo={t} size={16} /> {t}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="pl-field">
+            <label>Nível (opcional)</label>
+            <select className="pl-select" style={{ width: '100%' }} value={nivel} onChange={(e) => setNivel(e.target.value)}>
+              <option value="">Não informar</option>
+              <option value="Iniciante">Iniciante</option>
+              <option value="Intermediário">Intermediário</option>
+              <option value="Avançado">Avançado</option>
+              <option value="Qualquer nível">Qualquer nível</option>
+            </select>
+          </div>
+          <div className="pl-field"><label>Valor por pessoa em R$ (opcional)</label><input type="number" min="0" step="0.5" value={valor} onChange={(e) => setValor(e.target.value)} /></div>
+          <div className="pl-field"><label>Regras (opcional)</label><textarea rows={3} value={regras} onChange={(e) => setRegras(e.target.value)} placeholder="Ex: goleiro fixo, times de 5, sem cartão amarelo..." /></div>
           {emCimaDaHora(gameData) && (
             <p className="pl-error">Tá em cima da hora — cancelar agora deixa todo mundo sem tempo de se reorganizar.</p>
           )}
