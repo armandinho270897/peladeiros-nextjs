@@ -8,6 +8,7 @@ import EmptyFieldIcon from '../../components/EmptyFieldIcon';
 import ConquistasBadges from '../../components/ConquistasBadges';
 import PatenteCard from '../../components/PatenteCard';
 import PerfilSobre from '../../components/PerfilSobre';
+import PerfilTags from '../../components/PerfilTags';
 import BackLink from '../../components/BackLink';
 import { fmtDate, MODALIDADE_LABEL, POSICAO_LABEL } from '@/lib/gameUtils';
 
@@ -66,7 +67,7 @@ export default function PerfilPublicoClient({ id }) {
     );
   }
 
-  const { profile, stats, historico, conquistas, patente } = data;
+  const { profile, stats, historico, conquistas, patente, tags } = data;
 
   return (
     <div>
@@ -112,6 +113,8 @@ export default function PerfilPublicoClient({ id }) {
       </div>
 
       <PatenteCard patente={patente} celebrar={false} />
+
+      <PerfilTags tags={tags} />
 
       <PerfilSobre profile={profile} />
 

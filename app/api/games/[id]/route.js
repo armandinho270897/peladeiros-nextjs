@@ -35,14 +35,25 @@ export async function GET(request, { params }) {
 export async function PATCH(request, { params }) {
   const { id } = params;
   const body = await request.json();
-  const { codigo, local, bairro, data, horario, vagasTotais } = body;
+  const { codigo, local, bairro, data, horario, vagasTotais, arenaId, tipo, nivel, valor, regras } = body;
 
   const auth = await authorizeGameOwner(id, codigo);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const { error } = await supabase
     .from('games')
-    .update({ local, bairro, data, horario, vagas_totais: vagasTotais })
+    .update({
+      local,
+      bairro,
+      data,
+      horario,
+      vagas_totais: vagasTotais,
+      arena_id: arenaId || null,
+      tipo: tipo || null,
+      nivel: nivel || null,
+      valor: valor || null,
+      regras: regras || null,
+    })
     .eq('id', id);
 
   if (error) return errJson(error.message, 500);
