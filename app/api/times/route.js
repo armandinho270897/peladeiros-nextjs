@@ -5,6 +5,11 @@ import * as Sentry from '@sentry/nextjs';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { errJson } from '@/lib/apiError';
 
+// Mesmo bug de cache já corrigido em /api/games, /api/games/mapa e
+// /api/times/[id] — ver comentário lá pro histórico completo.
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export async function GET(request) {
   const authClient = createServerClient();
   const { data: { user } } = await authClient.auth.getUser();
