@@ -67,6 +67,7 @@ export default function PerfilPage() {
           )}
           <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
             <button className="pl-share-btn" onClick={() => setEditOpen(true)}>Editar perfil</button>
+            <Link href="/minhas-peladas" className="pl-share-btn" style={{ textDecoration: 'none' }}>Minhas peladas</Link>
             <Link href="/times" className="pl-share-btn" style={{ textDecoration: 'none' }}>Meus times</Link>
             <Link href="/configuracoes" className="pl-share-btn" style={{ textDecoration: 'none' }}>Notificações</Link>
             <button className="pl-share-btn" onClick={signOut}>Sair</button>
