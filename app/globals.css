@@ -823,7 +823,7 @@ body::after {
   .pl-onb-title span, .pl-onboarding-content p { animation: none; opacity: 1; transform: none; }
   .pl-onb-draw { animation: none; stroke-dashoffset: 0; }
   .pl-onb-fill { animation: none; opacity: 1; }
-  .pl-onb-check { animation: none; stroke-dashoffset: 0; transform: none; }
+  .pl-onb-badge { animation: none; opacity: 1; transform: none; }
   .pl-onb-spark { animation: none; opacity: 0; }
   .pl-onb-cta .pl-ticket-label::after { animation: none; display: none; }
   .pl-stagger-1, .pl-stagger-2, .pl-stagger-3 { animation: none; opacity: 1; transform: none; }
@@ -2053,18 +2053,23 @@ body::after {
 .pl-onb-fill { opacity: 0; animation: pl-onb-fill-in 400ms ease forwards; animation-delay: 750ms; }
 @keyframes pl-onb-fill-in { to { opacity: 1; } }
 
-/* Check de "confirmado" — desenha por último, dá um pop e solta umas
-   faíscas neon (confete bem discreto, 6 pontinhos saindo do centro). */
-.pl-onb-check { stroke-dasharray: 1; stroke-dashoffset: 1; animation: pl-onb-draw 400ms ease forwards, pl-onb-check-pop 320ms ease forwards; animation-delay: 750ms, 1080ms; transform-origin: 100px 60px; }
-@keyframes pl-onb-check-pop {
-  0% { transform: scale(1); }
-  55% { transform: scale(1.22); }
-  100% { transform: scale(1); }
+/* Selo de "confirmado" — aparece por último com um pop de mola e solta
+   umas faíscas neon (confete bem discreto, 6 pontinhos saindo do centro). */
+.pl-onb-badge { opacity: 0; transform-origin: 100px 59px; animation: pl-onb-badge-in 420ms cubic-bezier(.34,1.56,.64,1) forwards; animation-delay: 800ms; }
+@keyframes pl-onb-badge-in {
+  0% { opacity: 0; transform: scale(0.35); }
+  65% { opacity: 1; transform: scale(1.14); }
+  100% { opacity: 1; transform: scale(1); }
 }
-.pl-onb-spark { opacity: 0; animation: pl-onb-spark-burst 620ms ease-out forwards; animation-delay: 1080ms; transform-origin: 100px 60px; }
+.pl-onb-spark { opacity: 0; animation: pl-onb-spark-burst 620ms ease-out forwards; animation-delay: 1160ms; transform-origin: 100px 60px; }
 @keyframes pl-onb-spark-burst {
   0% { opacity: 1; transform: scale(0.3) translate(0, 0); }
   100% { opacity: 0; transform: scale(1) translate(var(--sx), var(--sy)); }
+}
+.pl-onb-twinkle { animation: pl-onb-twinkle 2.4s ease-in-out infinite; }
+@keyframes pl-onb-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1); }
 }
 
 /* Shimmer sutil no CTA do onboarding só — o resto do app mantém o
