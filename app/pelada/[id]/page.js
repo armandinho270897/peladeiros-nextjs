@@ -3,9 +3,11 @@ import { fmtDate, aprovadosDe } from '@/lib/gameUtils';
 import PeladaClient from './PeladaClient';
 
 async function fetchGame(id) {
+  // só usado pra montar título/descrição do generateMetadata (nunca chega
+  // ao navegador) — não precisa de nada além da contagem de status.
   const { data: game } = await supabase
     .from('games')
-    .select('*, confirmacoes(*)')
+    .select('*, confirmacoes(status)')
     .eq('id', id)
     .single();
   return game || null;
