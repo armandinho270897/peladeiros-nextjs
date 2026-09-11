@@ -14,7 +14,7 @@ export async function POST(request, { params }) {
   }
 
   const { id } = params;
-  const { codigo, ausentesIds } = await request.json().catch(() => ({}));
+  const { codigo, ausentesIds, placarTimeA, placarTimeB } = await request.json().catch(() => ({}));
 
   const auth = await authorizeGameOwner(id, codigo);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
@@ -43,7 +43,15 @@ export async function POST(request, { params }) {
     if (ausenteError) return errJson(ausenteError.message, 500);
   }
 
-  const { error } = await supabase.from('games').update({ encerrada_em: new Date().toISOString() }).eq('id', id);
+  // Placar é opcional — só existe faz sentido quando o capitão montou os
+  // times (A/B) antes do jogo. Number(undefined) === NaN, então checa
+  // explicitamente pra não gravar 0x0 quando ninguém preencheu nada.
+  const temPlacar = placarTimeA !== undefined && placarTimeA !== null && placarTimeB !== undefined && placarTimeB !== null;
+
+  const { error } = await supabase.from('games').update({
+    encerrada_em: new Date().toISOString(),
+    ...(temPlacar && { placar_time_a: Number(placarTimeA), placar_time_b: Number(placarTimeB) }),
+  }).eq('id', id);
   if (error) return errJson(error.message, 500);
 
   return NextResponse.json({ ok: true, presentes: presentesIds.length, ausentes: idsAusentesReais.length });

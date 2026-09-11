@@ -11,6 +11,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import ManageModal from '../../components/ManageModal';
 import CancelPresencaModal from '../../components/CancelPresencaModal';
 import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
+import MontarTimesModal from '../../components/MontarTimesModal';
 import PeladaAbas from '../../components/PeladaAbas';
 import GameArtBanner from '../../components/GameArtBanner';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
@@ -24,6 +25,14 @@ function podeEncerrar(game, user) {
   const podeEditar = !game.owner_id || game.owner_id === user?.id;
   if (!podeEditar) return false;
   return jaAconteceu(game);
+}
+
+// Times pra jogar podem ser montados/ajustados a qualquer momento antes da
+// pelada ser encerrada — não precisa esperar o horário passar como em
+// podeEncerrar (o ponto é montar ANTES de jogar).
+function podeMontarTimes(game, user) {
+  if (!game || game.encerrada_em) return false;
+  return !game.owner_id || game.owner_id === user?.id;
 }
 
 export default function PeladaClient({ id }) {
@@ -139,11 +148,29 @@ export default function PeladaClient({ id }) {
         />
       </div>
 
-      {podeEncerrar(game, user) && (
+      {game.encerrada_em && game.placar_time_a != null && game.placar_time_b != null && (
         <div className="pl-list" style={{ paddingTop: 0 }}>
-          <button type="button" className="pl-btn-secondary" style={{ width: '100%' }} onClick={() => setModal({ type: 'encerrar', game })}>
-            Encerrar partida
-          </button>
+          <div className="pl-card" style={{ display: 'block', textAlign: 'center' }}>
+            <div className="pl-pending-title pl-section-title">Resultado</div>
+            <p style={{ fontSize: 22, fontFamily: 'var(--font-display)', margin: 0 }}>
+              Time A {game.placar_time_a} x {game.placar_time_b} Time B
+            </p>
+          </div>
+        </div>
+      )}
+
+      {(podeEncerrar(game, user) || podeMontarTimes(game, user)) && (
+        <div className="pl-list" style={{ paddingTop: 0, display: 'flex', gap: 8 }}>
+          {podeMontarTimes(game, user) && (
+            <button type="button" className="pl-btn-secondary" style={{ flex: 1 }} onClick={() => setModal({ type: 'times', game })}>
+              Montar times
+            </button>
+          )}
+          {podeEncerrar(game, user) && (
+            <button type="button" className="pl-btn-secondary" style={{ flex: 1 }} onClick={() => setModal({ type: 'encerrar', game })}>
+              Encerrar partida
+            </button>
+          )}
         </div>
       )}
 
@@ -185,6 +212,14 @@ export default function PeladaClient({ id }) {
           game={modal.game}
           onClose={() => setModal(null)}
           onEncerrada={() => { setModal(null); loadGame(); showToast('Partida encerrada! Avaliações liberadas.'); }}
+        />
+      )}
+
+      {modal?.type === 'times' && (
+        <MontarTimesModal
+          game={modal.game}
+          onClose={() => setModal(null)}
+          onSaved={() => { setModal(null); loadGame(); showToast('Times salvos!'); }}
         />
       )}
     </div>

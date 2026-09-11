@@ -156,6 +156,9 @@ export default function PerfilPublicoClient({ id }) {
                   <p className="meta">{g.horario}</p>
                   <span className="pl-bairro-tag">{g.bairro}</span>
                   <p className="meta"><CaptainIcon /> Capitão: <b>{g.capitao}</b></p>
+                  {g.placar_time_a != null && g.placar_time_b != null && (
+                    <p className="meta">Placar: Time A {g.placar_time_a} x {g.placar_time_b} Time B</p>
+                  )}
                 </div>
               </div>
             );

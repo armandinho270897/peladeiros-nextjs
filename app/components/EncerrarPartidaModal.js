@@ -7,11 +7,14 @@ import TicketButton from './TicketButton';
 
 export default function EncerrarPartidaModal({ game, onClose, onEncerrada }) {
   const aprovados = aprovadosDe(game);
+  const temTimes = aprovados.some((c) => c.time === 'A' || c.time === 'B');
   const [presentes, setPresentes] = useState(() => {
     const initial = {};
     aprovados.forEach((c) => { initial[c.id] = true; });
     return initial;
   });
+  const [placarTimeA, setPlacarTimeA] = useState('');
+  const [placarTimeB, setPlacarTimeB] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -22,9 +25,14 @@ export default function EncerrarPartidaModal({ game, onClose, onEncerrada }) {
   async function handleConfirm() {
     setLoading(true);
     const ausentesIds = aprovados.filter((c) => !presentes[c.id]).map((c) => c.id);
+    const body = { codigo: getCaptainCode(game.id) || '', ausentesIds };
+    if (temTimes && placarTimeA !== '' && placarTimeB !== '') {
+      body.placarTimeA = placarTimeA;
+      body.placarTimeB = placarTimeB;
+    }
     const res = await fetch(`/api/games/${game.id}/encerrar`, {
       method: 'POST',
-      body: JSON.stringify({ codigo: getCaptainCode(game.id) || '', ausentesIds }),
+      body: JSON.stringify(body),
     });
     const result = await res.json();
     setLoading(false);
@@ -48,6 +56,16 @@ export default function EncerrarPartidaModal({ game, onClose, onEncerrada }) {
                 <span style={{ fontSize: 14 }}>{c.nome}</span>
               </label>
             ))}
+          </div>
+        )}
+        {temTimes && (
+          <div className="pl-field">
+            <label>Placar (opcional)</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <input type="number" min="0" placeholder="Time A" value={placarTimeA} onChange={(e) => setPlacarTimeA(e.target.value)} style={{ textAlign: 'center' }} />
+              <span>x</span>
+              <input type="number" min="0" placeholder="Time B" value={placarTimeB} onChange={(e) => setPlacarTimeB(e.target.value)} style={{ textAlign: 'center' }} />
+            </div>
           </div>
         )}
         {error && <p className="pl-error">{error}</p>}

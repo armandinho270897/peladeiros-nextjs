@@ -145,6 +145,9 @@ export default function PerfilPage() {
                   <p className="meta">{g.horario}</p>
                   <span className="pl-bairro-tag">{g.bairro}</span>
                   <p className="meta"><CaptainIcon /> Capitão: <b>{g.capitao}</b></p>
+                  {g.placar_time_a != null && g.placar_time_b != null && (
+                    <p className="meta">Placar: Time A {g.placar_time_a} x {g.placar_time_b} Time B</p>
+                  )}
                   {g.presente === false && <p className="meta" style={{ color: 'var(--tag-red)' }}>Falta registrada</p>}
                 </div>
                 <div style={{ textAlign: 'center' }}>

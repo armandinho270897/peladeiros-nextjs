@@ -196,7 +196,7 @@ export async function GET(request) {
   if (gameIds.length > 0) {
     const { data: games } = await supabase
       .from('games')
-      .select('id, local, bairro, data, horario, capitao, encerrada_em, owner_id, tipo')
+      .select('id, local, bairro, data, horario, capitao, encerrada_em, owner_id, tipo, placar_time_a, placar_time_b')
       .in('id', gameIds);
 
     const passadas = (games || [])
