@@ -84,6 +84,7 @@ export default function TimeWizardForm({ time, onClose, onSaved }) {
   const [aceitaDesafios, setAceitaDesafios] = useState(time?.aceita_desafios || false);
   const [faixaEtaria, setFaixaEtaria] = useState(time?.faixa_etaria || '');
   const [whatsappResponsavel, setWhatsappResponsavel] = useState(time?.whatsapp_responsavel || '');
+  const [mensalidadeValor, setMensalidadeValor] = useState(time?.mensalidade_valor ?? '');
 
   function handleEscudoChange(e) {
     const file = e.target.files?.[0];
@@ -131,6 +132,7 @@ export default function TimeWizardForm({ time, onClose, onSaved }) {
     form.set('aceitaDesafios', aceitaDesafios ? 'true' : 'false');
     form.set('faixaEtaria', faixaEtaria);
     form.set('whatsappResponsavel', whatsappResponsavel.trim());
+    form.set('mensalidadeValor', mensalidadeValor);
     if (escudoFile) form.set('escudo', escudoFile);
 
     const url = isEdit ? `/api/times/${time.id}` : '/api/times';
@@ -255,6 +257,7 @@ export default function TimeWizardForm({ time, onClose, onSaved }) {
               </label>
             </div>
             <div className="pl-field"><label>WhatsApp do responsável (opcional)</label><input value={whatsappResponsavel} onChange={(e) => setWhatsappResponsavel(e.target.value)} placeholder="Ex: 11999999999" /></div>
+            <div className="pl-field"><label>Mensalidade em R$ (opcional)</label><input type="number" min="0" step="0.5" value={mensalidadeValor} onChange={(e) => setMensalidadeValor(e.target.value)} placeholder="Ex: 50" /></div>
           </div>
         )}
 

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { getCaptainCode, saveCaptainCode } from '@/lib/captainCodes';
-import { pendentesDe, aguardandoConfirmacaoDe, POSICAO_LABEL, emCimaDaHora } from '@/lib/gameUtils';
+import { pendentesDe, aguardandoConfirmacaoDe, aprovadosDe, POSICAO_LABEL, emCimaDaHora } from '@/lib/gameUtils';
 import { useArenas } from '@/lib/useArenas';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
@@ -122,6 +122,24 @@ export default function ManageModal({ game, onClose, onSaved }) {
     reload();
   }
 
+  async function handleMarcarPago(id, pago) {
+    setActingId(id);
+    const res = await fetch(`/api/confirmacoes/${id}/pagamento`, { method: 'PATCH', body: JSON.stringify({ codigo, pago }) });
+    const result = await res.json();
+    setActingId(null);
+    if (!res.ok) { setError(result.error); return; }
+    setError('');
+    reload();
+  }
+
+  async function handleCobrarPagamento(id) {
+    setActingId(id);
+    const res = await fetch(`/api/confirmacoes/${id}/cobrar-pagamento`, { method: 'POST', body: JSON.stringify({ codigo }) });
+    const result = await res.json();
+    setActingId(null);
+    if (!res.ok) { setError(result.error); return; }
+  }
+
   async function handleAdicionarJogador(p) {
     setActingId(p.id || p.nome);
     const res = await fetch(`/api/games/${game.id}/adicionar-jogador`, { method: 'POST', body: JSON.stringify({ userId: p.id, nome: p.nome, codigo }) });
@@ -222,6 +240,28 @@ export default function ManageModal({ game, onClose, onSaved }) {
                     {prazoRestante(p.prazo_confirmacao) && <span>{prazoRestante(p.prazo_confirmacao)}</span>}
                   </div>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {gameData.valor != null && aprovadosDe(gameData).length > 0 && (
+          <div className="pl-pending-section">
+            <div className="pl-pending-title pl-section-title">Pagamentos — R$ {Number(gameData.valor).toFixed(2)} por pessoa</div>
+            {aprovadosDe(gameData).map((p) => (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+                <Avatar nome={p.nome} size={28} fotoUrl={p.foto_url} />
+                <span style={{ flex: 1, fontSize: 14 }}>{p.nome}</span>
+                {p.pago ? (
+                  <button type="button" className="pl-share-btn" disabled={actingId === p.id} onClick={() => handleMarcarPago(p.id, false)}>Pago ✓</button>
+                ) : (
+                  <>
+                    {p.user_id && (
+                      <button type="button" className="pl-share-btn" disabled={actingId === p.id} onClick={() => handleCobrarPagamento(p.id)}>Cobrar</button>
+                    )}
+                    <TicketButton compact disabled={actingId === p.id} onClick={() => handleMarcarPago(p.id, true)}>Marcar pago</TicketButton>
+                  </>
+                )}
               </div>
             ))}
           </div>

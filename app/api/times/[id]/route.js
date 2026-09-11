@@ -88,10 +88,32 @@ export async function GET(request, { params }) {
     : { data: [] };
   const perfilPorId = Object.fromEntries((perfis || []).map((p) => [p.id, p]));
 
-  const membros = (membrosRows || []).map((m) => ({ ...m, profiles: perfilPorId[m.user_id] || null }));
+  let membros = (membrosRows || []).map((m) => ({ ...m, profiles: perfilPorId[m.user_id] || null }));
   const pendentes = pendentesRows.map((p) => ({ ...p, profiles: perfilPorId[p.user_id] || null }));
   const solicitacoes = solicitacoesRows.map((s) => ({ ...s, profiles: perfilPorId[s.user_id] || null }));
   const capitao = membros.find((m) => m.papel === 'capitao')?.profiles || null;
+
+  // Status de mensalidade é dado financeiro — só o capitão vê, diferente do
+  // resto da ficha do elenco (posição/número/mensalista, que qualquer
+  // visitante já enxerga hoje). Anexa `pagouEsteMes` por membro mensalista
+  // e um resumo agregado só quando souCapitao.
+  let resumoFinanceiro = null;
+  if (souCapitao) {
+    const hoje = new Date();
+    const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
+    const mensalistasIds = membros.filter((m) => m.mensalista).map((m) => m.id);
+    const { data: pagamentosDoMes } = mensalistasIds.length > 0
+      ? await supabase.from('mensalidades').select('time_membro_id').eq('mes_referencia', mesAtual).in('time_membro_id', mensalistasIds)
+      : { data: [] };
+    const pagosSet = new Set((pagamentosDoMes || []).map((p) => p.time_membro_id));
+    membros = membros.map((m) => (m.mensalista ? { ...m, pagouEsteMes: pagosSet.has(m.id) } : m));
+    resumoFinanceiro = {
+      mensalistas: mensalistasIds.length,
+      pagaram: pagosSet.size,
+      valorEsperado: mensalistasIds.length * (time.mensalidade_valor || 0),
+      valorRecebido: pagosSet.size * (time.mensalidade_valor || 0),
+    };
+  }
 
   return NextResponse.json({
     time,
@@ -101,6 +123,7 @@ export async function GET(request, { params }) {
     solicitacoes,
     minhaRelacao,
     stats,
+    resumoFinanceiro,
     desafiosRecebidos,
     desafiosEnviados,
     souCapitao,
@@ -135,6 +158,7 @@ export async function PATCH(request, { params }) {
   const aceitaDesafios = form.get('aceitaDesafios') === 'true';
   const faixaEtaria = form.get('faixaEtaria')?.toString().trim() || null;
   const whatsappResponsavel = form.get('whatsappResponsavel')?.toString().trim() || null;
+  const mensalidadeValor = form.get('mensalidadeValor') ? Number(form.get('mensalidadeValor')) : null;
   const escudo = form.get('escudo');
 
   if (!nome) return NextResponse.json({ error: 'Dá um nome pro time.' }, { status: 400 });
@@ -157,6 +181,7 @@ export async function PATCH(request, { params }) {
     aceita_desafios: aceitaDesafios,
     faixa_etaria: faixaEtaria,
     whatsapp_responsavel: whatsappResponsavel,
+    mensalidade_valor: mensalidadeValor,
   };
 
   if (escudo && typeof escudo === 'object' && escudo.size > 0) {
