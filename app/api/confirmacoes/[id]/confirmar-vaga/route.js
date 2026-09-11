@@ -2,7 +2,9 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
+import { fmtDate } from '@/lib/gameUtils';
 
 // Segundo clique da confirmação em duas etapas: só o próprio jogador,
 // autenticado, pode confirmar a própria vaga.
@@ -18,7 +20,7 @@ export async function POST(request, { params }) {
   const { id } = params;
   const { data: confirmacao } = await supabase
     .from('confirmacoes')
-    .select('id, user_id, status, prazo_confirmacao')
+    .select('id, user_id, status, prazo_confirmacao, game_id, games(local, data, horario)')
     .eq('id', id)
     .single();
 
@@ -39,5 +41,17 @@ export async function POST(request, { params }) {
     .single();
 
   if (error) return errJson(error.message, 500);
+
+  const game = confirmacao.games;
+  if (game) {
+    const { dow, dom } = fmtDate(game.data);
+    await createNotification({
+      userId: user.id,
+      tipo: 'vaga_confirmada',
+      gameId: confirmacao.game_id,
+      mensagem: `Sua vaga em ${game.local} tá confirmada — ${dow} ${dom}, ${game.horario?.slice(0, 5)}. Te esperamos lá!`,
+    });
+  }
+
   return NextResponse.json(atualizada);
 }
