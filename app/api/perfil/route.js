@@ -174,8 +174,8 @@ export async function GET(request) {
   ] = await Promise.all([
     supabase.from('confirmacoes').select('id', { count: 'exact', head: true }).eq('user_id', targetId).eq('status', 'aprovado'),
     supabase.from('games').select('id', { count: 'exact', head: true }).eq('owner_id', targetId),
-    supabase.from('avaliacoes').select('nota, tipo, tag').eq('avaliado_id', targetId),
-    supabase.from('confirmacoes').select('game_id, presente').eq('user_id', targetId).eq('status', 'aprovado'),
+    supabase.from('avaliacoes').select('nota, tipo, tag, fair_play').eq('avaliado_id', targetId),
+    supabase.from('confirmacoes').select('game_id, presente, time').eq('user_id', targetId).eq('status', 'aprovado'),
     supabase.from('time_membros').select('papel, times(id, nome, escudo_url, bairro, modalidade)').eq('user_id', targetId).eq('status', 'aprovado'),
     souEu ? aprovacoesPendentes(targetId) : Promise.resolve([]),
     souEu ? vagaAConfirmar(targetId) : Promise.resolve(null),
@@ -187,8 +187,35 @@ export async function GET(request) {
   const totalAvaliacoes = (avaliacoesRecebidas || []).length;
   const notaMedia = notaMediaPonderada(avaliacoesRecebidas);
 
+  // Fair play separado da nota — não entra na fórmula de Moral (evita
+  // remexer o cálculo já em produção), só aparece como stat próprio.
+  // null = avaliador não marcou (checkbox nunca existiu antes dessa
+  // feature, ou avaliação 'geral', que não mira ninguém) — não conta pra
+  // cima nem pra baixo, só as avaliações com fair_play explícito.
+  const avaliacoesComFairPlay = (avaliacoesRecebidas || []).filter((a) => a.fair_play !== null && a.fair_play !== undefined);
+  const percentualFairPlay = avaliacoesComFairPlay.length > 0
+    ? Math.round((avaliacoesComFairPlay.filter((a) => a.fair_play).length / avaliacoesComFairPlay.length) * 100)
+    : null;
+
   const presencaPorGameId = {};
-  for (const c of minhasConfirmacoes || []) presencaPorGameId[c.game_id] = c.presente;
+  const timePorGameId = {};
+  for (const c of minhasConfirmacoes || []) {
+    presencaPorGameId[c.game_id] = c.presente;
+    timePorGameId[c.game_id] = c.time;
+  }
+
+  // Resultado (vitória/empate/derrota) só existe quando o jogo teve times
+  // A/B montados (MontarTimesModal) E placar registrado — a maioria das
+  // peladas soltas nunca tem os dois, então fica null (não aparece nada).
+  function resultadoDe(g) {
+    const meuTime = timePorGameId[g.id];
+    if (!meuTime || g.placar_time_a == null || g.placar_time_b == null) return null;
+    const meuPlacar = meuTime === 'A' ? g.placar_time_a : g.placar_time_b;
+    const placarAdversario = meuTime === 'A' ? g.placar_time_b : g.placar_time_a;
+    if (meuPlacar > placarAdversario) return 'vitoria';
+    if (meuPlacar < placarAdversario) return 'derrota';
+    return 'empate';
+  }
 
   const gameIds = (minhasConfirmacoes || []).map((c) => c.game_id);
   let historico = [];
@@ -204,7 +231,7 @@ export async function GET(request) {
       .sort((a, b) => (b.data + b.horario).localeCompare(a.data + a.horario));
     // presente=null (pelada ainda não encerrada, sem julgamento do capitão)
     // conta como presença — mesmo benefício da dúvida de lib/ratings.js
-    historico = passadas.map((g) => ({ ...g, presente: presencaPorGameId[g.id] ?? null }));
+    historico = passadas.map((g) => ({ ...g, presente: presencaPorGameId[g.id] ?? null, resultado: resultadoDe(g) }));
 
     // Próxima pelada confirmada (>= hoje) — usada pela Home pra não
     // precisar buscar a lista pública inteira de peladas (/api/games) só
@@ -253,7 +280,17 @@ export async function GET(request) {
   return NextResponse.json({
     profile: souEu ? profile : { ...profile, whatsapp: undefined, notif_prefs: undefined },
     souEu,
-    stats: { peladasConfirmadas, peladasComoCapitao, notaMedia, totalAvaliacoes, peladasJogadas, totalPeladasPassadas, moral },
+    stats: {
+      peladasConfirmadas,
+      peladasComoCapitao,
+      notaMedia,
+      totalAvaliacoes,
+      peladasJogadas,
+      totalPeladasPassadas,
+      moral,
+      percentualPresenca: totalPeladasPassadas > 0 ? Math.round((peladasJogadas / totalPeladasPassadas) * 100) : null,
+      percentualFairPlay,
+    },
     historico,
     conquistas,
     patente,
