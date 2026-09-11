@@ -164,7 +164,6 @@ export default function PitchBall() {
       let dt = (t - lastT.current) / 1000;
       lastT.current = t;
       if (dt > 0.05) dt = 0.05; // evita salto grande depois de aba oculta/travada
-      window.__pbLastDt = dt; window.__pbLastT = t; window.__pbFrameCount = (window.__pbFrameCount || 0) + 1;
 
       if (!dragging.current && !scored.current) {
         const v = vel.current;
@@ -174,8 +173,15 @@ export default function PitchBall() {
         p.x += v.x * dt;
         p.y += v.y * dt;
 
+        // o bug de "gravidade não aplicava": no frame logo depois de um
+        // chute, a bola ainda está com p.y===floor (não teve tempo de sair
+        // do chão) mas v.y já é bem negativo (subindo). "p.y >= floor"
+        // sozinho não distingue isso de estar caindo NO chão — disparava o
+        // pouso na hora e zerava a velocidade do chute antes de ela sair
+        // do lugar. Só é pouso de verdade quando também está descendo
+        // (v.y >= 0); subindo, mesmo colada no chão, ignora a colisão.
         const floor = height - radius;
-        if (p.y >= floor) {
+        if (p.y >= floor && v.y >= 0) {
           p.y = floor;
           v.y = v.y > 40 ? -v.y * RESTITUTION : 0;
           const sign = Math.sign(v.x);
@@ -212,7 +218,6 @@ export default function PitchBall() {
     }
 
     function kick() {
-      window.__pbFrameCount = 0;
       const dir = Math.random() < 0.5 ? -1 : 1;
       vel.current = { x: dir * (300 + Math.random() * 250), y: -(700 + Math.random() * 250) };
       scored.current = false;
@@ -304,14 +309,6 @@ export default function PitchBall() {
     ro.observe(zoneEl);
     ball.addEventListener('pointerdown', onPointerDown);
     ball.addEventListener('click', onClick);
-
-    // DEBUG TEMP — remover depois de diagnosticar o bug de gravidade
-    window.__pbDebug = () => ({
-      vel: { ...vel.current }, pos: { ...pos.current }, rot: rot.current,
-      moving: moving.current, dragging: dragging.current, scored: scored.current,
-      dims: { ...dims.current }, radius,
-    });
-    window.__pbKick = () => kick();
 
     function onVis() {
       if (document.hidden) {
