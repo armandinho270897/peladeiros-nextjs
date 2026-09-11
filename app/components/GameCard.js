@@ -46,7 +46,7 @@ function pararPropagacao(fn) {
   return (e) => { e.stopPropagation(); fn(); };
 }
 
-export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou, distanciaKm, clickThrough, showArt = true, artSizes }) {
+export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou, distanciaKm, motivo, clickThrough, showArt = true, artSizes, revealIndex }) {
   const router = useRouter();
   const g = game;
   const d = fmtDate(g.data);
@@ -141,8 +141,13 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
       }
     : {};
 
+  // Stagger só nos primeiros cards — mais que isso e a lista inteira demora
+  // visivelmente pra "assentar" numa lista longa; pl-reveal-4 é o teto que
+  // já existe em globals.css, sem inventar um degrau novo.
+  const revealClass = revealIndex != null ? `pl-reveal pl-reveal-${Math.min(revealIndex + 1, 4)}` : '';
+
   return (
-    <div className={`pl-card ${!showArt ? 'pl-card-no-art' : ''}`} {...wrapperProps}>
+    <div className={`pl-card ${!showArt ? 'pl-card-no-art' : ''} ${revealClass}`} {...wrapperProps}>
       {/* showArt={false} hoje só existe em PeladaClient.js, que já tem seu
           próprio hero (GameArtBanner variant="hero") logo acima — daí o
           card embutido ficar sem nenhuma identidade visual própria não é
@@ -178,7 +183,11 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
           {distanciaKm != null && (
             <span className="pl-distancia">{distanciaKm.toFixed(1).replace('.', ',')} km</span>
           )}
+          {g.nivel && <span className="pl-bairro-tag">{g.nivel}</span>}
+          {g.valor != null && <span className="pl-bairro-tag">R$ {Number(g.valor).toFixed(2)}</span>}
         </div>
+
+        {motivo && <p className="pl-card-motivo">{motivo}</p>}
 
         <div className="pl-card-cta">
           {aguardandoAprovacao ? (
