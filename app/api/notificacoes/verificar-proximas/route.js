@@ -2,8 +2,8 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rateLimit';
-import { errJson } from '@/lib/apiError';
 import { inicioDoJogo } from '@/lib/gameUtils';
+import { notificarPartidasProximas } from '@/lib/lembretesPartida';
 
 const JANELA_MS = 3 * 60 * 60 * 1000; // "em breve" = começa dentro de 3h
 
@@ -32,31 +32,6 @@ export async function POST() {
     return diff >= 0 && diff < JANELA_MS;
   });
 
-  if (candidatos.length === 0) return NextResponse.json({ ok: true, criadas: 0 });
-
-  // O índice único é parcial (migration 012, só pra tipo='partida_proxima'),
-  // e upsert com onConflict não sabe declarar esse WHERE — a Postgres rejeita
-  // o ON CONFLICT por não achar constraint correspondente. Checa antes (cobre
-  // o caso comum) e insere um por um tolerando 23505 (cobre a corrida real
-  // de duas checagens em paralelo — StrictMode, duas abas — que o índice
-  // parcial continua garantindo mesmo sem upsert).
-  const { data: jaNotificado } = await supabase
-    .from('notificacoes')
-    .select('game_id')
-    .eq('user_id', user.id)
-    .eq('tipo', 'partida_proxima')
-    .in('game_id', candidatos.map((c) => c.game_id));
-  const jaNotificadoSet = new Set((jaNotificado || []).map((n) => n.game_id));
-  const faltando = candidatos.filter((c) => !jaNotificadoSet.has(c.game_id));
-
-  let criadas = 0;
-  for (const c of faltando) {
-    const { error } = await supabase.from('notificacoes').insert({
-      user_id: user.id, tipo: 'partida_proxima', game_id: c.game_id, mensagem: `Sua pelada em ${c.games.local} começa em breve!`,
-    });
-    if (error && error.code !== '23505') return errJson(error.message, 500);
-    if (!error) criadas++;
-  }
-
+  const criadas = await notificarPartidasProximas(candidatos.map((c) => ({ ...c, user_id: user.id })));
   return NextResponse.json({ ok: true, criadas });
 }
