@@ -118,7 +118,6 @@ export default function PerfilPublicoClient({ id }) {
 
       <PerfilSobre profile={profile} />
 
-      <div className="pl-section-title" style={{ maxWidth: 640, margin: '0 auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Conquistas</div>
       <ConquistasBadges conquistas={conquistas} />
 
       <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 8px', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Times</div>
