@@ -1,11 +1,11 @@
-// Sparkle de 4 pontas — reaproveitado 3x ao redor da estrela como
-// brilho ambiente (twinkle em loop, não é confete de uma ação só como
-// no selo do passo 2; aqui é "reputação brilhando", contínuo).
+// Sparkle de 4 pontas — reaproveitado 3x ao redor da estrela. Cada um
+// pisca uma vez só ao entrar e se acomoda (nada de loop contínuo —
+// pedido explícito: motion só na entrada, sem pulso infinito).
 const SPARKLE = 'M0 -6 L1.5 -1.5 L6 0 L1.5 1.5 L0 6 L-1.5 1.5 L-6 0 L-1.5 -1.5 Z';
 const TWINKLES = [
-  { x: 116, y: 30, scale: 0.85, delay: '0s' },
-  { x: 44, y: 42, scale: 0.65, delay: '0.8s' },
-  { x: 108, y: 92, scale: 0.7, delay: '1.5s' },
+  { x: 116, y: 30, scale: 0.85, delay: '320ms' },
+  { x: 44, y: 42, scale: 0.65, delay: '420ms' },
+  { x: 108, y: 92, scale: 0.7, delay: '520ms' },
 ];
 
 export default function OnboardingAvaliarIcon({ width = 160 }) {

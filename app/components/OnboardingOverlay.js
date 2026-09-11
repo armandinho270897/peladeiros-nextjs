@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { isOnboardingSeen, markOnboardingSeen } from '@/lib/onboarding';
 import NightPitchBackground from './NightPitchBackground';
+import Brand from './Brand';
 import OnboardingDescobrirIcon from './OnboardingDescobrirIcon';
 import OnboardingConfirmarIcon from './OnboardingConfirmarIcon';
 import OnboardingAvaliarIcon from './OnboardingAvaliarIcon';
@@ -49,17 +50,18 @@ export default function OnboardingOverlay() {
       <NightPitchBackground />
       <div className="pl-onb-glow" />
       <div className="pl-onb-grain" />
+      <Brand style={{ position: 'absolute', top: 22, left: 20, zIndex: 2, opacity: 0.7, transform: 'scale(0.62)', transformOrigin: 'left top' }} />
       <button type="button" className="pl-onboarding-skip" onClick={finish}>Pular</button>
       {/* key={step} força remontar o bloco a cada passo — é isso que
           faz as animações de entrada (traço do ícone, título, texto)
           tocarem de novo toda vez, sem precisar controlar reset à mão. */}
       <div className="pl-onboarding-content" key={step}>
-        <div className="pl-onb-icon-wrap"><Icon width={170} /></div>
+        <div className="pl-onb-icon-wrap"><Icon width={122} /></div>
         <h2>
           <span className="pl-sr-only">{titulo}</span>
           <span aria-hidden="true" className="pl-onb-title">
             {palavras.map((p, i) => (
-              <span key={i} style={{ animationDelay: `${260 + i * 70}ms` }}>{p}&nbsp;</span>
+              <span key={i} style={{ animationDelay: `${80 + i * 50}ms` }}>{p}&nbsp;</span>
             ))}
           </span>
         </h2>
