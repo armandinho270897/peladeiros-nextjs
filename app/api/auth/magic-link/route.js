@@ -1,13 +1,16 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { sendEmail } from '@/lib/sendEmail';
 import { errJson } from '@/lib/apiError';
 
-// Login via API HTTP do Resend em vez do e-mail nativo do Supabase — o
-// plano gratuito do Supabase trava em 2 e-mails/hora, o que impedia gente
-// nova de entrar em picos de uso. Gera o link mágico com o service role
-// (mesmo signInWithOtp por baixo, só que a gente controla o envio) e manda
-// o e-mail direto pela API do Resend (fetch, sem SMTP e sem SDK novo).
+// Login via SMTP do Gmail em vez do e-mail nativo do Supabase — o plano
+// gratuito do Supabase trava em 2 e-mails/hora, o que impedia gente nova de
+// entrar em picos de uso. Gera o link mágico com o service role (mesmo
+// signInWithOtp por baixo, só que a gente controla o envio) e manda o
+// e-mail via lib/sendEmail.js (Gmail — trocado do Resend porque a conta
+// Resend tá em sandbox sem domínio verificado, e só mandava pro próprio
+// e-mail do dono da chave).
 export async function POST(request) {
   const ip = getClientIp(request);
   const { email, next } = await request.json().catch(() => ({}));
@@ -26,8 +29,8 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Muitos pedidos de login vindos daqui. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 
-  if (!process.env.RESEND_API_KEY) {
-    return errJson('Login por e-mail não está configurado no servidor (falta RESEND_API_KEY).', 500);
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    return errJson('Login por e-mail não está configurado no servidor (falta GMAIL_USER/GMAIL_APP_PASSWORD).', 500);
   }
 
   const origin = request.headers.get('origin') || new URL(request.url).origin;
@@ -48,16 +51,8 @@ export async function POST(request) {
     return errJson('O link de login não foi gerado. Tenta de novo.', 500);
   }
 
-  const from = process.env.RESEND_FROM_EMAIL || 'Peladeiros <onboarding@resend.dev>';
-
-  const resendRes = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from,
+  try {
+    await sendEmail({
       to: emailNormalizado,
       subject: 'Seu link pra entrar no Peladeiros',
       html: `
@@ -73,12 +68,9 @@ export async function POST(request) {
           <p style="color: #6E7178; font-size: 13px;">Se você não pediu esse link, pode ignorar esse e-mail.</p>
         </div>
       `,
-    }),
-  });
-
-  if (!resendRes.ok) {
-    const body = await resendRes.json().catch(() => ({}));
-    return errJson(body.message || 'Não consegui enviar o e-mail. Tenta de novo em alguns minutos.', 502);
+    });
+  } catch {
+    return errJson('Não consegui enviar o e-mail. Tenta de novo em alguns minutos.', 502);
   }
 
   return NextResponse.json({ ok: true });
