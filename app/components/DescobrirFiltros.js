@@ -51,11 +51,18 @@ export function resumoFiltrosAtivos(filtros, bairros) {
 // desafio de verdade no resultado atual — evita mostrar um filtro que
 // nunca vai retornar nada).
 export default function DescobrirFiltros({ filtros, onChange, bairros }) {
+  // Forma funcional (onChange recebe uma função, não o objeto pronto) —
+  // sem isso, dois cliques em campos diferentes na mesma janela de render
+  // (ex.: toques rápidos em dois chips seguidos) cada um partia do mesmo
+  // `filtros` "velho" via closure, e o segundo onChange sobrescrevia o
+  // primeiro por inteiro, perdendo a escolha anterior. Com uma função, o
+  // setFiltros do pai (app/peladas/page.js) aplica os dois em cima do
+  // estado mais atual, na ordem certa, não importa quão rápido cliquem.
   function set(campo, valor) {
-    onChange({ ...filtros, [campo]: valor });
+    onChange((prev) => ({ ...prev, [campo]: valor }));
   }
   function toggle(campo, valor) {
-    set(campo, filtros[campo] === valor ? '' : valor);
+    onChange((prev) => ({ ...prev, [campo]: prev[campo] === valor ? '' : valor }));
   }
 
   return (
