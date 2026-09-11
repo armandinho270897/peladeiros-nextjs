@@ -4,6 +4,7 @@
 // sentido por cima do cenário de quadra à noite (NightPitchBackground)
 // que passou a ficar atrás de todo o onboarding.
 export default function OnboardingDescobrirIcon({ width = 160 }) {
+  const pinPath = 'M80 22c-14.9 0-27 12-27 27 0 20 27 45 27 45s27-25 27-45c0-15-12.1-27-27-27z';
   return (
     <svg width={width} height={(width * 120) / 160} viewBox="0 0 160 120" fill="none" aria-hidden="true">
       <defs>
@@ -15,11 +16,9 @@ export default function OnboardingDescobrirIcon({ width = 160 }) {
       <ellipse cx="80" cy="96" rx="46" ry="10" fill="url(#pl-onb-pin-glow)" />
       <circle className="pl-onb-radar-ring" cx="80" cy="96" r="14" stroke="var(--neon)" strokeWidth="1.5" opacity="0.6" />
       <circle className="pl-onb-radar-ring pl-onb-radar-ring-2" cx="80" cy="96" r="14" stroke="var(--neon)" strokeWidth="1.5" opacity="0.6" />
-      <path
-        d="M80 22c-14.9 0-27 12-27 27 0 20 27 45 27 45s27-25 27-45c0-15-12.1-27-27-27z"
-        fill="var(--neon)" stroke="var(--ink)" strokeWidth="2"
-      />
-      <circle cx="80" cy="49" r="10" fill="var(--ink)" stroke="none" />
+      <path d={pinPath} fill="var(--neon)" className="pl-onb-fill" />
+      <path pathLength="1" d={pinPath} fill="none" stroke="var(--ink)" strokeWidth="2" className="pl-onb-draw" />
+      <circle cx="80" cy="49" r="10" fill="var(--ink)" stroke="none" className="pl-onb-fill" />
     </svg>
   );
 }
