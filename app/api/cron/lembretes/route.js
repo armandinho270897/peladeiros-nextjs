@@ -3,6 +3,16 @@ import { NextResponse } from 'next/server';
 import { inicioDoJogo } from '@/lib/gameUtils';
 import { notificarPartidasProximas } from '@/lib/lembretesPartida';
 
+// O cron roda 1x/dia (plano Hobby), então "chega dentro de 24h" não é o
+// mesmo que "faltam exatamente 24h" — pode pegar uma pelada faltando só
+// 5h se o cron rodar de manhã e o jogo for à tarde. A mensagem usa a
+// contagem real de horas em vez de fixar "24h" pra não mentir pro
+// jogador sobre quanto tempo ele realmente tem.
+function horasRestantes(game) {
+  const diffMs = inicioDoJogo(game).getTime() - Date.now();
+  return Math.max(1, Math.round(diffMs / (60 * 60 * 1000)));
+}
+
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
@@ -57,6 +67,10 @@ export async function GET(request) {
     .in('game_id', gameIdsProximos)
     .eq('status', 'aprovado');
 
-  const criadas = await notificarPartidasProximas(confirmacoes || []);
+  const criadas = await notificarPartidasProximas(
+    confirmacoes || [],
+    'partida_proxima_24h',
+    (c) => `Sua pelada em ${c.games.local} é em ${horasRestantes(c.games)}h — já dá pra se organizar!`,
+  );
   return NextResponse.json({ ok: true, criadas });
 }

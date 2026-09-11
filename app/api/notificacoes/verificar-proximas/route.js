@@ -32,6 +32,10 @@ export async function POST() {
     return diff >= 0 && diff < JANELA_MS;
   });
 
-  const criadas = await notificarPartidasProximas(candidatos.map((c) => ({ ...c, user_id: user.id })));
+  const criadas = await notificarPartidasProximas(
+    candidatos.map((c) => ({ ...c, user_id: user.id })),
+    'partida_proxima_3h',
+    (c) => `Sua pelada em ${c.games.local} começa em breve!`,
+  );
   return NextResponse.json({ ok: true, criadas });
 }
