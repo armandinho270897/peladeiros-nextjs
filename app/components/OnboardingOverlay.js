@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { isOnboardingSeen, markOnboardingSeen } from '@/lib/onboarding';
+import NightPitchBackground from './NightPitchBackground';
 import OnboardingDescobrirIcon from './OnboardingDescobrirIcon';
 import OnboardingConfirmarIcon from './OnboardingConfirmarIcon';
 import OnboardingAvaliarIcon from './OnboardingAvaliarIcon';
@@ -39,6 +40,7 @@ export default function OnboardingOverlay() {
 
   return (
     <div className="pl-onboarding-overlay">
+      <NightPitchBackground />
       <button type="button" className="pl-onboarding-skip" onClick={finish}>Pular</button>
       <div className="pl-onboarding-content">
         <Icon width={170} />

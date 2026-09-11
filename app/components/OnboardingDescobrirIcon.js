@@ -1,11 +1,25 @@
+// Pino com "ping" de radar — troca o diagrama de campo em linha (achado
+// visualmente sem graça, "só linhas", sentado sobre um fundo vazio) por
+// algo que já lê como "achando pelada perto de você" de cara, e que faz
+// sentido por cima do cenário de quadra à noite (NightPitchBackground)
+// que passou a ficar atrás de todo o onboarding.
 export default function OnboardingDescobrirIcon({ width = 160 }) {
   return (
     <svg width={width} height={(width * 120) / 160} viewBox="0 0 160 120" fill="none" aria-hidden="true">
-      <rect x="10" y="20" width="140" height="80" rx="4" stroke="rgba(243,243,238,0.3)" strokeWidth="1.5" />
-      <line x1="80" y1="20" x2="80" y2="100" stroke="rgba(243,243,238,0.3)" strokeWidth="1.2" />
-      <circle cx="80" cy="60" r="16" stroke="rgba(243,243,238,0.3)" strokeWidth="1.2" />
-      <path d="M115 35c0-8-6.5-14-14-14s-14 6-14 14c0 10 14 24 14 24s14-14 14-24z" fill="var(--neon)" stroke="var(--ink)" strokeWidth="1.5" />
-      <circle cx="101" cy="35" r="5" fill="var(--ink)" stroke="none" />
+      <defs>
+        <radialGradient id="pl-onb-pin-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="rgba(200,255,120,0.55)" />
+          <stop offset="100%" stopColor="rgba(200,255,120,0)" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="80" cy="96" rx="46" ry="10" fill="url(#pl-onb-pin-glow)" />
+      <circle className="pl-onb-radar-ring" cx="80" cy="96" r="14" stroke="var(--neon)" strokeWidth="1.5" opacity="0.6" />
+      <circle className="pl-onb-radar-ring pl-onb-radar-ring-2" cx="80" cy="96" r="14" stroke="var(--neon)" strokeWidth="1.5" opacity="0.6" />
+      <path
+        d="M80 22c-14.9 0-27 12-27 27 0 20 27 45 27 45s27-25 27-45c0-15-12.1-27-27-27z"
+        fill="var(--neon)" stroke="var(--ink)" strokeWidth="2"
+      />
+      <circle cx="80" cy="49" r="10" fill="var(--ink)" stroke="none" />
     </svg>
   );
 }
