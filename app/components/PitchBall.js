@@ -242,7 +242,14 @@ export default function PitchBall() {
       window.removeEventListener('pointercancel', onPointerUp);
       try { ball.releasePointerCapture(e.pointerId); } catch { /* já liberado */ }
 
+      // preventDefault() no pointerdown (necessário pra evitar scroll/zoom
+      // ao arrastar no touch) pode suprimir o "click" sintético seguinte
+      // em vários navegadores — se ele nunca vier, suppressClick ficaria
+      // travado em true pra sempre e bloquearia o próximo Enter/Espaço do
+      // teclado. Por isso ele se limpa sozinho pouco depois, não só
+      // quando um click de verdade aparece pra consumi-lo.
       suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 400);
       const dist = pointerStart ? Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y) : 0;
 
       if (dist < 6) { kick(); return; } // arrasto curto demais = toque simples
