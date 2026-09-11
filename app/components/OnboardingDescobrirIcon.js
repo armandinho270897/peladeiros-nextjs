@@ -12,13 +12,22 @@ export default function OnboardingDescobrirIcon({ width = 160 }) {
           <stop offset="0%" stopColor="rgba(200,255,120,0.55)" />
           <stop offset="100%" stopColor="rgba(200,255,120,0)" />
         </radialGradient>
+        <radialGradient id="pl-onb-pin-body" cx="34%" cy="26%" r="80%">
+          <stop offset="0%" stopColor="#E4FFA3" />
+          <stop offset="100%" stopColor="var(--neon)" />
+        </radialGradient>
+        <filter id="pl-onb-pin-shadow" x="-50%" y="-20%" width="200%" height="160%">
+          <feDropShadow dx="0" dy="4" stdDeviation="5" floodColor="#000" floodOpacity="0.5" />
+        </filter>
       </defs>
       <ellipse cx="80" cy="96" rx="46" ry="10" fill="url(#pl-onb-pin-glow)" />
       <circle className="pl-onb-radar-ring" cx="80" cy="96" r="14" stroke="var(--neon)" strokeWidth="1.5" opacity="0.6" />
       <circle className="pl-onb-radar-ring pl-onb-radar-ring-2" cx="80" cy="96" r="14" stroke="var(--neon)" strokeWidth="1.5" opacity="0.6" />
-      <path d={pinPath} fill="var(--neon)" className="pl-onb-fill" />
-      <path pathLength="1" d={pinPath} fill="none" stroke="var(--ink)" strokeWidth="2" className="pl-onb-draw" />
-      <circle cx="80" cy="49" r="10" fill="var(--ink)" stroke="none" className="pl-onb-fill" />
+      <g filter="url(#pl-onb-pin-shadow)">
+        <path d={pinPath} fill="url(#pl-onb-pin-body)" className="pl-onb-fill" />
+        <path pathLength="1" d={pinPath} fill="none" stroke="var(--ink)" strokeWidth="2" className="pl-onb-draw" />
+        <circle cx="80" cy="49" r="10" fill="var(--ink)" stroke="none" className="pl-onb-fill" />
+      </g>
     </svg>
   );
 }
