@@ -759,22 +759,63 @@ body::after {
 .pl-btn-ball { position: absolute; left: 1px; top: 0; font-size: 16px; line-height: 1; animation: pl-bounce 700ms ease-in-out infinite; }
 .pl-btn-ball-shadow { position: absolute; bottom: 1px; left: 3px; width: 14px; height: 4px; border-radius: 50%; background: rgba(0,0,0,0.4); animation: pl-shadow-pulse 700ms ease-in-out infinite; }
 
-/* Fase 2 — bola interativa parada no gramado (PitchBall.js). Puramente
-   lúdica, mesma filosofia do easter egg do logo. Posição em % pra ter boa
-   chance de cair numa área visível de grama abaixo do cartão em telas
-   normais; se o cartão cobrir, sem problema — só some até rolar. */
-.pl-pitch-ball {
-  position: absolute; z-index: 1; left: 18%; bottom: 6%;
-  background: none; border: none; padding: 8px; margin: 0; cursor: pointer;
-  font-size: 28px; line-height: 1;
-  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+/* Fase 3 — bola interativa com física de verdade (PitchBall.js): toque
+   simples, arrastar-e-soltar com "flick", gravidade/atrito/quique,
+   mini-gol num canto. Posição/rotação são escritas direto em
+   transform via ref a cada frame (nunca via state do React) — o CSS
+   aqui só cuida da aparência estática de cada peça. Puramente lúdica,
+   mesma filosofia do easter egg do logo: nunca atrapalha o formulário
+   (a zona de jogo termina exatamente onde o cartão começa). */
+.pl-pitch-zone {
+  position: absolute; left: 0; right: 0; bottom: 14px; z-index: 1;
+  pointer-events: none; overflow: hidden;
 }
-.pl-pitch-ball.pl-kicked { animation: pl-ball-kick 650ms cubic-bezier(.3,1.4,.5,1); }
-@keyframes pl-ball-kick {
-  0% { transform: translate(0,0) rotate(0deg) scale(1); }
-  30% { transform: translate(10px,-46px) rotate(160deg) scale(0.9); }
-  55% { transform: translate(-6px,-70px) rotate(280deg) scale(0.85); }
-  100% { transform: translate(0,0) rotate(520deg) scale(1); }
+.pl-pitch-goal {
+  position: absolute; right: 12px; bottom: 0; width: 58px; height: 46px;
+  border: 2px solid rgba(243,243,238,0.2); border-bottom: none;
+  border-radius: 3px 3px 0 0; pointer-events: none;
+}
+.pl-pitch-ball-shadow {
+  position: absolute; top: 0; left: 0; width: 40px; height: 12px;
+  border-radius: 50%; background: rgba(0,0,0,0.55); filter: blur(2px);
+  pointer-events: none; will-change: transform, opacity;
+}
+.pl-pitch-ball-btn {
+  position: absolute; top: 0; left: 0;
+  background: none; border: none; padding: 0; margin: 0; cursor: grab;
+  pointer-events: auto; touch-action: none; -webkit-tap-highlight-color: transparent;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,0.45));
+  will-change: transform;
+}
+.pl-pitch-ball-btn:active { cursor: grabbing; }
+.pl-pitch-ball-btn:focus-visible { outline: 2px solid var(--neon); outline-offset: 3px; border-radius: 50%; }
+.pl-pitch-gol-txt {
+  position: absolute; right: 8px; bottom: 54px; z-index: 2;
+  font-family: var(--font-display); text-transform: uppercase; font-size: 15px;
+  color: var(--neon); text-shadow: 0 0 10px rgba(166,255,0,0.7), 0 2px 4px rgba(0,0,0,0.6);
+  pointer-events: none; animation: pl-gol-pop 400ms cubic-bezier(.3,1.6,.4,1) both;
+}
+@keyframes pl-gol-pop {
+  0% { opacity: 0; transform: translateY(6px) scale(0.7); }
+  60% { opacity: 1; transform: translateY(-2px) scale(1.08); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* prefers-reduced-motion: sem zona, sem física — botão parado com um
+   pulso curto de escala ao tocar (esse pulso É o feedback reduzido
+   pedido, não uma simulação de movimento, por isso não entra na lista
+   de animações desligadas no media query lá embaixo). */
+.pl-pitch-ball-simple {
+  position: absolute; z-index: 1; left: 18%; bottom: 6%;
+  background: none; border: none; padding: 6px; margin: 0; cursor: pointer;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,0.45));
+}
+.pl-pitch-ball-simple:focus-visible { outline: 2px solid var(--neon); outline-offset: 3px; border-radius: 50%; }
+.pl-pitch-ball-simple.pl-pulse { animation: pl-ball-pulse 260ms ease; }
+@keyframes pl-ball-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1); }
 }
 
 /* Fase 2 — chute a gol no botão Entrar (só no modo "entrar", ver
@@ -831,8 +872,8 @@ body::after {
   .pl-onb-cta .pl-ticket-label::after { animation: none; display: none; }
   .pl-stagger-1, .pl-stagger-2, .pl-stagger-3 { animation: none; opacity: 1; transform: none; }
   .pl-btn-ball, .pl-btn-ball-shadow { animation: none; }
+  .pl-pitch-gol-txt { animation: none; opacity: 1; transform: none; }
   .pl-authcard .pl-ticket:active { box-shadow: none; }
-  .pl-pitch-ball.pl-kicked { animation: none; }
   .pl-launch-ball { animation: none; opacity: 0; }
   .pl-authcard .pl-ticket.pl-kickbtn-post { animation: none; }
   .pl-login-flash { display: none; }
