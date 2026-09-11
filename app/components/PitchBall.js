@@ -303,6 +303,14 @@ export default function PitchBall() {
     ball.addEventListener('pointerdown', onPointerDown);
     ball.addEventListener('click', onClick);
 
+    // DEBUG TEMP — remover depois de diagnosticar o bug de gravidade
+    window.__pbDebug = () => ({
+      vel: { ...vel.current }, pos: { ...pos.current }, rot: rot.current,
+      moving: moving.current, dragging: dragging.current, scored: scored.current,
+      dims: { ...dims.current }, radius,
+    });
+    window.__pbKick = () => kick();
+
     function onVis() {
       if (document.hidden) {
         if (raf.current) { cancelAnimationFrame(raf.current); raf.current = null; }
