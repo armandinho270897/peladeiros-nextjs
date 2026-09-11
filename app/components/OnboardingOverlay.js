@@ -24,12 +24,17 @@ export default function OnboardingOverlay() {
     if (!isOnboardingSeen()) setVisible(true);
   }, []);
 
+  function vibrar() {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(15);
+  }
+
   function finish() {
     markOnboardingSeen();
     setVisible(false);
   }
 
   function next() {
+    vibrar();
     if (step < PASSOS.length - 1) setStep((s) => s + 1);
     else finish();
   }
@@ -37,21 +42,34 @@ export default function OnboardingOverlay() {
   if (!visible) return null;
 
   const { Icon, titulo, texto } = PASSOS[step];
+  const palavras = titulo.split(' ');
 
   return (
     <div className="pl-onboarding-overlay">
       <NightPitchBackground />
+      <div className="pl-onb-glow" />
+      <div className="pl-onb-grain" />
       <button type="button" className="pl-onboarding-skip" onClick={finish}>Pular</button>
-      <div className="pl-onboarding-content">
-        <Icon width={170} />
-        <h2>{titulo}</h2>
+      {/* key={step} força remontar o bloco a cada passo — é isso que
+          faz as animações de entrada (traço do ícone, título, texto)
+          tocarem de novo toda vez, sem precisar controlar reset à mão. */}
+      <div className="pl-onboarding-content" key={step}>
+        <div className="pl-onb-icon-wrap"><Icon width={170} /></div>
+        <h2>
+          <span className="pl-sr-only">{titulo}</span>
+          <span aria-hidden="true" className="pl-onb-title">
+            {palavras.map((p, i) => (
+              <span key={i} style={{ animationDelay: `${260 + i * 70}ms` }}>{p}&nbsp;</span>
+            ))}
+          </span>
+        </h2>
         <p>{texto}</p>
       </div>
       <div className="pl-onboarding-dots">
         {PASSOS.map((_, i) => <span key={i} className={i === step ? 'active' : ''} />)}
       </div>
       <div className="pl-onboarding-actions">
-        <TicketButton onClick={next}>{step < PASSOS.length - 1 ? 'Próximo' : 'Vamos jogar'}</TicketButton>
+        <TicketButton className="pl-onb-cta" onClick={next}>{step < PASSOS.length - 1 ? 'Próximo' : 'Vamos jogar'}</TicketButton>
       </div>
     </div>
   );
