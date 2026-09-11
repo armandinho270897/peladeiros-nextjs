@@ -6,51 +6,62 @@ import { useGames } from '@/lib/useGames';
 import { useArenas } from '@/lib/useArenas';
 import { todayISO, aprovadosDe, shareUrl, haversineKm } from '@/lib/gameUtils';
 import { getRadiusPref, saveRadiusPref } from '@/lib/radiusPref';
+import { getFiltrosPref, saveFiltrosPref } from '@/lib/filtrosPref';
 import { useJustLotou } from '@/lib/useJustLotou';
 import { ADMIN_USER_ID } from '@/lib/adminConfig';
 import { useAuth } from '../components/AuthProvider';
 import { useToast } from '../components/ToastProvider';
 import GameCard from '../components/GameCard';
+import DescobrirFiltros, { resumoFiltrosAtivos } from '../components/DescobrirFiltros';
 import NewArenaModal from '../components/NewArenaModal';
 import ConfirmModal from '../components/ConfirmModal';
 import ManageModal from '../components/ManageModal';
 import CancelPresencaModal from '../components/CancelPresencaModal';
 import EmptyFieldIcon from '../components/EmptyFieldIcon';
-import TipoJogoIcon from '../components/TipoJogoIcon';
 
 const MapViewPins = dynamic(() => import('../components/MapViewPins'), { ssr: false });
 
-function amanhaISO(hojeISO) {
-  const [y, m, d] = hojeISO.split('-').map(Number);
-  const dt = new Date(y, m - 1, d + 1);
-  return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
-}
+const FILTROS_PADRAO = {
+  bairro: '', data: '', periodo: '', tipo: '', nivel: '', precoMax: '', vagas: '', somenteTimes: false, ordenar: '',
+};
 
-// Aba "Peladas" — onde mora a navegação completa: os dois toggles (todas /
-// minhas), chips de filtro, raio, mapa/lista e cadastro de arena. A Início
-// só mostra um recorte curado; quem quer "explorar tudo" vem pra cá.
+// Aba "Peladas" — a tela de Descoberta do app: os dois toggles (todas /
+// minhas), filtros combináveis, ordenação, mapa/lista e cadastro de arena.
+// A Início só mostra um recorte curado; quem quer "explorar tudo" vem pra
+// cá. Filtros/ordenação de "todas" são resolvidos no SERVIDOR (GET
+// /api/games com query params — ver app/api/games/route.js) — o front só
+// manda o que o usuário escolheu e renderiza o que volta; "minhas peladas"
+// continua 100% client-side sobre a lista completa, exatamente como
+// sempre foi (não é o alvo desse pacote, sem motivo pra mexer).
 export default function PeladasPage() {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const { games, loading, loadGames } = useGames();
   const { arenas, loadArenas } = useArenas();
-  const justLotaram = useJustLotou(games, loading);
-  const [modal, setModal] = useState(null); // 'new-arena' | {type:'confirm', game} | {type:'manage', game} | {type:'cancelar', ...}
-  const [viewMode, setViewMode] = useState('lista'); // 'lista' | 'mapa'
-  const [bairroFiltro, setBairroFiltro] = useState('');
-  const [tab, setTab] = useState('todas'); // 'todas' | 'minhas'
+  const [modal, setModal] = useState(null);
+  const [viewMode, setViewMode] = useState('lista');
+  const [tab, setTab] = useState('todas');
   const [raioAtivo, setRaioAtivo] = useState(false);
   const [raioKm, setRaioKm] = useState(10);
   const [minhaLocalizacao, setMinhaLocalizacao] = useState(null);
   const [erroLocalizacao, setErroLocalizacao] = useState('');
-  const [dataChip, setDataChip] = useState(''); // '' | 'hoje' | 'amanha'
-  const [tipoChip, setTipoChip] = useState(''); // '' | 'Futebol de campo' | 'Futsal'
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+  const [filtros, setFiltros] = useState(FILTROS_PADRAO);
+  const [filtrosCarregados, setFiltrosCarregados] = useState(false);
+
+  // Restaura filtros salvos (localStorage, mesmo padrão de raioKm) e o raio
+  // — só uma vez, na abertura. Sinaliza `filtrosCarregados` pra não salvar
+  // de volta o padrão em cima do que acabou de ler (ver efeito abaixo).
+  useEffect(() => {
+    const raioSalvo = getRadiusPref();
+    if (raioSalvo) setRaioKm(raioSalvo);
+    const filtrosSalvos = getFiltrosPref();
+    if (filtrosSalvos) setFiltros((f) => ({ ...f, ...filtrosSalvos }));
+    setFiltrosCarregados(true);
+  }, []);
 
   useEffect(() => {
-    const salvo = getRadiusPref();
-    if (salvo) setRaioKm(salvo);
-  }, []);
+    if (filtrosCarregados) saveFiltrosPref(filtros);
+  }, [filtros, filtrosCarregados]);
 
   function toggleRaio() {
     if (raioAtivo) { setRaioAtivo(false); setErroLocalizacao(''); return; }
@@ -61,7 +72,7 @@ export default function PeladasPage() {
         setRaioAtivo(true);
         setErroLocalizacao('');
       },
-      () => setErroLocalizacao('Não consegui acessar sua localização.'),
+      () => setErroLocalizacao('Não consegui acessar sua localização — usa o filtro de bairro aqui embaixo.'),
       { timeout: 10000 }
     );
   }
@@ -72,7 +83,40 @@ export default function PeladasPage() {
     saveRadiusPref(km);
   }
 
+  // A ausência de geolocalização nunca quebra a busca: sem minhaLocalizacao,
+  // simplesmente não manda lat/lng pro servidor (nem calcula distância
+  // client-side) — os filtros e a lista continuam funcionando normalmente.
+  const paramsDescoberta = useMemo(() => {
+    if (tab !== 'todas') return {}; // 'minhas' continua com o fetch completo de sempre
+    return {
+      // Marcador sempre presente (mesmo com todo o resto vazio) — sem ele,
+      // "Descobrir" com zero filtro ativo mandava a MESMA query string vazia
+      // que o fetch legado de "minhas peladas" (params={}), e o servidor não
+      // tinha como saber que devia aplicar o padrão "só futuras" (ver
+      // app/api/games/route.js). Achado testando o caso mais comum — abrir
+      // a aba sem mexer em nada — que é justamente o que não manda nenhum
+      // outro param.
+      escopo: 'descobrir',
+      bairro: filtros.bairro,
+      data: filtros.data,
+      periodo: filtros.periodo,
+      tipo: filtros.tipo,
+      nivel: filtros.nivel,
+      precoMax: filtros.precoMax,
+      vagas: filtros.vagas,
+      somenteTimes: filtros.somenteTimes ? '1' : '',
+      lat: raioAtivo && minhaLocalizacao ? minhaLocalizacao.lat : undefined,
+      lng: raioAtivo && minhaLocalizacao ? minhaLocalizacao.lng : undefined,
+      raioKm: raioAtivo && minhaLocalizacao ? raioKm : undefined,
+      ordenar: filtros.ordenar,
+    };
+  }, [tab, filtros, raioAtivo, minhaLocalizacao, raioKm]);
+
+  const { games, total, loading, loadGames } = useGames(paramsDescoberta);
+  const justLotaram = useJustLotou(games, loading);
+
   function distanciaDe(g) {
+    if (g.distanciaKm != null) return g.distanciaKm;
     if (!minhaLocalizacao || g.latitude == null || g.longitude == null) return null;
     return haversineKm(minhaLocalizacao.lat, minhaLocalizacao.lng, Number(g.latitude), Number(g.longitude));
   }
@@ -88,8 +132,6 @@ export default function PeladasPage() {
   function handleArenaCreated(arena) {
     setModal(null);
     loadArenas();
-    // Dono do app cadastra já aprovado (ver app/api/arenas/route.js) — a
-    // mensagem de "aguarde aprovação" seria enganosa nesse caso específico.
     showToast(arena?.status === 'aprovada' ? 'Arena cadastrada — já está no mapa!' : 'Arena enviada! Aparece no mapa depois de aprovada.');
   }
 
@@ -108,41 +150,46 @@ export default function PeladasPage() {
   }
 
   const today = todayISO();
-  const amanha = amanhaISO(today);
-  const upcoming = useMemo(
-    () => games.filter((g) => g.data >= today).sort((a, b) => (a.data + a.horario).localeCompare(b.data + b.horario)),
-    [games, today]
-  );
 
+  // "minhas peladas" — exatamente a mesma lógica client-side de sempre,
+  // sobre a lista completa (paramsDescoberta={} nesse tab, então `games`
+  // aqui já É a lista inteira, sem filtro nenhum do servidor).
+  const minhasFiltradas = useMemo(() => {
+    if (tab !== 'minhas') return [];
+    return games
+      .filter((g) => g.data >= today)
+      .sort((a, b) => (a.data + a.horario).localeCompare(b.data + b.horario))
+      .filter((g) => aprovadosDe(g).some((c) => c.user_id === user?.id));
+  }, [games, tab, user, today]);
+
+  const filtradas = tab === 'minhas' ? minhasFiltradas : games;
+  const resultCount = tab === 'minhas' ? minhasFiltradas.length : total;
+
+  // Bairros disponíveis pro <select> — derivados do resultado atual (some
+  // conforme os outros filtros estreitam o que existe; é o comportamento
+  // esperado de uma busca facetada, não um bug).
   const bairros = useMemo(
-    () => Array.from(new Set(upcoming.map((g) => g.bairro))).sort((a, b) => a.localeCompare(b)),
-    [upcoming]
+    () => Array.from(new Set(filtradas.map((g) => g.bairro).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+    [filtradas]
   );
 
-  const filtradas = useMemo(() => {
-    let list = upcoming;
-    if (tab === 'minhas') {
-      return list.filter((g) => aprovadosDe(g).some((c) => c.user_id === user?.id));
-    }
-    if (bairroFiltro) list = list.filter((g) => g.bairro === bairroFiltro);
-    if (dataChip === 'hoje') list = list.filter((g) => g.data === today);
-    if (dataChip === 'amanha') list = list.filter((g) => g.data === amanha);
-    if (tipoChip) list = list.filter((g) => g.tipo === tipoChip);
-    if (raioAtivo && minhaLocalizacao) {
-      list = list.filter(
-        (g) =>
-          g.latitude != null &&
-          g.longitude != null &&
-          haversineKm(minhaLocalizacao.lat, minhaLocalizacao.lng, Number(g.latitude), Number(g.longitude)) <= raioKm
-      );
-    }
-    return list;
-  }, [upcoming, bairroFiltro, tab, user, dataChip, amanha, today, tipoChip, raioAtivo, minhaLocalizacao, raioKm]);
+  const ordenacaoCronologica = !filtros.ordenar || filtros.ordenar === '';
+  const hoje = ordenacaoCronologica ? filtradas.filter((g) => g.data === today) : [];
+  const proximas = ordenacaoCronologica ? filtradas.filter((g) => g.data !== today) : filtradas;
 
-  const hoje = filtradas.filter((g) => g.data === today);
-  const proximas = filtradas.filter((g) => g.data !== today);
+  const filtrosAtivos = tab === 'todas' ? resumoFiltrosAtivos(filtros, bairros) : [];
+  const temFiltroAtivo = filtrosAtivos.length > 0 || raioAtivo;
 
-  function renderCard(g) {
+  function limparFiltro(chave) {
+    setFiltros((f) => ({ ...f, [chave]: chave === 'somenteTimes' ? false : '' }));
+  }
+
+  function limparTudo() {
+    setFiltros(FILTROS_PADRAO);
+    if (raioAtivo) { setRaioAtivo(false); setErroLocalizacao(''); }
+  }
+
+  function renderCard(g, i) {
     return (
       <GameCard
         key={g.id}
@@ -155,7 +202,9 @@ export default function PeladasPage() {
         onConfirmarVaga={handleConfirmarVaga}
         justLotou={!!justLotaram[g.id]}
         distanciaKm={distanciaDe(g)}
+        motivo={filtros.ordenar === 'recomendadas' ? g.motivo : null}
         clickThrough
+        revealIndex={i}
       />
     );
   }
@@ -174,16 +223,16 @@ export default function PeladasPage() {
       </div>
 
       <div className="pl-tabs" style={{ marginTop: 18 }}>
-        <button className={`pl-tab ${tab === 'todas' ? 'active' : ''}`} onClick={() => setTab('todas')}>Peladas</button>
+        <button className={`pl-tab ${tab === 'todas' ? 'active' : ''}`} onClick={() => setTab('todas')}>Descobrir</button>
         <button className={`pl-tab ${tab === 'minhas' ? 'active' : ''}`} onClick={() => setTab('minhas')}>Minhas peladas</button>
       </div>
 
       {tab === 'todas' && (
         <>
           <div className="pl-hero-title-row">
-            <h2 className="pl-hero-title">Peladas perto de você</h2>
+            <h2 className="pl-hero-title">Descobrir peladas</h2>
             <span className="pl-hero-count">
-              {filtradas.length} pelada{filtradas.length === 1 ? '' : 's'} encontrada{filtradas.length === 1 ? '' : 's'}
+              {resultCount} pelada{resultCount === 1 ? '' : 's'} encontrada{resultCount === 1 ? '' : 's'}
             </span>
           </div>
 
@@ -193,32 +242,40 @@ export default function PeladasPage() {
           </div>
 
           <div className="pl-chips-row">
-            <button className={`pl-chip ${dataChip === 'hoje' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'hoje' ? '' : 'hoje')}>Hoje</button>
-            <button className={`pl-chip ${dataChip === 'amanha' ? 'active' : ''}`} onClick={() => setDataChip(dataChip === 'amanha' ? '' : 'amanha')}>Amanhã</button>
+            <button className={`pl-chip ${filtros.data === 'hoje' ? 'active' : ''}`} onClick={() => setFiltros((f) => ({ ...f, data: f.data === 'hoje' ? '' : 'hoje' }))}>Hoje</button>
+            <button className={`pl-chip ${filtros.data === 'amanha' ? 'active' : ''}`} onClick={() => setFiltros((f) => ({ ...f, data: f.data === 'amanha' ? '' : 'amanha' }))}>Amanhã</button>
+            <button className={`pl-chip ${filtros.data === 'fimDeSemana' ? 'active' : ''}`} onClick={() => setFiltros((f) => ({ ...f, data: f.data === 'fimDeSemana' ? '' : 'fimDeSemana' }))}>Fim de semana</button>
             <button className={`pl-chip ${raioAtivo ? 'active' : ''}`} onClick={toggleRaio}>Perto</button>
-            <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futebol de campo' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de campo' ? '' : 'Futebol de campo')}><TipoJogoIcon tipo="Futebol de campo" size={14} /> Futebol</button>
-            <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Society' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Society' ? '' : 'Society')}><TipoJogoIcon tipo="Society" size={14} /> Society</button>
-            <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futsal' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futsal' ? '' : 'Futsal')}><TipoJogoIcon tipo="Futsal" size={14} /> Futsal</button>
-            <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futebol de areia' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de areia' ? '' : 'Futebol de areia')}><TipoJogoIcon tipo="Futebol de areia" size={14} /> Areia</button>
-            <button className={`pl-chip pl-tipo-jogo-chip ${tipoChip === 'Futebol de Rua' ? 'active' : ''}`} onClick={() => setTipoChip(tipoChip === 'Futebol de Rua' ? '' : 'Futebol de Rua')}><TipoJogoIcon tipo="Futebol de Rua" size={14} /> Rua</button>
             <button className={`pl-chip pl-chip-filtros ${filtrosAbertos ? 'active' : ''}`} onClick={() => setFiltrosAbertos((v) => !v)}>Filtros</button>
           </div>
           {erroLocalizacao && <div style={{ maxWidth: 640, margin: '4px auto 0', padding: '0 16px', fontSize: 11, color: 'var(--tag-red)' }}>{erroLocalizacao}</div>}
 
           {filtrosAbertos && (
-            <div className="pl-filters-panel-outer">
-              <div className="pl-filters-panel">
-                <select className="pl-select" value={bairroFiltro} onChange={(e) => setBairroFiltro(e.target.value)}>
-                  <option value="">Todos os bairros</option>
-                  {bairros.map((b) => <option key={b} value={b}>{b}</option>)}
-                </select>
-                {raioAtivo && (
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--paper-dim)' }}>
-                    Raio: {raioKm}km
-                    <input type="range" min="1" max="50" value={raioKm} onChange={handleRaioChange} style={{ width: 90 }} aria-label="Raio em quilômetros" />
-                  </label>
-                )}
-              </div>
+            <DescobrirFiltros filtros={filtros} onChange={setFiltros} bairros={bairros} />
+          )}
+
+          {raioAtivo && (
+            <div style={{ maxWidth: 640, margin: '8px auto 0', padding: '0 16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--paper-dim)' }}>
+                Raio: {raioKm}km
+                <input type="range" min="1" max="50" value={raioKm} onChange={handleRaioChange} style={{ width: 120 }} aria-label="Raio em quilômetros" />
+              </label>
+            </div>
+          )}
+
+          {temFiltroAtivo && (
+            <div style={{ maxWidth: 640, margin: '8px auto 0', padding: '0 16px', display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+              {filtrosAtivos.map((f) => (
+                <button key={f.chave} type="button" className="pl-bairro-tag" style={{ cursor: 'pointer', border: 'none' }} onClick={() => limparFiltro(f.chave)}>
+                  {f.label} ✕
+                </button>
+              ))}
+              {raioAtivo && (
+                <button type="button" className="pl-bairro-tag" style={{ cursor: 'pointer', border: 'none' }} onClick={() => setRaioAtivo(false)}>
+                  Até {raioKm}km ✕
+                </button>
+              )}
+              <button type="button" className="pl-link-muted" style={{ fontSize: 11 }} onClick={limparTudo}>Limpar tudo</button>
             </div>
           )}
         </>
@@ -236,15 +293,26 @@ export default function PeladasPage() {
         <div className="pl-empty">
           <EmptyFieldIcon />
           <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>
-            {tab === 'minhas' ? 'Você ainda não tá em nenhuma pelada' : 'Tá quieto por aqui...'}
+            {tab === 'minhas' ? 'Você ainda não tá em nenhuma pelada' : temFiltroAtivo ? 'Nada por aqui com esses filtros' : 'Tá quieto por aqui...'}
           </h3>
-          <p>{tab === 'minhas' ? 'Dá uma olhada nas peladas rolando e confirma presença.' : 'Que tal criar a primeira pelada da semana?'}</p>
-          {tab !== 'minhas' && (
-            <Link href="/?criar=1" className="pl-ticket" style={{ display: 'inline-flex', marginTop: 12, textDecoration: 'none' }}>
-              <span className="pl-ticket-label">Criar pelada</span>
-              <span className="pl-ticket-stub" aria-hidden="true">⚽</span>
-            </Link>
-          )}
+          <p>
+            {tab === 'minhas'
+              ? 'Dá uma olhada nas peladas rolando e confirma presença.'
+              : temFiltroAtivo
+                ? 'Tenta ajustar os filtros, ver outra data ou criar a pelada que tá faltando.'
+                : 'Que tal criar a primeira pelada da semana?'}
+          </p>
+          <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {tab === 'todas' && temFiltroAtivo && (
+              <button type="button" className="pl-share-btn" onClick={limparTudo}>Limpar filtros</button>
+            )}
+            {tab !== 'minhas' && (
+              <Link href="/?criar=1" className="pl-ticket" style={{ display: 'inline-flex', textDecoration: 'none' }}>
+                <span className="pl-ticket-label">Criar pelada</span>
+                <span className="pl-ticket-stub" aria-hidden="true">⚽</span>
+              </Link>
+            )}
+          </div>
         </div>
       ) : (
         <>
@@ -253,7 +321,9 @@ export default function PeladasPage() {
             <div className="pl-list">{hoje.map(renderCard)}</div>
           </>}
           {proximas.length > 0 && <>
-            <div className="pl-section-title" style={{ maxWidth: 640, margin: '22px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>{tab === 'minhas' ? 'Outras peladas confirmadas' : 'Próximas peladas'}</div>
+            <div className="pl-section-title" style={{ maxWidth: 640, margin: '22px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>
+              {tab === 'minhas' ? 'Outras peladas confirmadas' : ordenacaoCronologica ? 'Próximas peladas' : 'Resultados'}
+            </div>
             <div className="pl-list">{proximas.map(renderCard)}</div>
           </>}
         </>
