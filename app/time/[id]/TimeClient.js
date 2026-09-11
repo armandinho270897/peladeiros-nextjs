@@ -155,6 +155,24 @@ export default function TimeClient({ id }) {
     router.push('/times');
   }
 
+  async function marcarMensalidade(membroId, pago) {
+    setBusy(true);
+    const res = await fetch(`/api/time-membros/${membroId}/mensalidade`, { method: pago ? 'POST' : 'DELETE' });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { showToast(json.error || 'Não consegui atualizar.', 'error'); return; }
+    load();
+  }
+
+  async function cobrarMensalidade(membroId, nome) {
+    setBusy(true);
+    const res = await fetch(`/api/time-membros/${membroId}/cobrar-mensalidade`, { method: 'POST' });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { showToast(json.error || 'Não consegui cobrar.', 'error'); return; }
+    showToast(`Cobrança enviada pra ${nome}.`);
+  }
+
   if (loading) {
     return (
       <div>
@@ -176,7 +194,7 @@ export default function TimeClient({ id }) {
     );
   }
 
-  const { time, capitao, membros, pendentes, solicitacoes = [], minhaRelacao, souCapitao, desafiosRecebidos = [], desafiosEnviados = [], stats } = data;
+  const { time, capitao, membros, pendentes, solicitacoes = [], minhaRelacao, souCapitao, desafiosRecebidos = [], desafiosEnviados = [], stats, resumoFinanceiro } = data;
   const membrosIds = membros.map((m) => m.profiles?.id).filter(Boolean);
   const minhaMembresia = user ? membros.find((m) => m.user_id === user.id) : null;
   const outrosMembrosAprovados = membros.filter((m) => m.user_id !== user?.id && m.profiles).map((m) => m.profiles);
@@ -278,6 +296,39 @@ export default function TimeClient({ id }) {
           <div className="pl-stat">
             <div className="num">{stats.notaMediaElenco != null ? stats.notaMediaElenco.toFixed(1) : '—'}</div>
             <div className="label">Nota média do elenco</div>
+          </div>
+        </div>
+      )}
+
+      {souCapitao && resumoFinanceiro && resumoFinanceiro.mensalistas > 0 && (
+        <div className="pl-list" style={{ paddingTop: 0 }}>
+          <div className="pl-card" style={{ display: 'block' }}>
+            <div className="pl-pending-title pl-section-title">Financeiro — mensalidade deste mês</div>
+            {time.mensalidade_valor ? (
+              <>
+                <p className="meta" style={{ marginBottom: 10 }}>
+                  {resumoFinanceiro.pagaram} de {resumoFinanceiro.mensalistas} pagaram · R$ {resumoFinanceiro.valorRecebido.toFixed(2)} de R$ {resumoFinanceiro.valorEsperado.toFixed(2)}
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {membros.filter((m) => m.mensalista && m.profiles).map((m) => (
+                    <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <Avatar nome={m.profiles.nome} size={28} fotoUrl={m.profiles.foto_url} />
+                      <span style={{ flex: 1, fontSize: 14 }}>{m.profiles.nome}</span>
+                      {m.pagouEsteMes ? (
+                        <button type="button" className="pl-share-btn" disabled={busy} onClick={() => marcarMensalidade(m.id, false)}>Pago ✓</button>
+                      ) : (
+                        <>
+                          <button type="button" className="pl-share-btn" disabled={busy} onClick={() => cobrarMensalidade(m.id, m.profiles.nome)}>Cobrar</button>
+                          <TicketButton compact disabled={busy} onClick={() => marcarMensalidade(m.id, true)}>Marcar pago</TicketButton>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="pl-hint">Defina o valor da mensalidade em "Editar time" pra controlar os pagamentos.</p>
+            )}
           </div>
         </div>
       )}
