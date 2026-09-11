@@ -6,7 +6,15 @@ import { notificarPartidasProximas } from '@/lib/lembretesPartida';
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-const JANELA_MS = 3 * 60 * 60 * 1000; // mesma janela de "em breve" de verificar-proximas
+// O plano Hobby do Vercel só permite cron rodando 1x/dia (ver vercel.json —
+// "0 11 * * *", 8h em Brasília) — bem diferente da janela de 3h de
+// verificar-proximas, que roda a cada abertura do app. Pra não perder quase
+// todo mundo (rodando 1x/dia, uma janela de 3h só pegaria quem por acaso
+// joga muito perto das 8h), essa janela é bem mais larga: cobre qualquer
+// pelada aprovada que ainda vai rolar nas próximas 24h. Quem abre o app
+// continua recebendo o aviso mais em cima da hora via verificar-proximas —
+// esse cron é só o backstop pra quem não abre.
+const JANELA_MS = 24 * 60 * 60 * 1000;
 
 function dataLocalISO(offsetDias = 0) {
   const d = new Date();
@@ -16,7 +24,7 @@ function dataLocalISO(offsetDias = 0) {
 
 // Versão GLOBAL de verificar-proximas — aquela roda por usuário, só quando
 // ele abre o app (não alcança quem não abriu). Essa varre TODO MUNDO com
-// pelada aprovada nas próximas 3h, disparada pelo Vercel Cron (vercel.json)
+// pelada aprovada dentro da janela, disparada pelo Vercel Cron (vercel.json)
 // em vez de por uma sessão de navegador. Protegida por CRON_SECRET: o
 // Vercel manda esse header sozinho em toda invocação de cron job — sem essa
 // env var configurada, a rota fica aberta (aceitável em dev, configure em
@@ -29,13 +37,12 @@ export async function GET(request) {
     }
   }
 
-  // Só busca jogos de hoje/amanhã (cobre virada de dia perto da meia-noite)
-  // em vez de escanear toda a tabela — um jogo dentro da janela de 3h só
-  // pode cair numa dessas duas datas.
+  // Busca jogos de hoje/amanhã/depois de amanhã — cobre a janela de 24h
+  // partindo de qualquer horário do dia em que o cron rodar.
   const { data: jogos } = await supabase
     .from('games')
     .select('id, local, data, horario')
-    .in('data', [dataLocalISO(0), dataLocalISO(1)]);
+    .in('data', [dataLocalISO(0), dataLocalISO(1), dataLocalISO(2)]);
 
   const agora = Date.now();
   const gameIdsProximos = (jogos || [])
