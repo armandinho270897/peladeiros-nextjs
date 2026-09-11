@@ -35,6 +35,10 @@ export async function GET(request, { params }) {
 
   const [comNotas] = await attachNotaMedia([game]);
   const { codigo, ...safe } = comNotas;
+  // whatsapp nunca é lido de volta em nenhuma tela (só é gravado na hora
+  // da confirmação) — sem motivo pra esse endpoint público (sem
+  // autenticação nenhuma) vazar telefone de quem confirmou presença.
+  safe.confirmacoes = (safe.confirmacoes || []).map(({ whatsapp, ...c }) => c);
   return NextResponse.json(safe);
 }
 

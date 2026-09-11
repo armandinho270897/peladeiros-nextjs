@@ -197,8 +197,16 @@ export async function GET(request) {
   const total = comNotas.length;
   const limitada = comNotas.slice(0, limit);
 
-  // não devolve o código (PIN) pro front — só é usado server-side pra validar edição
-  const safe = limitada.map(({ codigo, ...g }) => g);
+  // não devolve o código (PIN) pro front — só é usado server-side pra validar edição.
+  // whatsapp de cada confirmação também some daqui: nenhuma tela lê esse
+  // campo de volta (só é gravado na hora da confirmação), e esse endpoint
+  // agora alimenta a Descoberta — expandir quem vê o jogo sem esconder
+  // isso vazaria telefone de gente confirmada pra qualquer estranho que
+  // só descobrir a pelada, sem nunca ter confirmado presença nela.
+  const safe = limitada.map(({ codigo, ...g }) => ({
+    ...g,
+    confirmacoes: (g.confirmacoes || []).map(({ whatsapp, ...c }) => c),
+  }));
   return NextResponse.json({ games: safe, total });
 }
 
