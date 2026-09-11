@@ -164,6 +164,7 @@ export default function PitchBall() {
       let dt = (t - lastT.current) / 1000;
       lastT.current = t;
       if (dt > 0.05) dt = 0.05; // evita salto grande depois de aba oculta/travada
+      window.__pbLastDt = dt; window.__pbLastT = t; window.__pbFrameCount = (window.__pbFrameCount || 0) + 1;
 
       if (!dragging.current && !scored.current) {
         const v = vel.current;
@@ -211,6 +212,7 @@ export default function PitchBall() {
     }
 
     function kick() {
+      window.__pbFrameCount = 0;
       const dir = Math.random() < 0.5 ? -1 : 1;
       vel.current = { x: dir * (300 + Math.random() * 250), y: -(700 + Math.random() * 250) };
       scored.current = false;
