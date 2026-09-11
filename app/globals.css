@@ -819,12 +819,15 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   .pl-lamp-core, .pl-lamp-beam { animation: none; opacity: 0.85; }
   .pl-onb-radar-ring { animation: none; opacity: 0; }
-  .pl-onb-glow { animation: none; }
+  .pl-onb-glow { animation: none; opacity: 1; }
+  .pl-onb-icon-wrap { animation: none; opacity: 1; transform: none; }
   .pl-onb-title span, .pl-onboarding-content p { animation: none; opacity: 1; transform: none; }
   .pl-onb-draw { animation: none; stroke-dashoffset: 0; }
+  .pl-onb-tear { animation: none; transform: none; }
   .pl-onb-fill { animation: none; opacity: 1; }
   .pl-onb-badge { animation: none; opacity: 1; transform: none; }
   .pl-onb-spark { animation: none; opacity: 0; }
+  .pl-onb-twinkle { animation: none; opacity: 0.85; transform: none; }
   .pl-onb-cta .pl-ticket-label::after { animation: none; display: none; }
   .pl-stagger-1, .pl-stagger-2, .pl-stagger-3 { animation: none; opacity: 1; transform: none; }
   .pl-btn-ball, .pl-btn-ball-shadow { animation: none; }
@@ -1993,7 +1996,7 @@ body::after {
 .pl-onboarding-content h2 { font-family: var(--font-display); text-transform: uppercase; color: var(--paper); font-size: 22px; margin: 0; }
 .pl-onboarding-content p {
   color: var(--paper-dim); font-size: 14px; line-height: 1.5; margin: 0;
-  animation: pl-onb-rise 500ms ease backwards; animation-delay: 480ms;
+  animation: pl-onb-rise 340ms ease backwards; animation-delay: 260ms;
 }
 .pl-onboarding-dots { position: relative; z-index: 2; display: flex; gap: 6px; }
 .pl-onboarding-dots span {
@@ -2003,27 +2006,33 @@ body::after {
 .pl-onboarding-dots span.active { width: 20px; background: var(--neon); }
 .pl-onboarding-actions { position: relative; z-index: 2; width: 100%; max-width: 280px; }
 
-/* Ambiente extra sobre o cenário de quadra: um glow verde pulsando bem
-   devagar atrás do ícone (dá "peso" de produto acabado) + uma camada de
-   grão/ruído (SVG feTurbulence, sem lib) que evita o gradiente do céu
-   parecer banded/liso demais em telas grandes. */
+/* Ambiente extra sobre o cenário de quadra: glow verde discreto atrás
+   do ícone (dá "peso" de produto acabado) + uma camada de grão/ruído
+   (SVG feTurbulence, sem lib) que evita o gradiente do céu parecer
+   banded/liso demais em telas grandes.
+   V2 — pedido explícito: nada de animação contínua/pulso infinito, e
+   toda a entrada (ícone, título, texto, ticket, selo) precisa caber
+   em menos de ~700ms, uma vez só. Isso substitui o glow pulsando pra
+   sempre e os loops de radar/twinkle/shimmer da versão anterior — cada
+   um agora toca uma vez ao montar e para, com timings comprimidos. */
 .pl-onb-glow {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: radial-gradient(circle at 50% 38%, rgba(166,255,0,0.16) 0%, rgba(166,255,0,0) 60%);
-  filter: blur(40px);
-  animation: pl-onb-glow-pulse 6s ease-in-out infinite alternate;
+  background: radial-gradient(circle at 50% 38%, rgba(166,255,0,0.12) 0%, rgba(166,255,0,0) 58%);
+  filter: blur(28px);
+  opacity: 0; animation: pl-onb-glow-in 600ms ease forwards;
 }
-@keyframes pl-onb-glow-pulse {
-  0% { opacity: 0.6; transform: scale(0.94); }
-  100% { opacity: 1; transform: scale(1.05); }
-}
+@keyframes pl-onb-glow-in { to { opacity: 1; } }
 .pl-onb-grain {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
   opacity: 0.05; mix-blend-mode: overlay;
   background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27/%3E%3C/svg%3E');
 }
 
-.pl-onb-icon-wrap { position: relative; }
+.pl-onb-icon-wrap {
+  position: relative; opacity: 0; transform: scale(0.85);
+  animation: pl-onb-icon-in 320ms cubic-bezier(.2,.7,.3,1) forwards;
+}
+@keyframes pl-onb-icon-in { to { opacity: 1; transform: scale(1); } }
 
 /* Título em palavras, cada uma sobe e some-entra com um pequeno atraso
    escalonado — a string real (pl-sr-only) continua íntegra pra leitor
@@ -2032,57 +2041,69 @@ body::after {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
-.pl-onb-title span { display: inline-block; animation: pl-onb-rise 520ms ease backwards; }
+.pl-onb-title span { display: inline-block; animation: pl-onb-rise 340ms ease backwards; }
 @keyframes pl-onb-rise {
-  0% { opacity: 0; transform: translateY(10px); }
+  0% { opacity: 0; transform: translateY(8px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 
-.pl-onb-radar-ring { transform-origin: 80px 96px; animation: pl-radar-ping 2.6s ease-out infinite; }
-.pl-onb-radar-ring-2 { animation-delay: 1.3s; }
+/* Ping do radar (pino do passo 1) — uma vez só, não em loop. */
+.pl-onb-radar-ring { transform-origin: 80px 96px; opacity: 0; animation: pl-radar-ping 700ms ease-out forwards; animation-delay: 260ms; }
+.pl-onb-radar-ring-2 { animation-delay: 400ms; }
 @keyframes pl-radar-ping {
   0% { transform: scale(0.6); opacity: 0.7; }
-  100% { transform: scale(2.4); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
 }
 
 /* Traço do ícone se desenhando ao montar — usa pathLength="1" no SVG
    (fica independente do comprimento real do path) então o dasharray/
    dashoffset é sempre 0→1, não importa o desenho. */
-.pl-onb-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: pl-onb-draw 900ms ease forwards; }
+.pl-onb-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: pl-onb-draw 340ms ease forwards; }
 @keyframes pl-onb-draw { to { stroke-dashoffset: 0; } }
-.pl-onb-fill { opacity: 0; animation: pl-onb-fill-in 400ms ease forwards; animation-delay: 750ms; }
+.pl-onb-fill { opacity: 0; animation: pl-onb-fill-in 220ms ease forwards; animation-delay: 280ms; }
 @keyframes pl-onb-fill-in { to { opacity: 1; } }
+
+/* Picote central do ticket "rasga" ao vivo em vez de só aparecer —
+   scaleY a partir do centro (não dá pra usar stroke-dasharray/pathLength
+   aqui: a propriedade CSS de dasharray venceria o atributo "3 4" da
+   linha e ela perderia o tracejado, virando sólida). Dispara logo
+   depois do contorno do ticket terminar de desenhar. */
+.pl-onb-tear { transform: scaleY(0); transform-origin: center; animation: pl-onb-tear-in 200ms ease-out forwards; animation-delay: 320ms; }
+@keyframes pl-onb-tear-in { to { transform: scaleY(1); } }
 
 /* Selo de "confirmado" — aparece por último com um pop de mola e solta
    umas faíscas neon (confete bem discreto, 6 pontinhos saindo do centro). */
-.pl-onb-badge { opacity: 0; transform-origin: 100px 59px; animation: pl-onb-badge-in 420ms cubic-bezier(.34,1.56,.64,1) forwards; animation-delay: 800ms; }
+.pl-onb-badge { opacity: 0; transform-origin: 100px 54px; animation: pl-onb-badge-in 260ms cubic-bezier(.34,1.56,.64,1) forwards; animation-delay: 420ms; }
 @keyframes pl-onb-badge-in {
   0% { opacity: 0; transform: scale(0.35); }
   65% { opacity: 1; transform: scale(1.14); }
   100% { opacity: 1; transform: scale(1); }
 }
-.pl-onb-spark { opacity: 0; animation: pl-onb-spark-burst 620ms ease-out forwards; animation-delay: 1160ms; transform-origin: 100px 60px; }
+.pl-onb-spark { opacity: 0; animation: pl-onb-spark-burst 260ms ease-out forwards; animation-delay: 600ms; transform-origin: 100px 54px; }
 @keyframes pl-onb-spark-burst {
   0% { opacity: 1; transform: scale(0.3) translate(0, 0); }
   100% { opacity: 0; transform: scale(1) translate(var(--sx), var(--sy)); }
 }
-.pl-onb-twinkle { animation: pl-onb-twinkle 2.4s ease-in-out infinite; }
-@keyframes pl-onb-twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.7); }
-  50% { opacity: 1; transform: scale(1); }
+/* Sparkles da estrela (passo 3) — cada um pisca uma vez ao entrar e
+   se acomoda, sem loop. */
+.pl-onb-twinkle { opacity: 0; animation: pl-onb-twinkle-in 450ms ease forwards; }
+@keyframes pl-onb-twinkle-in {
+  0% { opacity: 0; transform: scale(0.4); }
+  55% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 0.85; transform: scale(1); }
 }
 
-/* Shimmer sutil no CTA do onboarding só — o resto do app mantém o
-   ticket "adesivo" já validado, sem essa varredura de luz. */
+/* Sweep de luz único no CTA do onboarding, só ao montar (não em loop)
+   — o resto do app mantém o ticket "adesivo" já validado, sem isso. */
 .pl-onb-cta .pl-ticket-label { position: relative; overflow: hidden; }
 .pl-onb-cta .pl-ticket-label::after {
   content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
   background: linear-gradient(115deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%);
-  animation: pl-onb-shimmer 3.2s ease-in-out infinite;
+  animation: pl-onb-shimmer 600ms ease-in-out forwards; animation-delay: 650ms;
 }
 @keyframes pl-onb-shimmer {
-  0%, 30% { left: -60%; }
-  70%, 100% { left: 120%; }
+  0% { left: -60%; }
+  100% { left: 120%; }
 }
 
 /* Chat da pelada — só entre quem confirmou presença nesse jogo específico

@@ -40,7 +40,7 @@ export default function OnboardingConfirmarIcon({ width = 160 }) {
         </clipPath>
       </defs>
 
-      <ellipse cx="80" cy="60" rx="60" ry="36" fill="url(#pl-onb-ticket-glow)" />
+      <ellipse cx="80" cy="54" rx="60" ry="36" fill="url(#pl-onb-ticket-glow)" />
 
       <g filter="url(#pl-onb-ticket-shadow)">
         <path d={ticketPath} fill="url(#pl-onb-ticket-body)" className="pl-onb-fill" />
@@ -54,25 +54,33 @@ export default function OnboardingConfirmarIcon({ width = 160 }) {
         <rect x="20" y="34" width="120" height="20" fill="url(#pl-onb-ticket-sheen)" />
       </g>
 
-      <line x1="60" y1="34" x2="60" y2="86" stroke="var(--gold)" strokeWidth="1" strokeDasharray="3 4" opacity="0.6" className="pl-onb-fill" />
+      {/* ticket desenha de y=34 (topo) a y=74 (base) — altura real 40,
+          não 52. Divisória, código de barras e selo têm que caber
+          dentro disso; antes estavam calculados pra uma altura errada
+          e o selo chegava a passar 1.5px do fundo do ticket. */}
+      {/* picote "rasga" ao vivo (scaleY a partir do centro) em vez de só
+          aparecer — usar stroke-dasharray/pathLength pra isso quebraria
+          o padrão tracejado "3 4" (propriedade CSS de dasharray venceria
+          o atributo e viraria uma linha sólida), por isso é transform. */}
+      <line x1="60" y1="34" x2="60" y2="74" stroke="var(--gold)" strokeWidth="1" strokeDasharray="3 4" opacity="0.6" className="pl-onb-tear" />
       <g className="pl-onb-fill" opacity="0.55">
-        <line x1="30" y1="46" x2="30" y2="74" stroke="var(--paper-dim)" strokeWidth="1.2" />
-        <line x1="34" y1="46" x2="34" y2="74" stroke="var(--paper-dim)" strokeWidth="2" />
-        <line x1="38" y1="46" x2="38" y2="74" stroke="var(--paper-dim)" strokeWidth="1.2" />
-        <line x1="42" y1="46" x2="42" y2="74" stroke="var(--paper-dim)" strokeWidth="1.6" />
-        <line x1="46" y1="46" x2="46" y2="74" stroke="var(--paper-dim)" strokeWidth="1.2" />
-        <line x1="50" y1="46" x2="50" y2="74" stroke="var(--paper-dim)" strokeWidth="1.5" />
+        <line x1="30" y1="43" x2="30" y2="65" stroke="var(--paper-dim)" strokeWidth="1.2" />
+        <line x1="34" y1="43" x2="34" y2="65" stroke="var(--paper-dim)" strokeWidth="2" />
+        <line x1="38" y1="43" x2="38" y2="65" stroke="var(--paper-dim)" strokeWidth="1.2" />
+        <line x1="42" y1="43" x2="42" y2="65" stroke="var(--paper-dim)" strokeWidth="1.6" />
+        <line x1="46" y1="43" x2="46" y2="65" stroke="var(--paper-dim)" strokeWidth="1.2" />
+        <line x1="50" y1="43" x2="50" y2="65" stroke="var(--paper-dim)" strokeWidth="1.5" />
       </g>
 
       <g className="pl-onb-badge">
-        <circle cx="100" cy="59" r="16.5" fill="url(#pl-onb-badge-grad)" />
-        <path d="M92 59.5l5.6 5.6L110.5 51" stroke="var(--ink)" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <circle cx="100" cy="54" r="14" fill="url(#pl-onb-badge-grad)" />
+        <path d="M92 54.5l5.6 5.6L110.5 46" stroke="var(--ink)" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </g>
 
       {FAISCAS.map((f, i) => (
         <circle
-          key={i} cx="100" cy="59" r="2.2" fill="var(--neon)" className="pl-onb-spark"
-          style={{ '--sx': `${f.dx}px`, '--sy': `${f.dy}px`, animationDelay: `${1160 + i * 12}ms` }}
+          key={i} cx="100" cy="54" r="2.2" fill="var(--neon)" className="pl-onb-spark"
+          style={{ '--sx': `${f.dx}px`, '--sy': `${f.dy}px`, animationDelay: `${600 + i * 12}ms` }}
         />
       ))}
     </svg>
