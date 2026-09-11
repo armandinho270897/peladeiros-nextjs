@@ -9,7 +9,11 @@ const JANELA_MS = 3 * 60 * 60 * 1000; // "em breve" = começa dentro de 3h
 
 // Chamada quando o app abre (ver AuthProvider.js) — não é push, é só uma
 // checagem local que cria a notificação na hora se ainda não existir uma
-// igual, então não duplica a cada abertura.
+// igual, então não duplica a cada abertura. Não é a ÚNICA via desse aviso:
+// app/api/cron/lembretes-3h/route.js varre TODO MUNDO nessa mesma janela,
+// chamado por fora (GitHub Actions, a cada ~20min) — cobre quem não abre o
+// app. As duas escrevem o mesmo tipo (partida_proxima_3h), então dividem o
+// mesmo dedup: não importa qual chega primeiro, nunca duplica.
 export async function POST() {
   const authClient = createServerClient();
   const { data: { user } } = await authClient.auth.getUser();

@@ -1,0 +1,27 @@
+# Chama a varredura global de lembrete "3h antes" (app/api/cron/lembretes-3h)
+# de fora do Vercel — o plano Hobby só libera cron nativo 1x/dia, frequência
+# grosseira demais pra uma janela de 3h. GitHub Actions é gratuito e não tem
+# esse limite, então cobre quem não abre o app nesse intervalo. A rota é
+# idempotente (dedup por user_id+game_id, migration 036) — rodar a cada
+# ~20min só garante que ninguém fica muito tempo sem o aviso, nunca duplica.
+#
+# CRON_SECRET (opcional, recomendado): pra essa chamada ser autenticada, crie
+# um secret do repositório com o MESMO valor da env var CRON_SECRET do
+# Vercel, em Settings > Secrets and variables > Actions > New repository
+# secret. Sem isso, a rota aceita a chamada sem checar (mesmo comportamento
+# de quando CRON_SECRET não existe em nenhum dos dois lados).
+name: Lembrete 3h antes da pelada
+
+on:
+  schedule:
+    - cron: '*/20 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  chamar-lembretes-3h:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar /api/cron/lembretes-3h
+        run: |
+          curl -sf -X GET "https://peladeiros-nextjs.vercel.app/api/cron/lembretes-3h" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

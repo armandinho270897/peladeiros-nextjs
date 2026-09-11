@@ -17,13 +17,17 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 // O plano Hobby do Vercel só permite cron rodando 1x/dia (ver vercel.json —
-// "0 11 * * *", 8h em Brasília) — bem diferente da janela de 3h de
-// verificar-proximas, que roda a cada abertura do app. Pra não perder quase
-// todo mundo (rodando 1x/dia, uma janela de 3h só pegaria quem por acaso
-// joga muito perto das 8h), essa janela é bem mais larga: cobre qualquer
-// pelada aprovada que ainda vai rolar nas próximas 24h. Quem abre o app
-// continua recebendo o aviso mais em cima da hora via verificar-proximas —
-// esse cron é só o backstop pra quem não abre.
+// "0 11 * * *", 8h em Brasília). Pra não perder quase todo mundo (rodando
+// só 1x/dia, uma janela estreita só pegaria quem por acaso joga muito
+// perto das 8h), essa janela é larga: cobre qualquer pelada aprovada que
+// ainda vai rolar nas próximas 24h — é um teto, não uma promessa de
+// "faltam exatamente 24h" (por isso a mensagem sempre usa a contagem real
+// de horas, ver horasRestantes acima, e o rótulo em notifCategorias.js é
+// só "Partida próxima"). O aviso mais em cima da hora (3h antes) é outro
+// tipo à parte — ver app/api/notificacoes/verificar-proximas/route.js e
+// app/api/cron/lembretes-3h/route.js — que tem seu próprio agendamento
+// (GitHub Actions, ~20min) porque esse cron diário é frequência demais
+// grosseira pra cobrir uma janela de só 3h.
 const JANELA_MS = 24 * 60 * 60 * 1000;
 
 function dataLocalISO(offsetDias = 0) {
