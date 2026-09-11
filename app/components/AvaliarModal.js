@@ -15,10 +15,12 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
   const [avaliaveis, setAvaliaveis] = useState([]);
   const [notas, setNotas] = useState({});
   const [tags, setTags] = useState({});
+  const [fairPlays, setFairPlays] = useState({});
   const [mostraCapitao, setMostraCapitao] = useState(false);
   const [mostraGeral, setMostraGeral] = useState(false);
   const [notaCapitao, setNotaCapitao] = useState(0);
   const [tagCapitao, setTagCapitao] = useState('');
+  const [fairPlayCapitao, setFairPlayCapitao] = useState(true);
   const [notaGeral, setNotaGeral] = useState(0);
   const [tagGeral, setTagGeral] = useState('');
 
@@ -49,10 +51,10 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
     e.preventDefault();
     const avaliacoes = avaliaveis
       .filter((a) => notas[a.user_id] > 0)
-      .map((a) => ({ avaliado_id: a.user_id, nota: notas[a.user_id], tag: tags[a.user_id] || '', tipo: 'jogador' }));
+      .map((a) => ({ avaliado_id: a.user_id, nota: notas[a.user_id], tag: tags[a.user_id] || '', tipo: 'jogador', fairPlay: fairPlays[a.user_id] ?? true }));
 
     if (mostraCapitao && notaCapitao > 0) {
-      avaliacoes.push({ avaliado_id: game.owner_id, nota: notaCapitao, tag: tagCapitao, tipo: 'capitao' });
+      avaliacoes.push({ avaliado_id: game.owner_id, nota: notaCapitao, tag: tagCapitao, tipo: 'capitao', fairPlay: fairPlayCapitao });
     }
     if (mostraGeral && notaGeral > 0) {
       avaliacoes.push({ nota: notaGeral, tag: tagGeral, tipo: 'geral' });
@@ -87,18 +89,24 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
             {avaliaveis.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 14 }}>
                 {avaliaveis.map((a) => (
-                  <div key={a.user_id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <Avatar nome={a.nome} size={32} fotoUrl={a.foto_url} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.nome}</div>
-                      <StarRating value={notas[a.user_id] || 0} onChange={(n) => setNotas((prev) => ({ ...prev, [a.user_id]: n }))} />
+                  <div key={a.user_id}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <Avatar nome={a.nome} size={32} fotoUrl={a.foto_url} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.nome}</div>
+                        <StarRating value={notas[a.user_id] || 0} onChange={(n) => setNotas((prev) => ({ ...prev, [a.user_id]: n }))} />
+                      </div>
+                      <input
+                        placeholder="tag (opcional)"
+                        value={tags[a.user_id] || ''}
+                        onChange={(e) => setTags((prev) => ({ ...prev, [a.user_id]: e.target.value }))}
+                        style={{ width: 110, background: 'var(--ink)', border: '1px solid rgba(110,113,120,0.4)', color: 'var(--paper)', padding: '6px 8px', borderRadius: 3, fontSize: 12 }}
+                      />
                     </div>
-                    <input
-                      placeholder="tag (opcional)"
-                      value={tags[a.user_id] || ''}
-                      onChange={(e) => setTags((prev) => ({ ...prev, [a.user_id]: e.target.value }))}
-                      style={{ width: 110, background: 'var(--ink)', border: '1px solid rgba(110,113,120,0.4)', color: 'var(--paper)', padding: '6px 8px', borderRadius: 3, fontSize: 12 }}
-                    />
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, marginLeft: 42, fontSize: 12, color: 'var(--paper-dim)', textTransform: 'none', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={fairPlays[a.user_id] ?? true} onChange={(e) => setFairPlays((prev) => ({ ...prev, [a.user_id]: e.target.checked }))} />
+                      Jogou limpo (fair play)
+                    </label>
                   </div>
                 ))}
               </div>
@@ -120,6 +128,10 @@ export default function AvaliarModal({ game, onClose, onSaved }) {
                     style={{ width: 110, background: 'var(--ink)', border: '1px solid rgba(110,113,120,0.4)', color: 'var(--paper)', padding: '6px 8px', borderRadius: 3, fontSize: 12 }}
                   />
                 </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, marginLeft: 42, fontSize: 12, color: 'var(--paper-dim)', textTransform: 'none', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={fairPlayCapitao} onChange={(e) => setFairPlayCapitao(e.target.checked)} />
+                  Jogou limpo (fair play)
+                </label>
               </div>
             )}
 

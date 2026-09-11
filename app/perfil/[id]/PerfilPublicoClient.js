@@ -10,7 +10,7 @@ import PatenteCard from '../../components/PatenteCard';
 import PerfilSobre from '../../components/PerfilSobre';
 import PerfilTags from '../../components/PerfilTags';
 import BackLink from '../../components/BackLink';
-import { fmtDate, MODALIDADE_LABEL, POSICAO_LABEL } from '@/lib/gameUtils';
+import { fmtDate, MODALIDADE_LABEL, POSICAO_LABEL, RESULTADO_LABEL, RESULTADO_COR } from '@/lib/gameUtils';
 
 // Perfil público de OUTRO jogador — mesma estrutura visual de app/perfil/page.js
 // (avatar, stats, conquistas, times, histórico), mas sem nenhum controle
@@ -106,8 +106,14 @@ export default function PerfilPublicoClient({ id }) {
         </div>
         {stats.totalPeladasPassadas > 0 && (
           <div className="pl-stat">
-            <div className="num">{stats.peladasJogadas}/{stats.totalPeladasPassadas}</div>
-            <div className="label">Compareceu</div>
+            <div className="num">{stats.percentualPresenca}%</div>
+            <div className="label">Presença ({stats.peladasJogadas}/{stats.totalPeladasPassadas})</div>
+          </div>
+        )}
+        {stats.percentualFairPlay != null && (
+          <div className="pl-stat">
+            <div className="num">{stats.percentualFairPlay}%</div>
+            <div className="label">Fair play</div>
           </div>
         )}
       </div>
@@ -157,7 +163,12 @@ export default function PerfilPublicoClient({ id }) {
                   <span className="pl-bairro-tag">{g.bairro}</span>
                   <p className="meta"><CaptainIcon /> Capitão: <b>{g.capitao}</b></p>
                   {g.placar_time_a != null && g.placar_time_b != null && (
-                    <p className="meta">Placar: Time A {g.placar_time_a} x {g.placar_time_b} Time B</p>
+                    <p className="meta">
+                      Placar: Time A {g.placar_time_a} x {g.placar_time_b} Time B
+                      {g.resultado && (
+                        <span className="pl-bairro-tag" style={{ marginLeft: 6, color: RESULTADO_COR[g.resultado] }}>{RESULTADO_LABEL[g.resultado]}</span>
+                      )}
+                    </p>
                   )}
                 </div>
               </div>

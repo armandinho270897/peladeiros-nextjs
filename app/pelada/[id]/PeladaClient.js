@@ -87,6 +87,12 @@ export default function PeladaClient({ id }) {
     if (win) showToast('Pelada compartilhada');
   }
 
+  function shareResultado(g) {
+    const msg = `⚽ Resultado da pelada!\n${g.local} (${g.bairro})\n${g.data}\n\nTime A ${g.placar_time_a} x ${g.placar_time_b} Time B\n\n${shareUrl(g.id)}`;
+    const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    if (win) showToast('Resultado compartilhado');
+  }
+
   async function handleConfirmarVaga(confirmacaoId) {
     const res = await fetch(`/api/confirmacoes/${confirmacaoId}/confirmar-vaga`, { method: 'POST' });
     const result = await res.json();
@@ -152,9 +158,10 @@ export default function PeladaClient({ id }) {
         <div className="pl-list" style={{ paddingTop: 0 }}>
           <div className="pl-card" style={{ display: 'block', textAlign: 'center' }}>
             <div className="pl-pending-title pl-section-title">Resultado</div>
-            <p style={{ fontSize: 22, fontFamily: 'var(--font-display)', margin: 0 }}>
+            <p style={{ fontSize: 22, fontFamily: 'var(--font-display)', margin: '0 0 10px' }}>
               Time A {game.placar_time_a} x {game.placar_time_b} Time B
             </p>
+            <button type="button" className="pl-share-btn" onClick={() => shareResultado(game)}>Compartilhar resultado</button>
           </div>
         </div>
       )}

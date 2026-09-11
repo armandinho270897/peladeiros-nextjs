@@ -71,9 +71,14 @@ export async function POST(request, { params }) {
   const rowsComAlvo = [];
   let rowGeral = null;
   for (const av of avaliacoes) {
-    const { avaliado_id: avaliadoId, nota, tag, tipo } = av;
+    const { avaliado_id: avaliadoId, nota, tag, tipo, fairPlay } = av;
     if (!Number.isInteger(nota) || nota < 1 || nota > 5) continue;
     const tagLimpa = (tag || '').trim() || null;
+    // fair play é dimensão própria, separada da nota — dá pra avaliar bem
+    // no futebol e ainda marcar jogo pesado, ou vice-versa. Undefined
+    // (checkbox nunca tocado) grava null, não false — não força um
+    // julgamento que o avaliador não quis fazer.
+    const fairPlayValor = typeof fairPlay === 'boolean' ? fairPlay : null;
 
     if (tipo === 'geral') {
       if (rowGeral) continue; // só uma avaliação geral por avaliador
@@ -84,14 +89,14 @@ export async function POST(request, { params }) {
     if (tipo === 'capitao') {
       if (!game.owner_id || avaliadoId !== game.owner_id) continue; // só mira o capitão real
       if (user.id === game.owner_id) continue; // capitão não avalia a si mesmo
-      rowsComAlvo.push({ game_id: gameId, avaliador_id: user.id, avaliado_id: avaliadoId, nota, tag: tagLimpa, tipo: 'capitao' });
+      rowsComAlvo.push({ game_id: gameId, avaliador_id: user.id, avaliado_id: avaliadoId, nota, tag: tagLimpa, tipo: 'capitao', fair_play: fairPlayValor });
       continue;
     }
 
     // tipo padrão: 'jogador'
     if (avaliadoId === user.id) continue; // ninguém avalia a si mesmo
     if (!idsConfirmados.has(avaliadoId)) continue; // só quem confirmou também
-    rowsComAlvo.push({ game_id: gameId, avaliador_id: user.id, avaliado_id: avaliadoId, nota, tag: tagLimpa, tipo: 'jogador' });
+    rowsComAlvo.push({ game_id: gameId, avaliador_id: user.id, avaliado_id: avaliadoId, nota, tag: tagLimpa, tipo: 'jogador', fair_play: fairPlayValor });
   }
 
   if (rowsComAlvo.length === 0 && !rowGeral) {
