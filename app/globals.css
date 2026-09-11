@@ -772,8 +772,7 @@ body::after {
 }
 .pl-pitch-goal {
   position: absolute; right: 12px; bottom: 0; width: 58px; height: 46px;
-  border: 2px solid rgba(243,243,238,0.2); border-bottom: none;
-  border-radius: 3px 3px 0 0; pointer-events: none;
+  pointer-events: none;
 }
 .pl-pitch-ball-shadow {
   position: absolute; top: 0; left: 0; width: 40px; height: 12px;

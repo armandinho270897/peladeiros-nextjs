@@ -383,7 +383,15 @@ export default function PitchBall() {
     >
       {zoneHeight > 0 && (
         <div className="pl-pitch-zone" ref={zoneRef} style={{ height: zoneHeight }}>
-          <div className="pl-pitch-goal" aria-hidden="true" />
+          <svg className="pl-pitch-goal" viewBox="0 0 58 46" aria-hidden="true">
+            <defs>
+              <pattern id="pl-goal-net" width="7" height="7" patternUnits="userSpaceOnUse">
+                <path d="M0 0L7 7M7 0L0 7" stroke="rgba(243,243,238,0.14)" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect x="5" y="2" width="49" height="44" fill="url(#pl-goal-net)" />
+            <path d="M4 46V5a3 3 0 0 1 3-3h44a3 3 0 0 1 3 3v41" fill="none" stroke="rgba(243,243,238,0.4)" strokeWidth="3" strokeLinecap="round" />
+          </svg>
           <div className="pl-pitch-ball-shadow" ref={shadowRef} aria-hidden="true" />
           <button
             type="button"
