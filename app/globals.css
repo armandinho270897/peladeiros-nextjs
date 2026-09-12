@@ -2314,6 +2314,8 @@ body::after {
 .pl-org-btn-mini.recusar { border-color: var(--tag-red); color: var(--tag-red); }
 .pl-org-btn-mini:disabled { opacity: 0.5; cursor: default; }
 .pl-org-btn-mini.pago { border-color: var(--neon); color: var(--neon); }
+.pl-org-btn-mini.whatsapp { border-color: #25D366; color: #25D366; }
+.pl-org-confirm-aviso { font-size: 11px; color: var(--paper-dim); line-height: 1.4; margin: 10px 0 0; }
 
 @keyframes pl-org-rise {
   0% { opacity: 0; transform: translateY(8px); }

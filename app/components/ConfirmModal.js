@@ -35,6 +35,7 @@ export default function ConfirmModal({ game, onCancel, onConfirmed }) {
               placeholder="Ex: chego uns 10 min atrasado"
             />
           </div>
+          <p className="pl-org-confirm-aviso">Se aprovado, seu WhatsApp fica visível pro organizador desta pelada, pra combinar os detalhes do jogo.</p>
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
             <button type="button" className="pl-btn-secondary" onClick={onCancel}>Cancelar</button>

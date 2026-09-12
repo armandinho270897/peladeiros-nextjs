@@ -18,8 +18,11 @@ export async function GET(request, { params }) {
   const { data: game } = await supabase.from('games').select('*, confirmacoes(*)').eq('id', params.id).single();
   if (!game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
 
-  // whatsapp/codigo nunca saem daqui — mesmo cuidado do endpoint público
-  // de descoberta (não tem motivo pra esse painel vazar telefone ou o PIN).
+  // codigo (PIN) nunca sai daqui. whatsapp também não, EXCETO pra quem já
+  // ocupa vaga de verdade (aprovado / aguardando_confirmacao) — é o único
+  // caso em que o organizador legitimamente precisa falar com a pessoa pra
+  // coordenar o jogo. Quem só pediu (pendente), está na espera, cancelou ou
+  // faltou continua sem o contato exposto.
   const { codigo, confirmacoes, ...gameSafe } = game;
   const semContato = (confirmacoes || []).map(({ whatsapp, ...c }) => c);
 
@@ -36,8 +39,8 @@ export async function GET(request, { params }) {
   return NextResponse.json({
     game: gameSafe,
     status: game.encerrada_em ? 'encerrada' : jaRolou ? 'aguardando_encerramento' : 'agendada',
-    confirmados: aprovados.map(({ whatsapp, ...c }) => c),
-    aguardandoConfirmacao: aguardandoConfirmacaoDe(game).map(({ whatsapp, ...c }) => c),
+    confirmados: aprovados,
+    aguardandoConfirmacao: aguardandoConfirmacaoDe(game),
     pendentesAprovacao: pendentesDe(game).map(({ whatsapp, ...c }) => c),
     espera: esperaDe(game).map(({ whatsapp, ...c }) => c),
     cancelados: semContato.filter((c) => c.status === 'cancelado'),
