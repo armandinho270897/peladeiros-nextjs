@@ -296,7 +296,11 @@ export default function PitchBall() {
       ensureLoop();
       window.__pbLog.push('after ensureLoop, moving=' + moving.current + ' raf=' + raf.current);
     }
-    window.__pbState = () => ({ pos: { ...pos.current }, vel: { ...vel.current }, moving: moving.current, raf: raf.current, dims: { ...dims.current }, log: window.__pbLog || [] });
+    window.__pbState = () => ({
+      pos: { ...pos.current }, vel: { ...vel.current }, moving: moving.current, raf: raf.current,
+      dragging: dragging.current, scored: scored.current, hidden: document.hidden,
+      dims: { ...dims.current }, log: window.__pbLog || [],
+    });
 
     function localFromClient(clientX, clientY) {
       const rect = zoneEl.getBoundingClientRect();
