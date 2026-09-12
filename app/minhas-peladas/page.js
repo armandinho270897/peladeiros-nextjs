@@ -37,6 +37,22 @@ export default function MinhasPeladasPage() {
     carregar(true);
   }
 
+  async function handleCheckin(confirmacaoId) {
+    const res = await fetch(`/api/confirmacoes/${confirmacaoId}/checkin`, { method: 'POST' });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) { showToast(json.error || 'Não consegui registrar seu check-in.'); return; }
+    showToast('Chegada registrada!');
+    carregar(true);
+  }
+
+  async function handleUndoCheckin(confirmacaoId) {
+    const res = await fetch(`/api/confirmacoes/${confirmacaoId}/checkin`, { method: 'DELETE' });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) { showToast(json.error || 'Não consegui desfazer o check-in.'); return; }
+    showToast('Check-in desfeito.');
+    carregar(true);
+  }
+
   const totalItens = dados ? SECOES.reduce((soma, s) => soma + dados[s.chave].length, 0) : 0;
 
   return (
@@ -77,6 +93,8 @@ export default function MinhasPeladasPage() {
                     index={i}
                     onConfirmar={handleConfirmar}
                     onCancelar={(confirmacaoId, g) => setCancelando({ confirmacaoId, game: g })}
+                    onCheckin={handleCheckin}
+                    onUndoCheckin={handleUndoCheckin}
                   />
                 ))}
               </div>

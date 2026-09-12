@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
-import { aprovadosDe } from '@/lib/gameUtils';
+import { aprovadosDe, statusCheckin } from '@/lib/gameUtils';
+
+const CHECKIN_LABEL = { pontual: 'Check-in pontual', atrasado: 'Check-in atrasado', presente_manual: 'Marcado manualmente', sem_checkin: 'Sem check-in' };
 import { getCaptainCode } from '@/lib/captainCodes';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
@@ -8,9 +10,13 @@ import TicketButton from './TicketButton';
 export default function EncerrarPartidaModal({ game, onClose, onEncerrada }) {
   const aprovados = aprovadosDe(game);
   const temTimes = aprovados.some((c) => c.time === 'A' || c.time === 'B');
+  // Ponto de partida real: quem já fez check-in ou foi marcado presente
+  // manualmente (painel do organizador) já chega marcado; só quem foi
+  // explicitamente marcado ausente chega desmarcado. presente==null (nunca
+  // mexido) continua com o mesmo benefício da dúvida de sempre — presente.
   const [presentes, setPresentes] = useState(() => {
     const initial = {};
-    aprovados.forEach((c) => { initial[c.id] = true; });
+    aprovados.forEach((c) => { initial[c.id] = c.presente !== false; });
     return initial;
   });
   const [placarTimeA, setPlacarTimeA] = useState('');
@@ -49,13 +55,19 @@ export default function EncerrarPartidaModal({ game, onClose, onEncerrada }) {
           <p className="pl-hint">Ninguém confirmado nessa pelada.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '14px 0' }}>
-            {aprovados.map((c) => (
-              <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-                <input type="checkbox" checked={!!presentes[c.id]} onChange={() => toggle(c.id)} style={{ width: 20, height: 20, accentColor: 'var(--neon)' }} />
-                <Avatar nome={c.nome} size={28} fotoUrl={c.foto_url} />
-                <span style={{ fontSize: 14 }}>{c.nome}</span>
-              </label>
-            ))}
+            {aprovados.map((c) => {
+              const checkin = statusCheckin(c, game);
+              return (
+                <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={!!presentes[c.id]} onChange={() => toggle(c.id)} style={{ width: 20, height: 20, accentColor: 'var(--neon)' }} />
+                  <Avatar nome={c.nome} size={28} fotoUrl={c.foto_url} />
+                  <span style={{ fontSize: 14, flex: 1 }}>{c.nome}</span>
+                  {checkin && checkin !== 'falta' && (
+                    <span style={{ fontSize: 10.5, color: checkin === 'atrasado' ? 'var(--gold)' : 'var(--paper-dim)' }}>{CHECKIN_LABEL[checkin]}</span>
+                  )}
+                </label>
+              );
+            })}
           </div>
         )}
         {temTimes && (

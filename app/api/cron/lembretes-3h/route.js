@@ -1,6 +1,6 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
-import { inicioDoJogo } from '@/lib/gameUtils';
+import { inicioDoJogo, checkinJanelaAberta, CHECKIN_TOLERANCIA_MS } from '@/lib/gameUtils';
 import { notificarPartidasProximas } from '@/lib/lembretesPartida';
 
 export const dynamic = 'force-dynamic';
@@ -35,7 +35,7 @@ export async function GET(request) {
 
   const { data: jogos } = await supabase
     .from('games')
-    .select('id, local, data, horario')
+    .select('id, local, data, horario, encerrada_em')
     .in('data', [dataLocalISO(0), dataLocalISO(1)]);
 
   const agora = Date.now();
@@ -43,18 +43,36 @@ export async function GET(request) {
     .filter((g) => g.data && g.horario && (() => { const diff = inicioDoJogo(g).getTime() - agora; return diff >= 0 && diff < JANELA_MS; })())
     .map((g) => g.id);
 
-  if (gameIdsProximos.length === 0) return NextResponse.json({ ok: true, criadas: 0 });
+  // Check-in: cobertura global igual à de partida_proxima_3h, mas com
+  // janela própria (abre 60min antes, some depois da tolerância de
+  // pontualidade) — não é o mesmo intervalo, por isso não reaproveita
+  // gameIdsProximos.
+  const gameIdsCheckin = (jogos || [])
+    .filter((g) => g.data && g.horario && !g.encerrada_em && checkinJanelaAberta(g) && agora <= inicioDoJogo(g).getTime() + CHECKIN_TOLERANCIA_MS)
+    .map((g) => g.id);
+
+  const gameIdsTodos = [...new Set([...gameIdsProximos, ...gameIdsCheckin])];
+  if (gameIdsTodos.length === 0) return NextResponse.json({ ok: true, criadas: 0 });
 
   const { data: confirmacoes } = await supabase
     .from('confirmacoes')
-    .select('user_id, game_id, games(local, data, horario)')
-    .in('game_id', gameIdsProximos)
+    .select('user_id, game_id, checkin_at, games(local, data, horario)')
+    .in('game_id', gameIdsTodos)
     .eq('status', 'aprovado');
 
+  const gameIdsProximosSet = new Set(gameIdsProximos);
+  const gameIdsCheckinSet = new Set(gameIdsCheckin);
+
   const criadas = await notificarPartidasProximas(
-    confirmacoes || [],
+    (confirmacoes || []).filter((c) => gameIdsProximosSet.has(c.game_id)),
     'partida_proxima_3h',
     (c) => `Sua pelada em ${c.games.local} começa em breve!`,
   );
-  return NextResponse.json({ ok: true, criadas });
+  const criadasCheckin = await notificarPartidasProximas(
+    (confirmacoes || []).filter((c) => gameIdsCheckinSet.has(c.game_id) && !c.checkin_at),
+    'checkin_lembrete',
+    (c) => `Já chegou em ${c.games.local}? Faz o check-in pra registrar sua presença.`,
+  );
+
+  return NextResponse.json({ ok: true, criadas: criadas + criadasCheckin });
 }

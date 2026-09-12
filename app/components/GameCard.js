@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas, souCapitaoDe } from '@/lib/gameUtils';
+import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas, souCapitaoDe, checkinJanelaAberta, checkinAbreEm, formatHoraSP, CHECKIN_UNDO_MS } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './CaptainIcon';
 import TicketButton from './TicketButton';
@@ -46,7 +46,7 @@ function pararPropagacao(fn) {
   return (e) => { e.stopPropagation(); fn(); };
 }
 
-export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, justLotou, distanciaKm, motivo, clickThrough, showArt = true, artSizes, revealIndex }) {
+export default function GameCard({ game, currentUserId, onEdit, onConfirm, onShare, onCancelPresenca, onConfirmarVaga, onCheckin, onUndoCheckin, justLotou, distanciaKm, motivo, clickThrough, showArt = true, artSizes, revealIndex }) {
   const router = useRouter();
   const g = game;
   const d = fmtDate(g.data);
@@ -77,6 +77,37 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
   const aguardandoAprovacao = !souCapitao && minhaConfirmacao?.status === 'pendente';
   const minhaPresencaAprovada = souCapitao || minhaConfirmacao?.status === 'aprovado';
   const minhaVagaAguardandoConfirmacao = !souCapitao && minhaConfirmacao?.status === 'aguardando_confirmacao';
+
+  // Check-in só existe pra quem tem uma confirmação de verdade (status
+  // 'aprovado' — precisa do id da linha pra chamar a rota). Onda de "agora"
+  // própria (tick a cada 20s) só liga quando há algo que pode mudar de
+  // estado sozinho: janela ainda fechada (esperando abrir) ou check-in
+  // recente (janela de desfazer de 5min) — evita re-render desnecessário
+  // no resto do tempo.
+  const podeCheckin = onCheckin && minhaConfirmacao?.status === 'aprovado' && !g.encerrada_em;
+  const jaFezCheckin = !!minhaConfirmacao?.checkin_at;
+  const [agoraCheckin, setAgoraCheckin] = useState(() => Date.now());
+  useEffect(() => {
+    if (!podeCheckin) return;
+    const janelaFechada = !checkinJanelaAberta(g);
+    const dentroDoUndo = jaFezCheckin && (Date.now() - new Date(minhaConfirmacao.checkin_at).getTime()) < CHECKIN_UNDO_MS;
+    if (!janelaFechada && !dentroDoUndo) return;
+    const id = setInterval(() => setAgoraCheckin(Date.now()), 20000);
+    return () => clearInterval(id);
+  }, [podeCheckin, jaFezCheckin, g, minhaConfirmacao?.checkin_at]);
+  // checkinJanelaAberta(g) e o cálculo de undo abaixo leem Date.now() na
+  // hora — agoraCheckin no array de deps do effect acima é o que garante
+  // que esse cálculo é refeito a cada tick, mesmo sem "usar" o valor aqui.
+  void agoraCheckin;
+  const checkinAberta = podeCheckin && checkinJanelaAberta(g);
+  const podeDesfazerCheckin = podeCheckin && jaFezCheckin && (agoraCheckin - new Date(minhaConfirmacao.checkin_at).getTime()) < CHECKIN_UNDO_MS;
+
+  const [checkinPulse, setCheckinPulse] = useState(false);
+  function fazerCheckin() {
+    onCheckin(minhaConfirmacao.id);
+    setCheckinPulse(true);
+    setTimeout(() => setCheckinPulse(false), 400);
+  }
 
   const [pulse, setPulse] = useState(false);
   const prevRestantes = useRef(restantes);
@@ -203,6 +234,22 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
           ) : minhaPresencaAprovada ? (
             <>
               <span className="pl-inside-badge">✓ Você está dentro</span>
+
+              {podeCheckin && (
+                jaFezCheckin ? (
+                  <div className="pl-card-cta-col">
+                    <span className={`pl-checkin-feito ${checkinPulse ? 'pl-flip-pulse' : ''}`}>✓ Chegada registrada</span>
+                    {podeDesfazerCheckin && (
+                      <button className="pl-link-small" onClick={pararPropagacao(() => onUndoCheckin(minhaConfirmacao.id))}>Desfazer</button>
+                    )}
+                  </div>
+                ) : checkinAberta ? (
+                  <TicketButton compact onClick={pararPropagacao(fazerCheckin)}>Fazer check-in</TicketButton>
+                ) : (
+                  <p className="pl-aguardando">Check-in abre às {formatHoraSP(checkinAbreEm(g))}</p>
+                )
+              )}
+
               {/* Capitão não cancela a própria presença por aqui — sairia
                   do próprio jogo sem sair da posição de dono. Quem quer
                   desmarcar a pelada inteira usa o fluxo de editar/encerrar. */}

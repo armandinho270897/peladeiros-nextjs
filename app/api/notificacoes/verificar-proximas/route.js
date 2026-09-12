@@ -2,7 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rateLimit';
-import { inicioDoJogo } from '@/lib/gameUtils';
+import { inicioDoJogo, checkinJanelaAberta, CHECKIN_TOLERANCIA_MS } from '@/lib/gameUtils';
 import { notificarPartidasProximas } from '@/lib/lembretesPartida';
 
 const JANELA_MS = 3 * 60 * 60 * 1000; // "em breve" = começa dentro de 3h
@@ -25,7 +25,7 @@ export async function POST() {
 
   const { data: confirmacoes } = await supabase
     .from('confirmacoes')
-    .select('game_id, games(id, local, data, horario)')
+    .select('game_id, checkin_at, games(id, local, data, horario, encerrada_em)')
     .eq('user_id', user.id)
     .eq('status', 'aprovado');
 
@@ -41,5 +41,20 @@ export async function POST() {
     'partida_proxima_3h',
     (c) => `Sua pelada em ${c.games.local} começa em breve!`,
   );
-  return NextResponse.json({ ok: true, criadas });
+
+  // Lembrete de check-in: só quem ainda não chegou, dentro da janela de
+  // check-in aberta até a tolerância de pontualidade — depois disso o
+  // lembrete não ajuda mais (a pessoa já tá atrasada ou não vem).
+  const candidatosCheckin = (confirmacoes || []).filter((c) => {
+    if (!c.games?.data || !c.games?.horario || c.games.encerrada_em || c.checkin_at) return false;
+    if (!checkinJanelaAberta(c.games)) return false;
+    return agora <= inicioDoJogo(c.games).getTime() + CHECKIN_TOLERANCIA_MS;
+  });
+  const criadasCheckin = await notificarPartidasProximas(
+    candidatosCheckin.map((c) => ({ ...c, user_id: user.id })),
+    'checkin_lembrete',
+    (c) => `Já chegou em ${c.games.local}? Faz o check-in pra registrar sua presença.`,
+  );
+
+  return NextResponse.json({ ok: true, criadas: criadas + criadasCheckin });
 }
