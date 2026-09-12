@@ -252,8 +252,14 @@ export default function PitchBall() {
         if (p.x <= radius) { p.x = radius; v.x = Math.abs(v.x) * WALL_RESTITUTION; }
         if (p.x >= width - radius) { p.x = width - radius; v.x = -Math.abs(v.x) * WALL_RESTITUTION; }
 
+        const beforeCard = { x: p.x, y: p.y, vx: v.x, vy: v.y };
         resolveCard(p, v, true);
+        const afterCard = { x: p.x, y: p.y, vx: v.x, vy: v.y };
         clampToPage(p);
+        if ((window.__pbTrace || 0) < 8) {
+          window.__pbTrace = (window.__pbTrace || 0) + 1;
+          window.__pbLog = (window.__pbLog || []).concat(JSON.stringify({ dt, floor, beforeCard, afterCard, final: { x: p.x, y: p.y } }));
+        }
 
         // rotação fisicamente correta de rolamento: ângulo = distância / raio
         rot.current += (v.x * dt / radius) * ROTATION_DEG_PER_RAD;
