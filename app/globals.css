@@ -1748,7 +1748,7 @@ body::after {
   position: relative; width: 34px; height: 34px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 10px;
-  transition: transform 180ms var(--nav-anim-ease, ease);
+  transition: transform 180ms ease;
 }
 .pl-bottom-nav-item.active .pl-bottom-nav-icon { transform: translateY(-1px); }
 /* traço levemente torto/stencil, agora que o filtro é global (definido em
@@ -1756,34 +1756,41 @@ body::after {
 .pl-bottom-nav-icon svg:not(.pl-bottom-nav-ball) { position: relative; z-index: 2; color: inherit; filter: url(#pl-rough-filter); }
 
 /* Bola de futebol em marca d'água atrás do ícone ativo — só stroke (sem
-   fill), opacidade baixa (--nav-ball-opacity) pra nunca virar um fundo
-   pesado, brilho verde neon controlado via drop-shadow. Cada item tem uma
-   leve variação de inclinação (--tilt, por posição no grid) pra não
-   parecer um carimbo repetido idêntico em toda aba. Entrada: escala+fade+
-   rotação que "assenta" (leve overshoot antes do repouso), 240ms — dentro
-   da janela de 180–280ms pedida. */
-.pl-bottom-nav-ball {
+   fill), opacidade baixa pra nunca virar um fundo pesado, brilho verde
+   neon controlado via drop-shadow. Wrapper (.pl-bottom-nav-ball-wrap) leva
+   só a inclinação por item, ESTÁTICA — nada de var() dentro do
+   @keyframes/animation abaixo: testado ao vivo que isso reinicia a
+   animação sozinha em loop (currentTime nunca passa de 0) toda vez que
+   qualquer outro recálculo de estilo na página toca a variável. Os valores
+   abaixo (240ms, easing, 0.34 de opacidade) espelham os tokens declarados
+   em .pl-bottom-nav (--nav-anim-dur/--nav-anim-ease/--nav-ball-opacity) —
+   mudou lá, muda aqui também. */
+.pl-bottom-nav-ball-wrap {
   position: absolute; width: 44px; height: 44px; left: 50%; top: 50%;
   margin: -22px 0 0 -22px;
-  color: var(--neon);
-  opacity: 0;
-  transform: scale(0.5) rotate(var(--tilt, 0deg));
-  filter: drop-shadow(0 0 5px var(--nav-ball-glow)) drop-shadow(0 0 1.5px var(--nav-ball-glow));
+  transform: rotate(var(--tilt, 0deg));
   pointer-events: none;
   z-index: 1;
 }
-.pl-bottom-nav > *:nth-child(1) .pl-bottom-nav-ball { --tilt: -9deg; }
-.pl-bottom-nav > *:nth-child(2) .pl-bottom-nav-ball { --tilt: 7deg; }
-.pl-bottom-nav > *:nth-child(4) .pl-bottom-nav-ball { --tilt: -12deg; }
-.pl-bottom-nav > *:nth-child(5) .pl-bottom-nav-ball { --tilt: 8deg; }
-.pl-bottom-nav > *:nth-child(6) .pl-bottom-nav-ball { --tilt: -6deg; }
+.pl-bottom-nav > *:nth-child(1) .pl-bottom-nav-ball-wrap { --tilt: -9deg; }
+.pl-bottom-nav > *:nth-child(2) .pl-bottom-nav-ball-wrap { --tilt: 7deg; }
+.pl-bottom-nav > *:nth-child(4) .pl-bottom-nav-ball-wrap { --tilt: -12deg; }
+.pl-bottom-nav > *:nth-child(5) .pl-bottom-nav-ball-wrap { --tilt: 8deg; }
+.pl-bottom-nav > *:nth-child(6) .pl-bottom-nav-ball-wrap { --tilt: -6deg; }
+.pl-bottom-nav-ball {
+  width: 100%; height: 100%; display: block;
+  color: var(--neon);
+  opacity: 0;
+  transform: scale(0.5);
+  filter: drop-shadow(0 0 5px var(--nav-ball-glow)) drop-shadow(0 0 1.5px var(--nav-ball-glow));
+}
 .pl-bottom-nav-item.active .pl-bottom-nav-ball {
-  animation: pl-navball-in var(--nav-anim-dur, 240ms) var(--nav-anim-ease, ease) both;
+  animation: pl-navball-in 240ms cubic-bezier(0.22, 0.9, 0.3, 1) both;
 }
 @keyframes pl-navball-in {
-  0% { opacity: 0; transform: scale(0.45) rotate(calc(var(--tilt, 0deg) - 65deg)); }
-  65% { opacity: var(--nav-ball-opacity, 0.34); transform: scale(1.1) rotate(calc(var(--tilt, 0deg) + 5deg)); }
-  100% { opacity: var(--nav-ball-opacity, 0.34); transform: scale(1) rotate(var(--tilt, 0deg)); }
+  0% { opacity: 0; transform: scale(0.45) rotate(-65deg); }
+  65% { opacity: 0.34; transform: scale(1.1) rotate(5deg); }
+  100% { opacity: 0.34; transform: scale(1) rotate(0deg); }
 }
 
 /* flash de toque — resposta física/energética antes de navegar */
@@ -1866,7 +1873,7 @@ body::after {
    some por completo. */
 @media (prefers-reduced-motion: reduce) {
   .pl-bottom-nav-ball { transition: opacity 60ms linear; animation: none !important; }
-  .pl-bottom-nav-item.active .pl-bottom-nav-ball { opacity: var(--nav-ball-opacity, 0.34); transform: scale(1) rotate(var(--tilt, 0deg)); }
+  .pl-bottom-nav-item.active .pl-bottom-nav-ball { opacity: 0.34; transform: scale(1); }
   .pl-bottom-nav-item.active .pl-bottom-nav-icon { transform: none; }
   .pl-bottom-nav-avisos.shake .pl-bottom-nav-icon svg { animation: none !important; }
   .pl-bottom-nav-central.sink, .pl-bottom-nav-central.spin { transform: none !important; }
