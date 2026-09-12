@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import BellIcon from './BellIcon';
 import AvisoFlagIcon from './AvisoFlagIcon';
+import BottomNavBall from './BottomNavBall';
 import { tapFlash, flashClass } from '@/lib/tapFlash';
 
 // Só o ícone + contador de não lidos — o clique navega pra /avisos (página
@@ -74,14 +75,12 @@ export default function NotificationBell({ variant = 'header' }) {
     // faltava aqui porque esse item virou um componente à parte
     // (NotificationBell) em vez de um Link direto ali, e ficou pra trás
     // quando /avisos virou rota de verdade (era painel flutuante antes,
-    // sem pathname próprio pra comparar). Splat também estava faltando na
-    // marcação: sem o span, o CSS de destaque (.active .pl-bottom-nav-splat)
-    // não tinha o que estilizar, mesmo com a classe active certa.
+    // sem pathname próprio pra comparar).
     const active = pathname === '/avisos';
     return (
-      <Link href="/avisos" className={`pl-bottom-nav-item pl-bottom-nav-avisos ${active ? 'active' : ''}`} onClick={tapFlash}>
+      <Link href="/avisos" className={`pl-bottom-nav-item pl-bottom-nav-avisos ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined} onClick={tapFlash}>
         <span className="pl-bottom-nav-icon" ref={iconWrapRef}>
-          <span className="pl-bottom-nav-splat" aria-hidden="true" />
+          <BottomNavBall />
           <span className="pl-bottom-nav-flash" aria-hidden="true" />
           <AvisoFlagIcon />
           {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}

@@ -1685,16 +1685,29 @@ body::after {
 }
 
 /* Navegação inferior fixa — só em telas estreitas (mobile). "A Quadra
-   Viva" (Bloco 2 do redesign): grafite/rua, corte angular na barra,
-   textura de concreto, respingo neon no ativo em vez de indicador
-   geométrico, botão de criar pulsando. Rotas/páginas/lógica de cada
+   Viva": grafite/rua, corte angular na barra, textura de concreto. A aba
+   ativa é marcada por uma bola de futebol em marca d'água atrás do ícone
+   (.pl-bottom-nav-ball) — substituiu o respingo neon "solto" que existia
+   antes; agora o verde neon só aparece nessa bola, não mais espalhado
+   num glow à parte. Grid de 6 colunas iguais (em vez de flex+space-around)
+   pra distribuir os itens de forma equilibrada de verdade, incluindo o "+"
+   central — ele ocupa uma coluna como qualquer outro item, só um pouco
+   levantado (transform, não margin — não mexe na altura das colunas
+   vizinhas). Tokens do sistema de motion da bola ficam centralizados aqui
+   embaixo (--nav-anim-dur/--nav-anim-ease/--nav-ball-opacity/--nav-ball-glow)
+   pra ajustar duração/opacidade num lugar só. Rotas/páginas/lógica de cada
    destino continuam as mesmas — só o visual e a interação mudaram. */
 .pl-bottom-nav {
+  --nav-anim-dur: 240ms;
+  --nav-anim-ease: cubic-bezier(0.22, 0.9, 0.3, 1);
+  --nav-ball-opacity: 0.34;
+  --nav-ball-glow: rgba(166,255,0,0.55);
   display: none;
   position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 30;
   height: 68px;
-  align-items: flex-end; justify-content: space-around;
-  padding: 0 6px 10px;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: center; justify-items: center;
+  padding: 0 6px 8px;
   background: rgba(16, 18, 16, 0.86);
   border: 1px solid rgba(166,255,0,0.12);
   box-shadow: 0 16px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
@@ -1722,38 +1735,56 @@ body::after {
   font-size: 9.5px; font-family: var(--font-body); font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.01em;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: color 180ms ease;
 }
+/* item ativo: só cor + a bola-marca-d'água atrás do ícone marcam o
+   estado agora — sem contorno em degradê disputando atenção com a bola. */
 .pl-bottom-nav-item.active { color: var(--paper); }
+.pl-bottom-nav-item:focus-visible {
+  outline: 2px solid var(--neon); outline-offset: -3px; border-radius: 10px;
+}
 
 .pl-bottom-nav-icon {
   position: relative; width: 34px; height: 34px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 10px;
-  border: 1.5px solid transparent;
+  transition: transform 180ms var(--nav-anim-ease, ease);
 }
-/* contorno em degradê verde→lilás no ícone ativo — mesma técnica de
-   border-image que .pl-link-muted já usa em botões secundários */
-.pl-bottom-nav-item.active .pl-bottom-nav-icon {
-  border-image: linear-gradient(135deg, var(--neon), var(--lilas)) 1;
-}
+.pl-bottom-nav-item.active .pl-bottom-nav-icon { transform: translateY(-1px); }
 /* traço levemente torto/stencil, agora que o filtro é global (definido em
    app/layout.js) em vez de local a este componente */
-.pl-bottom-nav-icon svg { position: relative; z-index: 2; color: inherit; filter: url(#pl-rough-filter); }
+.pl-bottom-nav-icon svg:not(.pl-bottom-nav-ball) { position: relative; z-index: 2; color: inherit; filter: url(#pl-rough-filter); }
 
-/* respingo neon irregular atrás do ícone ativo, no lugar de um indicador
-   geométrico — três radiais desalinhados + blur, tipo spray */
-.pl-bottom-nav-splat {
-  position: absolute; inset: -10px;
-  opacity: 0; transform: scale(0.6);
-  transition: opacity 220ms ease, transform 260ms cubic-bezier(0.34,1.4,0.5,1);
-  background:
-    radial-gradient(circle at 32% 38%, rgba(166,255,0,0.65), transparent 55%),
-    radial-gradient(circle at 68% 62%, rgba(184,127,232,0.4), transparent 58%),
-    radial-gradient(circle at 48% 78%, rgba(166,255,0,0.42), transparent 50%);
-  filter: blur(7px);
+/* Bola de futebol em marca d'água atrás do ícone ativo — só stroke (sem
+   fill), opacidade baixa (--nav-ball-opacity) pra nunca virar um fundo
+   pesado, brilho verde neon controlado via drop-shadow. Cada item tem uma
+   leve variação de inclinação (--tilt, por posição no grid) pra não
+   parecer um carimbo repetido idêntico em toda aba. Entrada: escala+fade+
+   rotação que "assenta" (leve overshoot antes do repouso), 240ms — dentro
+   da janela de 180–280ms pedida. */
+.pl-bottom-nav-ball {
+  position: absolute; width: 44px; height: 44px; left: 50%; top: 50%;
+  margin: -22px 0 0 -22px;
+  color: var(--neon);
+  opacity: 0;
+  transform: scale(0.5) rotate(var(--tilt, 0deg));
+  filter: drop-shadow(0 0 5px var(--nav-ball-glow)) drop-shadow(0 0 1.5px var(--nav-ball-glow));
   pointer-events: none;
+  z-index: 1;
 }
-.pl-bottom-nav-item.active .pl-bottom-nav-splat { opacity: 1; transform: scale(1); }
+.pl-bottom-nav > *:nth-child(1) .pl-bottom-nav-ball { --tilt: -9deg; }
+.pl-bottom-nav > *:nth-child(2) .pl-bottom-nav-ball { --tilt: 7deg; }
+.pl-bottom-nav > *:nth-child(4) .pl-bottom-nav-ball { --tilt: -12deg; }
+.pl-bottom-nav > *:nth-child(5) .pl-bottom-nav-ball { --tilt: 8deg; }
+.pl-bottom-nav > *:nth-child(6) .pl-bottom-nav-ball { --tilt: -6deg; }
+.pl-bottom-nav-item.active .pl-bottom-nav-ball {
+  animation: pl-navball-in var(--nav-anim-dur, 240ms) var(--nav-anim-ease, ease) both;
+}
+@keyframes pl-navball-in {
+  0% { opacity: 0; transform: scale(0.45) rotate(calc(var(--tilt, 0deg) - 65deg)); }
+  65% { opacity: var(--nav-ball-opacity, 0.34); transform: scale(1.1) rotate(calc(var(--tilt, 0deg) + 5deg)); }
+  100% { opacity: var(--nav-ball-opacity, 0.34); transform: scale(1) rotate(var(--tilt, 0deg)); }
+}
 
 /* flash de toque — resposta física/energética antes de navegar */
 .pl-bottom-nav-flash {
@@ -1777,24 +1808,25 @@ body::after {
   80% { transform: rotate(3deg); }
 }
 
-/* botão central — corte angular, pulsa em loop chamando pra criar pelada */
+/* botão central — corte angular, um item de grid como qualquer outro (só
+   levemente levantado via margin-top negativo, que não briga com os
+   `transform: ... !important` dos estágios sink/spin/expand abaixo, ao
+   contrário de um translateY). Halo estático (sem loop) no lugar do pulso
+   contínuo que existia antes — "premium" sem ficar piscando o tempo todo. */
 .pl-bottom-nav-central {
-  position: relative; width: 54px; height: 54px; margin-bottom: 4px;
-  border-radius: 16px;
+  position: relative; width: 46px; height: 46px; margin-top: -6px;
+  border-radius: 14px;
   background: linear-gradient(150deg, var(--neon), var(--neon-dim));
+  box-shadow: 0 0 12px rgba(166,255,0,0.4), 0 3px 8px rgba(0,0,0,0.4);
   clip-path: polygon(18% 0%, 100% 0%, 100% 82%, 82% 100%, 0% 100%, 0% 18%);
   display: flex; align-items: center; justify-content: center;
   border: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
-  animation: pl-central-pulse 2.1s ease-in-out infinite;
+  transition: transform 150ms ease, box-shadow 150ms ease;
 }
-.pl-bottom-nav-central::before {
-  content: ''; position: absolute; inset: -10px; border-radius: 18px;
-  background: radial-gradient(circle, rgba(166,255,0,0.55), transparent 70%);
-  animation: pl-halo-pulse 2.1s ease-in-out infinite;
-  z-index: -1;
+.pl-bottom-nav-central:hover { box-shadow: 0 0 16px rgba(166,255,0,0.55), 0 3px 8px rgba(0,0,0,0.4); }
+.pl-bottom-nav-central:focus-visible {
+  outline: 2px solid var(--neon); outline-offset: 2px; border-radius: 14px;
 }
-@keyframes pl-central-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.055); } }
-@keyframes pl-halo-pulse { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.18); } }
 .pl-bottom-nav-central svg { position: absolute; color: var(--ink); }
 .pl-central-icon-plus { opacity: 1; transform: scale(1) rotate(0deg); transition: opacity 150ms ease, transform 150ms ease; }
 .pl-central-icon-ball { opacity: 0; transform: scale(0.5) rotate(-40deg); transition: opacity 150ms ease, transform 150ms ease; }
@@ -1823,18 +1855,19 @@ body::after {
 @keyframes pl-ring-out { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(2.1); opacity: 0; } }
 
 @media (max-width: 700px) {
-  .pl-bottom-nav { display: flex; }
+  .pl-bottom-nav { display: grid; }
   body { padding-bottom: 88px; }
   .pl-toast-container { bottom: 98px; }
 }
 
-/* Reduz drasticamente o floreio sem tirar a indicação de estado: o
-   respingo continua aparecendo/sumindo (só mais rápido), o ícone ativo
-   continua com o contorno em degradê, só o loop/tremor/giro somem. */
+/* Reduz drasticamente o floreio sem tirar a indicação de estado: a bola
+   ainda aparece/some na troca de aba (só sem o giro e quase instantânea,
+   em vez da animação de 240ms com overshoot), o resto do loop/tremor/giro
+   some por completo. */
 @media (prefers-reduced-motion: reduce) {
-  .pl-bottom-nav-splat { transition-duration: 80ms; filter: blur(4px); }
-  .pl-bottom-nav-central { animation: none; }
-  .pl-bottom-nav-central::before { animation: none; opacity: 0.35; }
+  .pl-bottom-nav-ball { transition: opacity 60ms linear; animation: none !important; }
+  .pl-bottom-nav-item.active .pl-bottom-nav-ball { opacity: var(--nav-ball-opacity, 0.34); transform: scale(1) rotate(var(--tilt, 0deg)); }
+  .pl-bottom-nav-item.active .pl-bottom-nav-icon { transform: none; }
   .pl-bottom-nav-avisos.shake .pl-bottom-nav-icon svg { animation: none !important; }
   .pl-bottom-nav-central.sink, .pl-bottom-nav-central.spin { transform: none !important; }
   .pl-central-icon-plus, .pl-central-icon-ball { transition-duration: 60ms; }
