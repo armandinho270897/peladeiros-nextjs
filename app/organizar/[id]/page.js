@@ -1,7 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { fmtDate } from '@/lib/gameUtils';
+import { fmtDate, normalizeWhatsapp } from '@/lib/gameUtils';
+
+function abrirWhatsapp(whatsapp) {
+  window.open(`https://wa.me/55${normalizeWhatsapp(whatsapp)}`, '_blank');
+}
 
 const fmtMoeda = (v) => `R$ ${Number(v || 0).toFixed(2).replace('.', ',')}`;
 
@@ -142,7 +146,12 @@ export default function GerenciarPeladaPage({ params }) {
         <div className="pl-org-section">
           <h3 className="pl-org-section-title">Vaga reservada, aguardando confirmação do jogador</h3>
           {aguardandoConfirmacao.map((c) => (
-            <div key={c.id} className="pl-org-confirm-row"><span>{c.nome}</span></div>
+            <div key={c.id} className="pl-org-confirm-row">
+              <span>{c.nome}</span>
+              {c.whatsapp && (
+                <button type="button" className="pl-org-btn-mini whatsapp" onClick={() => abrirWhatsapp(c.whatsapp)}>WhatsApp</button>
+              )}
+            </div>
           ))}
         </div>
       )}
@@ -153,16 +162,21 @@ export default function GerenciarPeladaPage({ params }) {
         {confirmados.map((c) => (
           <div key={c.id} className="pl-org-confirm-row">
             <span>{c.nome}{c.presente === false ? ' · faltou' : ''}</span>
-            {resumoPagamento && (
-              <div className="pl-org-confirm-actions">
-                <button type="button" className={`pl-org-btn-mini ${c.pago ? 'pago' : ''}`} disabled={processando === c.id} onClick={() => togglePago(c.id, c.pago)}>
-                  {c.pago ? 'Pago ✓' : 'Marcar pago'}
-                </button>
-                {!c.pago && (
-                  <button type="button" className="pl-org-btn-mini" disabled={processando === c.id} onClick={() => cobrar(c.id)}>Cobrar</button>
-                )}
-              </div>
-            )}
+            <div className="pl-org-confirm-actions">
+              {c.whatsapp && (
+                <button type="button" className="pl-org-btn-mini whatsapp" onClick={() => abrirWhatsapp(c.whatsapp)}>WhatsApp</button>
+              )}
+              {resumoPagamento && (
+                <>
+                  <button type="button" className={`pl-org-btn-mini ${c.pago ? 'pago' : ''}`} disabled={processando === c.id} onClick={() => togglePago(c.id, c.pago)}>
+                    {c.pago ? 'Pago ✓' : 'Marcar pago'}
+                  </button>
+                  {!c.pago && (
+                    <button type="button" className="pl-org-btn-mini" disabled={processando === c.id} onClick={() => cobrar(c.id)}>Cobrar</button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         ))}
       </div>
