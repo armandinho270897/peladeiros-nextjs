@@ -101,6 +101,22 @@ export default function PeladaClient({ id }) {
     showToast('Você entrou no jogo!');
   }
 
+  async function handleCheckin(confirmacaoId) {
+    const res = await fetch(`/api/confirmacoes/${confirmacaoId}/checkin`, { method: 'POST' });
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok) { showToast(result.error || 'Não consegui registrar seu check-in.'); return; }
+    loadGame(true);
+    showToast('Chegada registrada!');
+  }
+
+  async function handleUndoCheckin(confirmacaoId) {
+    const res = await fetch(`/api/confirmacoes/${confirmacaoId}/checkin`, { method: 'DELETE' });
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok) { showToast(result.error || 'Não consegui desfazer o check-in.'); return; }
+    loadGame(true);
+    showToast('Check-in desfeito.');
+  }
+
   function handleConfirmClick(g) {
     if (!user) {
       router.push(`/login?next=${encodeURIComponent(`/pelada/${id}`)}`);
@@ -149,6 +165,8 @@ export default function PeladaClient({ id }) {
           onShare={shareGame}
           onCancelPresenca={(confirmacaoId, g) => setModal({ type: 'cancelar', confirmacaoId, game: g })}
           onConfirmarVaga={handleConfirmarVaga}
+          onCheckin={handleCheckin}
+          onUndoCheckin={handleUndoCheckin}
           justLotou={!!justLotaram[game?.id]}
           showArt={false}
         />

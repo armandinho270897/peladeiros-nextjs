@@ -98,6 +98,12 @@ export default function PerfilPage() {
             <div className="label">Presença ({stats.peladasJogadas}/{stats.totalPeladasPassadas})</div>
           </div>
         )}
+        {stats.percentualPontualidade != null && (
+          <div className="pl-stat">
+            <div className="num">{stats.percentualPontualidade}%</div>
+            <div className="label">Pontualidade ({stats.partidasComCheckin} c/ check-in)</div>
+          </div>
+        )}
         {stats.percentualFairPlay != null && (
           <div className="pl-stat">
             <div className="num">{stats.percentualFairPlay}%</div>
@@ -105,6 +111,12 @@ export default function PerfilPage() {
           </div>
         )}
       </div>
+
+      {(stats.totalPeladasPassadas > 0 || stats.percentualPontualidade != null) && (
+        <p className="pl-perfil-stats-nota">
+          Presença conta peladas passadas em que você não foi marcado como falta. Pontualidade considera só as partidas com check-in registrado: chegou até 10min do horário marcado conta como pontual.
+        </p>
+      )}
 
       <PatenteCard patente={patente} />
 

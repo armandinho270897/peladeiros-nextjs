@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { fmtDate, normalizeWhatsapp } from '@/lib/gameUtils';
+import { fmtDate, normalizeWhatsapp, statusCheckin, formatHoraSP } from '@/lib/gameUtils';
 
 function abrirWhatsapp(whatsapp) {
   window.open(`https://wa.me/55${normalizeWhatsapp(whatsapp)}`, '_blank');
@@ -10,6 +10,22 @@ function abrirWhatsapp(whatsapp) {
 const fmtMoeda = (v) => `R$ ${Number(v || 0).toFixed(2).replace('.', ',')}`;
 
 const STATUS_LABEL = { agendada: 'Agendada', aguardando_encerramento: 'Aguardando encerramento', encerrada: 'Encerrada' };
+
+const CHECKIN_BADGE = {
+  pontual: { label: 'Check-in', cls: 'pontual' },
+  atrasado: { label: 'Atrasado', cls: 'atrasado' },
+  presente_manual: { label: 'Presente (manual)', cls: 'pontual' },
+  sem_checkin: { label: 'Sem check-in', cls: 'sem-checkin' },
+  falta: { label: 'Falta', cls: 'falta' },
+};
+
+function CheckinBadge({ c, game }) {
+  const s = statusCheckin(c, game);
+  if (!s) return null;
+  const info = CHECKIN_BADGE[s];
+  const hora = c.checkin_at ? ` ${formatHoraSP(new Date(c.checkin_at))}` : '';
+  return <span className={`pl-checkin-pill ${info.cls}`}>{info.label}{s === 'pontual' || s === 'atrasado' ? hora : ''}</span>;
+}
 
 export default function GerenciarPeladaPage({ params }) {
   const [data, setData] = useState(null);
@@ -58,6 +74,13 @@ export default function GerenciarPeladaPage({ params }) {
   async function cobrar(confirmacaoId) {
     setProcessando(confirmacaoId);
     await fetch(`/api/confirmacoes/${confirmacaoId}/cobrar-pagamento`, { method: 'POST' });
+    setProcessando(null);
+  }
+
+  async function marcarPresenca(confirmacaoId, presente) {
+    setProcessando(confirmacaoId);
+    await fetch(`/api/confirmacoes/${confirmacaoId}/presenca`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ presente }) });
+    await carregar();
     setProcessando(null);
   }
 
@@ -160,11 +183,21 @@ export default function GerenciarPeladaPage({ params }) {
         <h3 className="pl-org-section-title">Confirmados{resumoPagamento ? ' e pagamento' : ''}</h3>
         {confirmados.length === 0 && <p style={{ color: 'var(--paper-dim)', fontSize: 13 }}>Ninguém confirmado ainda.</p>}
         {confirmados.map((c) => (
-          <div key={c.id} className="pl-org-confirm-row">
-            <span>{c.nome}{c.presente === false ? ' · faltou' : ''}</span>
+          <div key={c.id} className="pl-org-confirm-row" style={{ flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {c.nome}
+              <CheckinBadge c={c} game={game} />
+            </span>
             <div className="pl-org-confirm-actions">
               {c.whatsapp && (
                 <button type="button" className="pl-org-btn-mini whatsapp" onClick={() => abrirWhatsapp(c.whatsapp)}>WhatsApp</button>
+              )}
+              {status !== 'encerrada' && (
+                c.presente === false ? (
+                  <button type="button" className="pl-org-btn-mini aprovar" disabled={processando === c.id} onClick={() => marcarPresenca(c.id, null)}>Desmarcar falta</button>
+                ) : (
+                  <button type="button" className="pl-org-btn-mini recusar" disabled={processando === c.id} onClick={() => marcarPresenca(c.id, false)}>Marcar falta</button>
+                )
               )}
               {resumoPagamento && (
                 <>

@@ -21,7 +21,7 @@ export async function GET() {
 
   const { data: minhasConfirmacoes } = await supabase
     .from('confirmacoes')
-    .select('id, game_id, status')
+    .select('id, game_id, status, checkin_at')
     .eq('user_id', user.id)
     .in('status', ['aprovado', 'aguardando_confirmacao', 'espera', 'pendente']);
 
@@ -63,6 +63,7 @@ export async function GET() {
       capitao: game.capitao,
       minhaConfirmacaoId: c.id,
       minhaConfirmacaoStatus: c.status,
+      checkinAt: c.checkin_at,
     };
     resultado[bucketPorStatus[c.status]].push(item);
   }

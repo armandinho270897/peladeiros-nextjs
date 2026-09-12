@@ -110,6 +110,12 @@ export default function PerfilPublicoClient({ id }) {
             <div className="label">Presença ({stats.peladasJogadas}/{stats.totalPeladasPassadas})</div>
           </div>
         )}
+        {stats.percentualPontualidade != null && (
+          <div className="pl-stat">
+            <div className="num">{stats.percentualPontualidade}%</div>
+            <div className="label">Pontualidade ({stats.partidasComCheckin} c/ check-in)</div>
+          </div>
+        )}
         {stats.percentualFairPlay != null && (
           <div className="pl-stat">
             <div className="num">{stats.percentualFairPlay}%</div>

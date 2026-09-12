@@ -149,6 +149,22 @@ export default function PeladasPage() {
     showToast('Você entrou no jogo!');
   }
 
+  async function handleCheckin(confirmacaoId) {
+    const res = await fetch(`/api/confirmacoes/${confirmacaoId}/checkin`, { method: 'POST' });
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok) { showToast(result.error || 'Não consegui registrar seu check-in.'); return; }
+    loadGames();
+    showToast('Chegada registrada!');
+  }
+
+  async function handleUndoCheckin(confirmacaoId) {
+    const res = await fetch(`/api/confirmacoes/${confirmacaoId}/checkin`, { method: 'DELETE' });
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok) { showToast(result.error || 'Não consegui desfazer o check-in.'); return; }
+    loadGames();
+    showToast('Check-in desfeito.');
+  }
+
   const today = todayISO();
 
   // "minhas peladas" — exatamente a mesma lógica client-side de sempre,
@@ -200,6 +216,8 @@ export default function PeladasPage() {
         onShare={shareGame}
         onCancelPresenca={(confirmacaoId, game) => setModal({ type: 'cancelar', confirmacaoId, game })}
         onConfirmarVaga={handleConfirmarVaga}
+        onCheckin={handleCheckin}
+        onUndoCheckin={handleUndoCheckin}
         justLotou={!!justLotaram[g.id]}
         distanciaKm={distanciaDe(g)}
         motivo={filtros.ordenar === 'recomendadas' ? g.motivo : null}

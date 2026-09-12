@@ -1,7 +1,7 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
-import { todayISO, LIMITE_EM_CIMA_DA_HORA_MS } from '@/lib/gameUtils';
+import { todayISO, LIMITE_EM_CIMA_DA_HORA_MS, checkinPontual } from '@/lib/gameUtils';
 import { notaMediaPonderada, calcularMoral } from '@/lib/moral';
 import { patenteDe } from '@/lib/patentes';
 
@@ -175,7 +175,7 @@ export async function GET(request) {
     supabase.from('confirmacoes').select('id', { count: 'exact', head: true }).eq('user_id', targetId).eq('status', 'aprovado'),
     supabase.from('games').select('id', { count: 'exact', head: true }).eq('owner_id', targetId),
     supabase.from('avaliacoes').select('nota, tipo, tag, fair_play').eq('avaliado_id', targetId),
-    supabase.from('confirmacoes').select('game_id, presente, time').eq('user_id', targetId).eq('status', 'aprovado'),
+    supabase.from('confirmacoes').select('game_id, presente, time, checkin_at').eq('user_id', targetId).eq('status', 'aprovado'),
     supabase.from('time_membros').select('papel, times(id, nome, escudo_url, bairro, modalidade)').eq('user_id', targetId).eq('status', 'aprovado'),
     souEu ? aprovacoesPendentes(targetId) : Promise.resolve([]),
     souEu ? vagaAConfirmar(targetId) : Promise.resolve(null),
@@ -199,9 +199,11 @@ export async function GET(request) {
 
   const presencaPorGameId = {};
   const timePorGameId = {};
+  const checkinAtPorGameId = {};
   for (const c of minhasConfirmacoes || []) {
     presencaPorGameId[c.game_id] = c.presente;
     timePorGameId[c.game_id] = c.time;
+    checkinAtPorGameId[c.game_id] = c.checkin_at;
   }
 
   // Resultado (vitória/empate/derrota) só existe quando o jogo teve times
@@ -231,7 +233,7 @@ export async function GET(request) {
       .sort((a, b) => (b.data + b.horario).localeCompare(a.data + a.horario));
     // presente=null (pelada ainda não encerrada, sem julgamento do capitão)
     // conta como presença — mesmo benefício da dúvida de lib/ratings.js
-    historico = passadas.map((g) => ({ ...g, presente: presencaPorGameId[g.id] ?? null, resultado: resultadoDe(g) }));
+    historico = passadas.map((g) => ({ ...g, presente: presencaPorGameId[g.id] ?? null, checkinAt: checkinAtPorGameId[g.id] ?? null, resultado: resultadoDe(g) }));
 
     // Próxima pelada confirmada (>= hoje) — usada pela Home pra não
     // precisar buscar a lista pública inteira de peladas (/api/games) só
@@ -249,6 +251,17 @@ export async function GET(request) {
 
   const faltas = await faltasDoUsuario(targetId, historico);
   const moral = calcularMoral({ notaMedia, presencas: peladasJogadas, faltas, contaCriadaEm: profile.created_at });
+
+  // Pontualidade é uma métrica NOVA, separada de Moral/Patente — RF do
+  // pacote de check-in pede pra não mexer na fórmula de reputação já em
+  // produção sem uma regra explícita. Só entra na conta quem tem
+  // checkin_at (sinal objetivo de horário); marcação manual sem check-in
+  // não tem horário confiável, então fica de fora — nem conta a favor nem
+  // contra.
+  const historicoComCheckin = historico.filter((g) => g.checkinAt);
+  const partidasComCheckin = historicoComCheckin.length;
+  const partidasPontuais = historicoComCheckin.filter((g) => checkinPontual(g.checkinAt, g)).length;
+  const percentualPontualidade = partidasComCheckin > 0 ? Math.round((partidasPontuais / partidasComCheckin) * 100) : null;
 
   // atual/meta só preenchidos pras conquistas com uma meta numérica clara
   // ("x de y"); pra binárias (avaliacao_cinco) ficam null — ver
@@ -290,6 +303,8 @@ export async function GET(request) {
       moral,
       percentualPresenca: totalPeladasPassadas > 0 ? Math.round((peladasJogadas / totalPeladasPassadas) * 100) : null,
       percentualFairPlay,
+      percentualPontualidade,
+      partidasComCheckin,
     },
     historico,
     conquistas,
