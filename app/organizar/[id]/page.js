@@ -242,7 +242,7 @@ export default function GerenciarPeladaPage({ params }) {
       {/* 3. Abas — reaproveita .pl-tabs/.pl-tab, mesmo visual do painel
           geral (/organizar). Financeiro some quando a pelada não tem
           valor definido (nada pra mostrar). */}
-      <div className="pl-tabs" style={{ margin: '0 0 18px', padding: 0, maxWidth: 'none' }}>
+      <div className="pl-tabs" style={{ margin: '0 0 18px', padding: 0, maxWidth: 'none', flexWrap: 'wrap' }}>
         {abasVisiveis.map((t) => (
           <button key={t.id} type="button" className={`pl-tab ${abaAtiva === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>{t.label}</button>
         ))}
