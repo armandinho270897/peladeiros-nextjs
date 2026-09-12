@@ -124,6 +124,10 @@ export default function PerfilPublicoClient({ id }) {
         )}
       </div>
 
+      <p className="pl-perfil-stats-nota">
+        Moral considera desempenho nas avaliações, presença, pontualidade e fair play — pontualidade e fair play começam neutros até haver histórico suficiente.
+      </p>
+
       <PatenteCard patente={patente} celebrar={false} />
 
       <PerfilTags tags={tags} />

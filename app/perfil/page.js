@@ -112,11 +112,12 @@ export default function PerfilPage() {
         )}
       </div>
 
-      {(stats.totalPeladasPassadas > 0 || stats.percentualPontualidade != null) && (
-        <p className="pl-perfil-stats-nota">
-          Presença conta peladas passadas em que você não foi marcado como falta. Pontualidade considera só as partidas com check-in registrado: chegou até 10min do horário marcado conta como pontual.
-        </p>
-      )}
+      <p className="pl-perfil-stats-nota">
+        Sua Moral considera desempenho nas avaliações, presença, pontualidade e fair play — pontualidade e fair play começam neutros até você ter histórico suficiente, nunca derrubam a nota por falta de dado.
+        {(stats.totalPeladasPassadas > 0 || stats.percentualPontualidade != null) && (
+          <> Presença conta peladas passadas em que você não foi marcado como falta. Pontualidade considera só as partidas com check-in registrado: chegou até 10min do horário marcado conta como pontual.</>
+        )}
+      </p>
 
       <PatenteCard patente={patente} />
 
