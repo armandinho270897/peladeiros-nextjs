@@ -2222,3 +2222,111 @@ body::after {
 .pl-chat-encerrado .ico { font-size: 26px; display: block; margin-bottom: 10px; opacity: 0.7; }
 .pl-chat-encerrado b { color: var(--paper); display: block; font-family: var(--font-display); font-size: 15px; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.01em; }
 .pl-chat-encerrado p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--paper-dim); }
+
+/* ============================================================
+   Painel do Organizador (/organizar) — visão geral, gestão por
+   pelada, insights e financeiro. Reaproveita tokens/padrões já
+   estabelecidos (.pl-stat, .pl-tabs, .pl-empty, .pl-skeleton) em
+   vez de inventar um sistema visual novo. Verde-limão = ação
+   positiva/destaque, dourado = atenção, vermelho = risco real —
+   cor semântica reservada só pra esses três casos, nunca decorativa.
+   ============================================================ */
+.pl-org-page { max-width: 720px; margin: 0 auto; padding: 16px 16px 32px; }
+.pl-org-header { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+.pl-org-header h1 { font-family: var(--font-display); text-transform: uppercase; font-size: 22px; margin: 0; }
+.pl-org-header p { color: var(--paper-dim); font-size: 13px; margin: 2px 0 0; }
+
+.pl-org-hero {
+  background: linear-gradient(160deg, rgba(166,255,0,0.08), var(--card-bg) 55%);
+  border: 1px solid rgba(166,255,0,0.25); border-radius: var(--radius-lg);
+  padding: 16px; margin-bottom: 16px;
+  animation: pl-org-rise 320ms cubic-bezier(.2,.7,.3,1) both;
+}
+.pl-org-hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--neon); font-weight: 700; margin: 0 0 6px; }
+.pl-org-hero-title { font-family: var(--font-display); text-transform: uppercase; font-size: 19px; margin: 0 0 4px; }
+.pl-org-hero-meta { color: var(--paper-dim); font-size: 13px; margin: 0 0 12px; }
+.pl-org-hero-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.pl-org-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.pl-org-card {
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.35); border-radius: var(--radius-md);
+  padding: 13px 14px; animation: pl-org-rise 320ms cubic-bezier(.2,.7,.3,1) both;
+}
+.pl-org-card .num { font-family: var(--font-display); font-size: 24px; color: var(--paper); display: block; line-height: 1.1; transition: transform 160ms ease; }
+.pl-org-card .num.pl-org-warn { color: var(--gold); }
+.pl-org-card .num.pl-org-risk { color: var(--tag-red); }
+.pl-org-card .num.pl-org-good { color: var(--neon); }
+.pl-org-card .label { font-size: 10.5px; color: var(--paper-dim); text-transform: uppercase; letter-spacing: 0.01em; margin-top: 2px; }
+.pl-org-card .hint { font-size: 11px; color: var(--paper-dim); margin-top: 4px; line-height: 1.4; }
+.pl-org-card.pl-org-number-pop .num { animation: pl-org-pop 360ms cubic-bezier(.34,1.56,.64,1); }
+@keyframes pl-org-pop { 0% { transform: scale(1); } 45% { transform: scale(1.16); } 100% { transform: scale(1); } }
+
+.pl-org-section { margin-bottom: 22px; }
+.pl-org-section-title { font-family: var(--font-display); text-transform: uppercase; font-size: 14px; color: var(--paper); margin: 0 0 10px; letter-spacing: 0.01em; }
+
+.pl-org-pelada-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.3); border-radius: var(--radius-md);
+  padding: 12px 14px; margin-bottom: 8px; text-decoration: none; color: inherit;
+  transition: border-color 160ms ease;
+}
+.pl-org-pelada-row:hover { border-color: rgba(166,255,0,0.4); }
+.pl-org-pelada-row .info { min-width: 0; }
+.pl-org-pelada-row .info b { display: block; font-size: 14px; color: var(--paper); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-org-pelada-row .info span { font-size: 12px; color: var(--paper-dim); }
+.pl-org-pelada-row .metrics { display: flex; gap: 10px; flex-shrink: 0; align-items: center; }
+.pl-org-pelada-row .metric { text-align: center; font-size: 11px; color: var(--paper-dim); }
+.pl-org-pelada-row .metric b { display: block; font-size: 15px; color: var(--paper); font-family: var(--font-display); }
+
+.pl-org-badge { display: inline-block; font-size: 10px; text-transform: uppercase; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-pill); letter-spacing: 0.02em; }
+.pl-org-badge.agendada { background: rgba(166,255,0,0.14); color: var(--neon); }
+.pl-org-badge.aguardando_encerramento { background: rgba(255,197,61,0.16); color: var(--gold); }
+.pl-org-badge.encerrada { background: rgba(110,113,120,0.2); color: var(--paper-dim); }
+
+.pl-org-insight-item { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(110,113,120,0.2); font-size: 13px; }
+.pl-org-insight-item:last-child { border-bottom: none; }
+.pl-org-insight-item span:first-child { color: var(--paper-dim); }
+.pl-org-insight-item span:last-child { color: var(--paper); font-weight: 700; text-align: right; }
+
+.pl-org-fin-filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.pl-org-fin-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid rgba(110,113,120,0.2); font-size: 13px;
+}
+.pl-org-fin-row .who { min-width: 0; }
+.pl-org-fin-row .who b { display: block; color: var(--paper); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-org-fin-row .who span { font-size: 11.5px; color: var(--paper-dim); }
+.pl-org-fin-row .valor { font-family: var(--font-display); font-size: 14px; flex-shrink: 0; }
+.pl-org-fin-row .valor.pendente { color: var(--gold); }
+.pl-org-fin-row .valor.pago { color: var(--neon); }
+.pl-org-fin-totais { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+.pl-org-fin-totais div { font-size: 12px; color: var(--paper-dim); }
+.pl-org-fin-totais b { display: block; font-family: var(--font-display); font-size: 17px; color: var(--paper); }
+
+.pl-org-confirm-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(110,113,120,0.2); font-size: 13px; }
+.pl-org-confirm-row:last-child { border-bottom: none; }
+.pl-org-confirm-actions { display: flex; gap: 6px; }
+.pl-org-btn-mini {
+  border: 1px solid rgba(110,113,120,0.45); background: transparent; color: var(--paper);
+  font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: var(--radius-sm); cursor: pointer;
+}
+.pl-org-btn-mini.aprovar { border-color: var(--neon); color: var(--neon); }
+.pl-org-btn-mini.recusar { border-color: var(--tag-red); color: var(--tag-red); }
+.pl-org-btn-mini:disabled { opacity: 0.5; cursor: default; }
+.pl-org-btn-mini.pago { border-color: var(--neon); color: var(--neon); }
+
+@keyframes pl-org-rise {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.pl-org-grid .pl-org-card:nth-child(1) { animation-delay: 0ms; }
+.pl-org-grid .pl-org-card:nth-child(2) { animation-delay: 40ms; }
+.pl-org-grid .pl-org-card:nth-child(3) { animation-delay: 80ms; }
+.pl-org-grid .pl-org-card:nth-child(4) { animation-delay: 120ms; }
+.pl-org-grid .pl-org-card:nth-child(5) { animation-delay: 160ms; }
+.pl-org-grid .pl-org-card:nth-child(6) { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-org-hero, .pl-org-card { animation: none; opacity: 1; transform: none; }
+  .pl-org-card.pl-org-number-pop .num { animation: none; }
+}
