@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import BellIcon from './BellIcon';
 import AvisoFlagIcon from './AvisoFlagIcon';
-import BottomNavBall from './BottomNavBall';
 import { tapFlash, flashClass } from '@/lib/tapFlash';
 
 // Só o ícone + contador de não lidos — o clique navega pra /avisos (página
@@ -80,12 +79,11 @@ export default function NotificationBell({ variant = 'header' }) {
     return (
       <Link href="/avisos" className={`pl-bottom-nav-item pl-bottom-nav-avisos ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined} onClick={tapFlash}>
         <span className="pl-bottom-nav-icon" ref={iconWrapRef}>
-          <BottomNavBall />
           <span className="pl-bottom-nav-flash" aria-hidden="true" />
           <AvisoFlagIcon />
           {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}
         </span>
-        Avisos
+        <span className="pl-bottom-nav-label">Avisos</span>
       </Link>
     );
   }
