@@ -10,6 +10,12 @@ import { patenteDe } from '@/lib/patentes';
 // do selo "O Brabo que Comanda" e do selo "· Capitão" da patente.
 const BRABO_THRESHOLD = 3;
 
+// Selo de conduta "Presença de Ferro" — exige volume mínimo de partidas
+// COM check-in (não só presença) pra pontualidade ter significado
+// estatístico, e um piso alto nos dois percentuais juntos.
+const PRESENCA_FERRO_MIN_JOGOS = 10;
+const PRESENCA_FERRO_MIN_PERCENT = 90;
+
 async function peladasBoasComoCapitao(userId, today) {
   const { data: peladas } = await supabase.from('games').select('id, data, horario').eq('owner_id', userId).lt('data', today);
   if (!peladas || peladas.length === 0) return 0;
@@ -265,6 +271,15 @@ export async function GET(request) {
     pontuais: partidasPontuais, comCheckin: partidasComCheckin, fairPlaySim, fairPlayTotal,
   });
 
+  const percentualPresenca = totalPeladasPassadas > 0 ? Math.round((peladasJogadas / totalPeladasPassadas) * 100) : null;
+
+  // "Presença de Ferro": conduta, não desempenho — exige volume mínimo de
+  // partidas COM check-in (senão pontualidade não tem base estatística) e
+  // os dois percentuais (presença geral + pontualidade) acima do piso.
+  const presencaDeFerro = partidasComCheckin >= PRESENCA_FERRO_MIN_JOGOS
+    && (percentualPresenca ?? 0) >= PRESENCA_FERRO_MIN_PERCENT
+    && (percentualPontualidade ?? 0) >= PRESENCA_FERRO_MIN_PERCENT;
+
   // atual/meta só preenchidos pras conquistas com uma meta numérica clara
   // ("x de y"); pra binárias (avaliacao_cinco) ficam null — ver
   // ConquistasBadges.js, único consumidor hoje (Perfil). "Primeira pelada"/
@@ -273,6 +288,11 @@ export async function GET(request) {
   const conquistas = [
     { id: 'avaliacao_cinco', titulo: 'Cinco estrelas', descricao: 'Recebeu uma avaliação 5 estrelas', desbloqueada: temAvaliacaoCinco, atual: null, meta: null },
     { id: 'brabo_que_comanda', titulo: 'O Brabo que Comanda', descricao: `Comandou ${BRABO_THRESHOLD} peladas sem perrengue de última hora`, desbloqueada: ehCapitao, atual: brabo, meta: BRABO_THRESHOLD },
+    {
+      id: 'presenca_de_ferro', titulo: 'Presença de Ferro',
+      descricao: `Presença e pontualidade acima de ${PRESENCA_FERRO_MIN_PERCENT}% em pelo menos ${PRESENCA_FERRO_MIN_JOGOS} jogos com check-in`,
+      desbloqueada: presencaDeFerro, atual: partidasComCheckin, meta: PRESENCA_FERRO_MIN_JOGOS,
+    },
   ];
 
   const patente = patenteDe(peladasJogadas, ehCapitao);
@@ -303,7 +323,7 @@ export async function GET(request) {
       peladasJogadas,
       totalPeladasPassadas,
       moral,
-      percentualPresenca: totalPeladasPassadas > 0 ? Math.round((peladasJogadas / totalPeladasPassadas) * 100) : null,
+      percentualPresenca,
       percentualFairPlay,
       percentualPontualidade,
       partidasComCheckin,
