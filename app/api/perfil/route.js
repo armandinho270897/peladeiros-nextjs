@@ -187,15 +187,15 @@ export async function GET(request) {
   const totalAvaliacoes = (avaliacoesRecebidas || []).length;
   const notaMedia = notaMediaPonderada(avaliacoesRecebidas);
 
-  // Fair play separado da nota — não entra na fórmula de Moral (evita
-  // remexer o cálculo já em produção), só aparece como stat próprio.
   // null = avaliador não marcou (checkbox nunca existiu antes dessa
   // feature, ou avaliação 'geral', que não mira ninguém) — não conta pra
-  // cima nem pra baixo, só as avaliações com fair_play explícito.
+  // cima nem pra baixo, só as avaliações com fair_play explícito. Entra na
+  // fórmula de Moral (lib/moral.js) com suavização de Laplace — quem ainda
+  // não tem avaliação de fair play fica neutro, não prejudicado.
   const avaliacoesComFairPlay = (avaliacoesRecebidas || []).filter((a) => a.fair_play !== null && a.fair_play !== undefined);
-  const percentualFairPlay = avaliacoesComFairPlay.length > 0
-    ? Math.round((avaliacoesComFairPlay.filter((a) => a.fair_play).length / avaliacoesComFairPlay.length) * 100)
-    : null;
+  const fairPlaySim = avaliacoesComFairPlay.filter((a) => a.fair_play).length;
+  const fairPlayTotal = avaliacoesComFairPlay.length;
+  const percentualFairPlay = fairPlayTotal > 0 ? Math.round((fairPlaySim / fairPlayTotal) * 100) : null;
 
   const presencaPorGameId = {};
   const timePorGameId = {};
@@ -250,18 +250,20 @@ export async function GET(request) {
   const temAvaliacaoCinco = (avaliacoesRecebidas || []).some((a) => a.nota === 5);
 
   const faltas = await faltasDoUsuario(targetId, historico);
-  const moral = calcularMoral({ notaMedia, presencas: peladasJogadas, faltas, contaCriadaEm: profile.created_at });
 
-  // Pontualidade é uma métrica NOVA, separada de Moral/Patente — RF do
-  // pacote de check-in pede pra não mexer na fórmula de reputação já em
-  // produção sem uma regra explícita. Só entra na conta quem tem
-  // checkin_at (sinal objetivo de horário); marcação manual sem check-in
-  // não tem horário confiável, então fica de fora — nem conta a favor nem
-  // contra.
+  // Pontualidade: só entra quem tem checkin_at (sinal objetivo de
+  // horário); marcação manual sem check-in não tem horário confiável, fica
+  // de fora — nem conta a favor nem contra. Entra tanto no stat público
+  // quanto na fórmula de Moral (lib/moral.js), com a mesma suavização.
   const historicoComCheckin = historico.filter((g) => g.checkinAt);
   const partidasComCheckin = historicoComCheckin.length;
   const partidasPontuais = historicoComCheckin.filter((g) => checkinPontual(g.checkinAt, g)).length;
   const percentualPontualidade = partidasComCheckin > 0 ? Math.round((partidasPontuais / partidasComCheckin) * 100) : null;
+
+  const moral = calcularMoral({
+    notaMedia, presencas: peladasJogadas, faltas, contaCriadaEm: profile.created_at,
+    pontuais: partidasPontuais, comCheckin: partidasComCheckin, fairPlaySim, fairPlayTotal,
+  });
 
   // atual/meta só preenchidos pras conquistas com uma meta numérica clara
   // ("x de y"); pra binárias (avaliacao_cinco) ficam null — ver
