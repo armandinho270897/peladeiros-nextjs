@@ -87,6 +87,18 @@ export default function PitchBall() {
     let suppressClick = false;
     let pointerStart = null;
 
+    // resolveCard empurra a bola pra fora do CARTÃO, mas isso sozinho pode
+    // jogar a posição pra fora da PÁGINA — o cartão fica perto o bastante
+    // da borda em telas estreitas pra "sair pelo cartão" virar "sair da
+    // tela" (x negativo, etc.), corrompendo o histórico de arrasto e a
+    // física dali em diante. Por isso todo resolveCard() é seguido de um
+    // re-clamp nos limites reais da página.
+    function clampToPage(p) {
+      const { width, height } = dims.current;
+      p.x = clamp(p.x, radius, Math.max(radius, width - radius));
+      p.y = clamp(p.y, radius, Math.max(radius, height - radius));
+    }
+
     function reflectVel(v, nx, ny) {
       const vn = v.x * nx + v.y * ny;
       if (vn < 0) {
@@ -150,9 +162,9 @@ export default function PitchBall() {
       if (pos.current.x === 0 && pos.current.y === 0) {
         pos.current = { x: pageRect.width * 0.15, y: pageRect.height - radius };
       } else {
-        pos.current.x = clamp(pos.current.x, radius, Math.max(radius, pageRect.width - radius));
-        pos.current.y = clamp(pos.current.y, radius, Math.max(radius, pageRect.height - radius));
+        clampToPage(pos.current);
         resolveCard(pos.current, null, false);
+        clampToPage(pos.current);
       }
       paint();
     }
@@ -234,6 +246,7 @@ export default function PitchBall() {
         if (p.x >= width - radius) { p.x = width - radius; v.x = -Math.abs(v.x) * WALL_RESTITUTION; }
 
         resolveCard(p, v, true);
+        clampToPage(p);
 
         // rotação fisicamente correta de rolamento: ângulo = distância / raio
         rot.current += (v.x * dt / radius) * ROTATION_DEG_PER_RAD;
@@ -276,11 +289,12 @@ export default function PitchBall() {
 
     function onPointerMove(e) {
       if (!dragging.current) return;
-      const { width, height } = dims.current;
       const local = localFromClient(e.clientX, e.clientY);
-      pos.current.x = clamp(local.x, radius, Math.max(radius, width - radius));
-      pos.current.y = clamp(local.y, radius, Math.max(radius, height - radius));
+      pos.current.x = local.x;
+      pos.current.y = local.y;
+      clampToPage(pos.current);
       resolveCard(pos.current, null, false); // não deixa arrastar pra dentro do cartão
+      clampToPage(pos.current);
       const t = agora();
       dragHist.current.push({ x: pos.current.x, y: pos.current.y, t });
       if (dragHist.current.length > 8) dragHist.current.shift();
