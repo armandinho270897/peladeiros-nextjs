@@ -764,18 +764,26 @@ body::after {
    mini-gol num canto. Posição/rotação são escritas direto em
    transform via ref a cada frame (nunca via state do React) — o CSS
    aqui só cuida da aparência estática de cada peça. Puramente lúdica,
-   mesma filosofia do easter egg do logo: nunca atrapalha o formulário
-   (a zona de jogo termina exatamente onde o cartão começa). */
+   mesma filosofia do easter egg do logo.
+   V3: campo de jogo virou a página inteira — o cartão de login agora
+   é um obstáculo sólido (a física ricocheteia nele), não mais uma área
+   proibida que encolhia o espaço de jogo a uma faixa no rodapé. */
 .pl-pitch-zone {
-  position: absolute; left: 0; right: 0; bottom: 14px; z-index: 1;
-  pointer-events: none; overflow: hidden;
+  z-index: 1; pointer-events: none; overflow: hidden;
+}
+.pl-pitch-turf {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 12% 92%, rgba(166,255,0,0.05), transparent 45%),
+    radial-gradient(circle at 88% 85%, rgba(166,255,0,0.04), transparent 42%),
+    radial-gradient(circle at 50% 100%, rgba(166,255,0,0.035), transparent 55%);
 }
 .pl-pitch-goal {
-  position: absolute; right: 12px; bottom: 0; width: 58px; height: 46px;
+  position: absolute; right: 14px; bottom: 14px; width: 92px; height: 72px;
   pointer-events: none;
 }
 .pl-pitch-ball-shadow {
-  position: absolute; top: 0; left: 0; width: 40px; height: 12px;
+  position: absolute; top: 0; left: 0; width: 42px; height: 13px;
   border-radius: 50%; background: rgba(0,0,0,0.55); filter: blur(2px);
   pointer-events: none; will-change: transform, opacity;
 }
@@ -783,14 +791,20 @@ body::after {
   position: absolute; top: 0; left: 0;
   background: none; border: none; padding: 0; margin: 0; cursor: grab;
   pointer-events: auto; touch-action: none; -webkit-tap-highlight-color: transparent;
-  filter: drop-shadow(0 3px 3px rgba(0,0,0,0.45));
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.45));
   will-change: transform;
 }
 .pl-pitch-ball-btn:active { cursor: grabbing; }
 .pl-pitch-ball-btn:focus-visible { outline: 2px solid var(--neon); outline-offset: 3px; border-radius: 50%; }
+.pl-pitch-ball-btn.pl-ball-squash svg { animation: pl-ball-squash 220ms ease-out; }
+@keyframes pl-ball-squash {
+  0% { transform: scaleX(1.22) scaleY(0.8); }
+  55% { transform: scaleX(0.92) scaleY(1.08); }
+  100% { transform: scaleX(1) scaleY(1); }
+}
 .pl-pitch-gol-txt {
-  position: absolute; right: 8px; bottom: 54px; z-index: 2;
-  font-family: var(--font-display); text-transform: uppercase; font-size: 15px;
+  position: absolute; right: 12px; bottom: 92px; z-index: 2;
+  font-family: var(--font-display); text-transform: uppercase; font-size: 17px;
   color: var(--neon); text-shadow: 0 0 10px rgba(166,255,0,0.7), 0 2px 4px rgba(0,0,0,0.6);
   pointer-events: none; animation: pl-gol-pop 400ms cubic-bezier(.3,1.6,.4,1) both;
 }
@@ -872,6 +886,7 @@ body::after {
   .pl-stagger-1, .pl-stagger-2, .pl-stagger-3 { animation: none; opacity: 1; transform: none; }
   .pl-btn-ball, .pl-btn-ball-shadow { animation: none; }
   .pl-pitch-gol-txt { animation: none; opacity: 1; transform: none; }
+  .pl-pitch-ball-btn.pl-ball-squash svg { animation: none; }
   .pl-authcard .pl-ticket:active { box-shadow: none; }
   .pl-launch-ball { animation: none; opacity: 0; }
   .pl-authcard .pl-ticket.pl-kickbtn-post { animation: none; }
