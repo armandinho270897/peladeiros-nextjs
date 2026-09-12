@@ -1773,7 +1773,15 @@ body::after {
   position: absolute; left: 0; top: 50%; z-index: 1;
   width: 32px; height: 32px;
   pointer-events: none;
-  opacity: var(--nav-ball-opacity);
+  /* valor literal, não var(--nav-ball-opacity) — testado ao vivo que uma
+     propriedade TRANSICIONADA cujo valor vem de var() fica presa perto do
+     zero (o navegador parece tratar a substituição da variável como uma
+     mudança contínua e nunca deixa a transição assentar). --nav-ball-
+     opacity continua declarada acima como referência documentada; mudou
+     lá, muda aqui também — mesmo trato que duração/easing/rotação, que já
+     são literais por causa do bug irmão em @keyframes (ver comentário do
+     pulso mais abaixo). */
+  opacity: 0.4;
   filter: drop-shadow(0 0 3px var(--nav-ball-glow)) drop-shadow(0 0 1px var(--nav-ball-glow));
   transition-property: transform, opacity;
   /* duração/easing vêm inline (JS) — ver DURACAO_MS/EASING em BottomNavBall.js */
