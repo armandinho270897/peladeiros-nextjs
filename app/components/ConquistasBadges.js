@@ -1,9 +1,11 @@
 import ConquistaAvaliacaoCincoIcon from './ConquistaAvaliacaoCincoIcon';
 import ConquistaBraboQueComandaIcon from './ConquistaBraboQueComandaIcon';
+import ConquistaPresencaDeFerroIcon from './ConquistaPresencaDeFerroIcon';
 
 const ICONE = {
   avaliacao_cinco: ConquistaAvaliacaoCincoIcon,
   brabo_que_comanda: ConquistaBraboQueComandaIcon,
+  presenca_de_ferro: ConquistaPresencaDeFerroIcon,
 };
 
 // Só mostra o que já foi desbloqueado — sem selo cinza de "ainda não
