@@ -211,6 +211,13 @@ export default function PitchBall() {
     }
 
     function step(t) {
+      try {
+        stepInner(t);
+      } catch (e) {
+        window.__pbError = e.message + '\n' + e.stack;
+      }
+    }
+    function stepInner(t) {
       if (!lastT.current) lastT.current = t;
       let dt = (t - lastT.current) / 1000;
       lastT.current = t;
@@ -276,11 +283,14 @@ export default function PitchBall() {
     }
 
     function kick() {
+      window.__pbLog = (window.__pbLog || []).concat('kick() called');
       const dir = Math.random() < 0.5 ? -1 : 1;
       vel.current = { x: dir * (350 + Math.random() * 300), y: -(950 + Math.random() * 350) };
       scored.current = false;
       ensureLoop();
+      window.__pbLog.push('after ensureLoop, moving=' + moving.current + ' raf=' + raf.current);
     }
+    window.__pbState = () => ({ pos: { ...pos.current }, vel: { ...vel.current }, moving: moving.current, raf: raf.current, dims: { ...dims.current }, log: window.__pbLog || [] });
 
     function localFromClient(clientX, clientY) {
       const rect = zoneEl.getBoundingClientRect();
