@@ -6,6 +6,7 @@ import NotificationBell from './NotificationBell';
 import QuadraIcon from './QuadraIcon';
 import PeladasBallIcon from './PeladasBallIcon';
 import ShieldIcon from './ShieldIcon';
+import OrganizarIcon from './OrganizarIcon';
 import CriarButton from './CriarButton';
 import { tapFlash } from '@/lib/tapFlash';
 
@@ -51,6 +52,15 @@ export default function BottomNav() {
           <ShieldIcon />
         </span>
         Perfil
+      </Link>
+
+      <Link href="/organizar" className={`pl-bottom-nav-item ${pathname.startsWith('/organizar') ? 'active' : ''}`} onClick={tapFlash}>
+        <span className="pl-bottom-nav-icon">
+          <span className="pl-bottom-nav-splat" aria-hidden="true" />
+          <span className="pl-bottom-nav-flash" aria-hidden="true" />
+          <OrganizarIcon />
+        </span>
+        Organizar
       </Link>
     </nav>
   );
