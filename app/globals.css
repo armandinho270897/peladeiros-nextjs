@@ -1686,7 +1686,7 @@ body::after {
 
 /* Navegação inferior fixa — só em telas estreitas (mobile). "A Quadra
    Viva": grafite/rua, corte angular na barra, textura de concreto.
-   CARROSSEL: a aba da rota ativa sempre ocupa o centro; as outras 5 se
+   CARROSSEL: a aba da rota ativa sempre ocupa o centro; as outras 4 se
    organizam ao redor numa ordem circular fixa (lib/bottomNavWheel.js).
    Cada item é um "slot" (.pl-nav-slot) absolutamente posicionado a partir
    do centro da barra — trocar de aba não reordena o DOM nem teleporta:
@@ -1694,10 +1694,12 @@ body::after {
    muda, e a transição de CSS abaixo desliza/gira/escala pra posição nova.
    O item central se destaca sozinho (maior escala/opacidade via
    geometriaDoOffset + cor/.active) — sem indicador extra marcando ele.
-   .pl-nav-flat é o modo estático de prefers-reduced-motion: mesmos 6
+   .pl-nav-flat é o modo estático de prefers-reduced-motion: mesmos 5
    itens, layout de grid comum (sem posicionamento/rotação calculados),
-   só cor indicando o ativo. Rotas/páginas/lógica de cada destino
-   continuam as mesmas — só o visual e a interação mudaram. */
+   só cor indicando o ativo. "Organizar" não faz mais parte da roda — vive
+   em .pl-organizar-fab, um botão flutuante à parte (ver mais abaixo).
+   Rotas/páginas/lógica de cada destino continuam as mesmas — só o visual
+   e a interação mudaram. */
 .pl-bottom-nav {
   display: none;
   position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 30;
@@ -1782,7 +1784,8 @@ body::after {
   background: radial-gradient(circle, rgba(166,255,0,0.55), transparent 65%);
   opacity: 0; pointer-events: none;
 }
-.pl-bottom-nav-item.flash .pl-bottom-nav-flash { animation: pl-tap-flash 140ms ease-out; }
+.pl-bottom-nav-item.flash .pl-bottom-nav-flash,
+.pl-organizar-fab.flash .pl-bottom-nav-flash { animation: pl-tap-flash 140ms ease-out; }
 @keyframes pl-tap-flash {
   0% { opacity: 0.9; transform: scale(0.5); }
   100% { opacity: 0; transform: scale(1.3); }
@@ -1844,6 +1847,57 @@ body::after {
 }
 @keyframes pl-ring-out { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(2.1); opacity: 0; } }
 
+/* Botão flutuante do "Organizar" — saiu do carrossel de abas e virou um
+   satélite à parte: ancorado num ponto fixo (não gira com a roda), boiando
+   acima da barra perto de onde o "+" de criar costuma estar. Vidro escuro
+   com aro neon (mesma paleta do resto da barra) em vez do preenchimento
+   sólido do botão central — sinaliza "ação secundária" sem competir com o
+   "+" pela atenção. Entra com um pop elástico só uma vez, ao montar;
+   depois fica parado (mesmo princípio do botão central: brilho estático,
+   sem loop piscando). */
+.pl-organizar-fab {
+  display: none;
+  position: fixed;
+  right: 22px;
+  bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  z-index: 31;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  align-items: center; justify-content: center;
+  background: rgba(20, 24, 18, 0.82);
+  backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(166,255,0,0.55);
+  box-shadow: 0 0 14px rgba(166,255,0,0.28), 0 6px 16px rgba(0,0,0,0.5);
+  color: var(--neon);
+  text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  animation: pl-organizar-fab-pop 420ms cubic-bezier(0.22, 1.35, 0.32, 1) both;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+@media (max-width: 700px) { .pl-organizar-fab { display: flex; } }
+.pl-organizar-fab svg { position: relative; z-index: 2; filter: url(#pl-rough-filter); }
+.pl-organizar-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(166,255,0,0.4), 0 8px 18px rgba(0,0,0,0.55);
+}
+.pl-organizar-fab:active { transform: scale(0.88); }
+.pl-organizar-fab:focus-visible {
+  outline: 2px solid var(--neon); outline-offset: 3px;
+}
+/* ativo (na própria /organizar) — mesmo preenchimento sólido do botão
+   central, pra ficar claro que é "aqui que você está" mesmo sendo um
+   satélite fora da roda. */
+.pl-organizar-fab.active {
+  background: linear-gradient(150deg, var(--neon), var(--neon-dim));
+  border-color: transparent;
+  color: var(--ink);
+  box-shadow: 0 0 18px rgba(166,255,0,0.5), 0 6px 16px rgba(0,0,0,0.5);
+}
+@keyframes pl-organizar-fab-pop {
+  0% { opacity: 0; transform: scale(0.4) translateY(10px); }
+  70% { opacity: 1; transform: scale(1.08) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
 @media (max-width: 700px) {
   body { padding-bottom: 88px; }
   .pl-toast-container { bottom: 98px; }
@@ -1856,7 +1910,7 @@ body::after {
      telas largas (onde .pl-bottom-nav continua display:none). */
   .pl-nav-flat {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     align-items: center;
     justify-items: center;
   }
@@ -1881,6 +1935,8 @@ body::after {
   .pl-bottom-nav-central.spin .pl-central-icon-ball { animation: none; }
   .pl-bottom-nav-central.expand::after { display: none; }
   .pl-bottom-nav-flash { display: none; }
+  .pl-organizar-fab { animation: none; opacity: 1; }
+  .pl-organizar-fab:hover, .pl-organizar-fab:active { transform: none; }
 }
 
 /* Mapa — pino com foto (círculo com a imagem dentro, borda dourada
