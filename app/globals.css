@@ -1692,9 +1692,8 @@ body::after {
    do centro da barra — trocar de aba não reordena o DOM nem teleporta:
    o offset de cada item (calculado em JS, sempre pelo caminho mais curto)
    muda, e a transição de CSS abaixo desliza/gira/escala pra posição nova.
-   A bola (BottomNavBall.js) agora fica FIXA no centro — é o item que
-   viaja até ela, não o contrário; ela só pulsa (escala+fade+giro curto,
-   disparado remontando o componente) quando o centro muda.
+   O item central se destaca sozinho (maior escala/opacidade via
+   geometriaDoOffset + cor/.active) — sem indicador extra marcando ele.
    .pl-nav-flat é o modo estático de prefers-reduced-motion: mesmos 6
    itens, layout de grid comum (sem posicionamento/rotação calculados),
    só cor indicando o ativo. Rotas/páginas/lógica de cada destino
@@ -1754,8 +1753,9 @@ body::after {
   cursor: pointer; -webkit-tap-highlight-color: transparent;
   transition: color 180ms ease;
 }
-/* item ativo = sempre o item central (offset 0) — a bola marca ele por
-   baixo; aqui só reage à cor + um pequeno respiro no ícone/rótulo. */
+/* item ativo = sempre o item central (offset 0), já maior/mais opaco via
+   geometriaDoOffset; aqui só reage à cor + um pequeno respiro no
+   ícone/rótulo. */
 .pl-bottom-nav-item.active { color: var(--paper); }
 .pl-bottom-nav-item:focus-visible {
   outline: 2px solid var(--neon); outline-offset: -3px; border-radius: 10px;
@@ -1775,33 +1775,6 @@ body::after {
   transform-origin: center top;
 }
 .pl-bottom-nav-item.active .pl-bottom-nav-label { transform: scale(1.05); }
-
-/* A bola: fixa no centro da barra (não viaja mais — é o item que viaja
-   até ela). Só stroke na svg (sem fill pesado), brilho concentrado no
-   anel de borda + drop-shadow curto, nunca uma mancha atrás do ícone.
-   A animação de entrada roda sempre que o componente MONTA — BottomNav.js
-   força isso trocando a `key` toda vez que o centro muda, então remontar
-   já reproduz o pulso sozinho, sem precisar de classe alternada em JS. */
-.pl-nav-ball-track {
-  position: absolute; left: 50%; top: 50%; z-index: 1;
-  width: 32px; height: 32px;
-  margin: -16px 0 0 -16px;
-  pointer-events: none;
-  color: var(--neon);
-  filter: drop-shadow(0 0 3px rgba(166,255,0,0.55)) drop-shadow(0 0 1px rgba(166,255,0,0.55));
-  animation: pl-nav-ball-pulse 320ms cubic-bezier(0.22, 1.12, 0.36, 1) both;
-}
-.pl-nav-ball-svg { width: 100%; height: 100%; display: block; }
-@keyframes pl-nav-ball-pulse {
-  0% { opacity: 0; transform: scale(0.55) rotate(-22deg); }
-  62% { opacity: 0.42; transform: scale(1.08) rotate(4deg); }
-  100% { opacity: 0.4; transform: scale(1) rotate(0deg); }
-}
-.pl-nav-ball-reduzido { animation: pl-nav-ball-pulse-reduzido 100ms linear both; }
-@keyframes pl-nav-ball-pulse-reduzido {
-  0% { opacity: 0; }
-  100% { opacity: 0.4; }
-}
 
 /* flash de toque — resposta física/energética antes de navegar */
 .pl-bottom-nav-flash {

@@ -9,7 +9,6 @@ import PeladasBallIcon from './PeladasBallIcon';
 import ShieldIcon from './ShieldIcon';
 import OrganizarIcon from './OrganizarIcon';
 import CriarButton from './CriarButton';
-import BottomNavBall from './BottomNavBall';
 import { tapFlash } from '@/lib/tapFlash';
 import {
   ORDEM_NAV, ROTA_POR_INDICE, indiceDaRota, offsetMaisProximo, geometriaDoOffset, proximoIndiceNavegavel,
@@ -43,7 +42,9 @@ const SWIPE_RAZAO_MIN = 1.3;
 // redor numa ordem circular fixa (ORDEM_NAV). Trocar de aba não teleporta
 // nem reordena o DOM — cada item é um slot absolutamente posicionado que
 // desliza pra sua nova posição relativa ao novo centro (offsetMaisProximo
-// escolhe sempre o caminho mais curto). Rotas/páginas/lógica de cada
+// escolhe sempre o caminho mais curto). O item central já se destaca
+// sozinho (escala/opacidade/cor via geometriaDoOffset + .active), sem
+// precisar de nenhum indicador extra. Rotas/páginas/lógica de cada
 // destino continuam as mesmas de sempre; só o visual/interação mudou.
 export default function BottomNav() {
   const { user } = useAuth();
@@ -101,8 +102,6 @@ export default function BottomNav() {
       onPointerUp={onPointerUp}
       onPointerCancel={() => { swipeRef.current = null; }}
     >
-      <BottomNavBall key={reduzido ? 'flat' : centro} reduzido={reduzido} />
-
       {ORDEM_NAV.map((id, i) => {
         const geo = reduzido ? null : geometriaDoOffset(offsets[i]);
         // Duração/easing do slide moram só no CSS (.pl-nav-slot), como
