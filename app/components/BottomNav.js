@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
@@ -9,10 +9,19 @@ import PeladasBallIcon from './PeladasBallIcon';
 import ShieldIcon from './ShieldIcon';
 import CriarButton from './CriarButton';
 import OrganizarFab from './OrganizarFab';
+import BottomNavBall from './BottomNavBall';
 import { tapFlash } from '@/lib/tapFlash';
 import {
   ORDEM_NAV, ROTA_POR_INDICE, indiceDaRota, offsetMaisProximo, geometriaDoOffset, proximoIndiceNavegavel,
+  LARGURA_PADRAO,
 } from '@/lib/bottomNavWheel';
+
+// SSR-safe: useLayoutEffect avisa no console em render de servidor. Next
+// só renderiza esse componente no cliente de qualquer forma (é 'use
+// client' e depende de matchMedia/ResizeObserver), mas o import do React
+// ainda passa pelo servidor durante a montagem da árvore — trocar por um
+// no-op fora do browser evita o aviso sem mudar o comportamento.
+const useLayoutEffectSeguro = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 const LABEL = { inicio: 'Início', peladas: 'Peladas', avisos: 'Avisos', perfil: 'Perfil' };
 const ICONE = { inicio: QuadraIcon, peladas: PeladasBallIcon, perfil: ShieldIcon };
@@ -37,14 +46,15 @@ function useReducedMotion() {
 const SWIPE_MIN_PX = 42;
 const SWIPE_RAZAO_MIN = 1.3;
 
-// "A Quadra Viva" — navegação inferior fixa (mobile), agora um carrossel:
-// o item da rota ativa sempre fica no centro, os outros 4 se organizam ao
-// redor numa ordem circular fixa (ORDEM_NAV). Trocar de aba não teleporta
-// nem reordena o DOM — cada item é um slot absolutamente posicionado que
+// "A Quadra Viva" — navegação inferior fixa (mobile), um carrossel: o item
+// da rota ativa sempre fica no centro, os outros 4 se organizam ao redor
+// numa ordem circular fixa (ORDEM_NAV). Trocar de aba não teleporta nem
+// reordena o DOM — cada item é um slot absolutamente posicionado que
 // desliza pra sua nova posição relativa ao novo centro (offsetMaisProximo
-// escolhe sempre o caminho mais curto). O item central já se destaca
-// sozinho (escala/opacidade/cor via geometriaDoOffset + .active), sem
-// precisar de nenhum indicador extra. Rotas/páginas/lógica de cada
+// escolhe sempre o caminho mais curto), com a geometria calculada a partir
+// da largura REAL medida da barra (ver `largura` abaixo), não de um valor
+// fixo — é isso que mantém a bola, o item central e a trilha exatamente no
+// mesmo eixo em qualquer largura de tela. Rotas/páginas/lógica de cada
 // destino continuam as mesmas de sempre; só o visual/interação mudou.
 export default function BottomNav() {
   const { user } = useAuth();
@@ -70,6 +80,29 @@ export default function BottomNav() {
     offsets.forEach((o, i) => { novo[i] = o; });
     offsetsAnterioresRef.current = novo;
   });
+
+  // Largura ÚTIL real da barra (clientWidth do <nav> — a mesma caixa que o
+  // CSS "left:50%" do .pl-nav-slot usa como referência), medida ao vivo em
+  // vez de assumida: é a partir dela que geometriaDoOffset calcula a
+  // distância em px de cada item, então a geometria acompanha o viewport
+  // de verdade (320/360/375/390/412px) em vez de usar um valor fixo que só
+  // "encaixa direito" numa largura só. useLayoutEffect (não useEffect) pra
+  // medir e aplicar ANTES do primeiro paint — evita um salto visível de
+  // "layout errado -> layout certo" logo na entrada.
+  const navRef = useRef(null);
+  const [largura, setLargura] = useState(LARGURA_PADRAO);
+  useLayoutEffectSeguro(() => {
+    const el = navRef.current;
+    if (!el) return undefined;
+    const medir = () => {
+      const w = el.clientWidth;
+      if (w > 0) setLargura((atual) => (Math.abs(atual - w) > 0.5 ? w : atual));
+    };
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Swipe horizontal simples: mede o gesto do início ao fim (sem
   // arrastar a roda ao vivo — é um passo de cada vez, pra não precisar de
@@ -98,14 +131,24 @@ export default function BottomNav() {
     <>
       <OrganizarFab reduzido={reduzido} />
       <nav
+        ref={navRef}
         className={`pl-bottom-nav ${reduzido ? 'pl-nav-flat' : 'pl-nav-wheel'}`}
         aria-label="Navegação principal"
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerCancel={() => { swipeRef.current = null; }}
       >
+        {!reduzido && (
+          <span className="pl-nav-trilha" aria-hidden="true">
+            <svg viewBox="0 0 100 12" preserveAspectRatio="none">
+              <path d="M 0 9 Q 50 0 100 9" />
+            </svg>
+          </span>
+        )}
+        <BottomNavBall key={reduzido ? 'flat' : centro} reduzido={reduzido} />
+
         {ORDEM_NAV.map((id, i) => {
-          const geo = reduzido ? null : geometriaDoOffset(offsets[i]);
+          const geo = reduzido ? null : geometriaDoOffset(offsets[i], largura);
           // Duração/easing do slide moram só no CSS (.pl-nav-slot), como
           // literais — só a POSIÇÃO precisa vir de JS (depende de onde cada
           // item está na roda agora). Sem reduced-motion pra conciliar aqui:
@@ -113,7 +156,7 @@ export default function BottomNav() {
           // o modo reduzido usa outra árvore de estilo (.pl-nav-flat, só CSS).
           const style = geo
             ? {
-                transform: `translate(-50%, -50%) translate(${geo.x}px, ${geo.y}px) scale(${geo.scale}) rotate(${geo.tilt}deg)`,
+                transform: `translate(-50%, -50%) translate(${geo.x}px, ${geo.y}px) scale(${geo.scale})`,
                 opacity: geo.opacity,
                 zIndex: geo.zIndex,
               }

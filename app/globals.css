@@ -1685,32 +1685,41 @@ body::after {
 }
 
 /* Navegação inferior fixa — só em telas estreitas (mobile). "A Quadra
-   Viva": grafite/rua, corte angular na barra, textura de concreto.
-   CARROSSEL: a aba da rota ativa sempre ocupa o centro; as outras 4 se
-   organizam ao redor numa ordem circular fixa (lib/bottomNavWheel.js).
-   Cada item é um "slot" (.pl-nav-slot) absolutamente posicionado a partir
-   do centro da barra — trocar de aba não reordena o DOM nem teleporta:
-   o offset de cada item (calculado em JS, sempre pelo caminho mais curto)
-   muda, e a transição de CSS abaixo desliza/gira/escala pra posição nova.
-   O item central se destaca sozinho (maior escala/opacidade via
-   geometriaDoOffset + cor/.active) — sem indicador extra marcando ele.
+   Viva": grafite/rua, textura de concreto discreta. CARROSSEL: a aba da
+   rota ativa sempre ocupa o centro; as outras 4 se organizam ao redor
+   numa ordem circular fixa (lib/bottomNavWheel.js). Cada item é um "slot"
+   (.pl-nav-slot) absolutamente posicionado a partir do centro da barra —
+   trocar de aba não reordena o DOM nem teleporta: o offset de cada item
+   (calculado em JS a partir da largura REAL medida da barra, sempre pelo
+   caminho mais curto) muda, e a transição de CSS abaixo desliza/escala
+   pra posição nova. O item central se destaca com maior escala/opacidade
+   (geometriaDoOffset + cor/.active) e a bola neon (.pl-nav-ball-track)
+   marca o mesmo ponto — ambos ancorados no mesmíssimo "left:50%" deste
+   container, nunca podem desalinhar entre si.
+   Formato: retângulo de cantos arredondados simétricos (nada de corte
+   angular só de um lado) — é isso, mais os 10px de margem IGUAIS dos dois
+   lados (com env(safe-area-inset-*) somado), que garante que nenhum item
+   fica visualmente mais perto de uma borda do aparelho que o seu
+   simétrico do lado oposto.
    .pl-nav-flat é o modo estático de prefers-reduced-motion: mesmos 5
-   itens, layout de grid comum (sem posicionamento/rotação calculados),
-   só cor indicando o ativo. "Organizar" não faz mais parte da roda — vive
-   em .pl-organizar-fab, um botão flutuante à parte (ver mais abaixo).
-   Rotas/páginas/lógica de cada destino continuam as mesmas — só o visual
-   e a interação mudaram. */
+   itens, layout de grid comum (sem posicionamento calculado), só cor
+   indicando o ativo. "Organizar" não faz mais parte da roda — vive em
+   .pl-organizar-fab, um botão flutuante à parte (ver mais abaixo). Rotas/
+   páginas/lógica de cada destino continuam as mesmas — só o visual e a
+   interação mudaram. */
 .pl-bottom-nav {
   display: none;
-  position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+  position: fixed;
+  left: calc(10px + env(safe-area-inset-left, 0px));
+  right: calc(10px + env(safe-area-inset-right, 0px));
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
   height: 68px;
   padding: 0 6px 8px;
   background: rgba(16, 18, 16, 0.86);
   border: 1px solid rgba(166,255,0,0.12);
-  box-shadow: 0 16px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
-  /* corte de faca assimétrico no topo — não é mais um retângulo perfeito,
-     ecoando os cortes diagonais do "P" do ícone do app */
-  clip-path: polygon(0% 16px, 30px 0%, calc(100% - 20px) 0%, 100% 10px, 100% 100%, 0% 100%);
+  border-radius: 20px;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.52), inset 0 1px 0 rgba(255,255,255,0.05);
   overflow: hidden;
   /* dica pro navegador: gestos horizontais são tratados aqui (swipe do
      carrossel) — não afeta rolagem vertical da página, que nem passa por
@@ -1718,30 +1727,47 @@ body::after {
   touch-action: pan-y;
 }
 @media (max-width: 700px) { .pl-bottom-nav { display: block; } }
-/* textura de concreto de baixa opacidade — mesmo mecanismo de feTurbulence
-   já usado no fundo do app (ver body::before acima) */
+/* textura de concreto quase imperceptível — mesmo mecanismo de
+   feTurbulence já usado no fundo do app (ver body::before acima), só que
+   bem mais discreta aqui: é acabamento de material, não decoração. */
 .pl-bottom-nav::before {
   content: '';
   position: absolute; inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.1;
+  opacity: 0.05;
   mix-blend-mode: overlay;
   pointer-events: none;
 }
 
+/* Trilha: uma curva quase invisível que só existe pra sugerir "os itens
+   deslizam sobre um trilho", não pra decorar — por isso o stroke é tão
+   fraco. Estática (não acompanha o movimento), atrás de tudo (z-index
+   implícito por ordem no DOM, antes dos slots). Ausente por completo no
+   modo .pl-nav-flat (nem chega a ser renderizada por BottomNav.js ali). */
+.pl-nav-trilha {
+  position: absolute; left: 8px; right: 8px; top: 50%;
+  height: 12px; margin-top: -6px;
+  pointer-events: none;
+}
+.pl-nav-trilha svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.pl-nav-trilha path {
+  fill: none; stroke: rgba(210,255,150,0.1); stroke-width: 1; vector-effect: non-scaling-stroke;
+}
+
 /* Slot do carrossel: âncora no centro exato da barra (left:50%/top:50%),
    a translate(-50%,-50%) inicial centraliza a CAIXA do próprio item nesse
-   ponto, e o translate(Xpx,Ypx)/scale/rotate que vem inline (JS) desloca
-   a partir daí — sempre translate/scale/rotate/opacity, nunca left/top
-   animado, pra não disparar layout. Duração/easing como literais (não
-   var()): uma propriedade TRANSICIONADA cujo valor vem de var() fica
-   presa sem assentar — bug real, testado ao vivo nos dois ciclos
-   anteriores deste componente (uma vez em opacity, outra em @keyframes). */
+   ponto, e o translate(Xpx,Ypx)/scale que vem inline (JS) desloca a
+   partir daí — sempre translate/scale/opacity, nunca left/top animado,
+   pra não disparar layout. Duração/easing como literais (não var()): uma
+   propriedade TRANSICIONADA cujo valor vem de var() fica presa sem
+   assentar — bug real, testado ao vivo em ciclos anteriores deste
+   componente. Overshoot mínimo na curva (sem keyframes extra) e sem
+   rotação — só peso/inércia, não giro de carrossel de feira. */
 .pl-nav-slot {
   position: absolute; left: 50%; top: 50%;
   transition-property: transform, opacity;
-  transition-duration: 320ms;
-  transition-timing-function: cubic-bezier(0.22, 1.12, 0.36, 1);
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.30, 1.04, 0.34, 1);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1777,6 +1803,27 @@ body::after {
   transform-origin: center top;
 }
 .pl-bottom-nav-item.active .pl-bottom-nav-label { transform: scale(1.05); }
+
+/* A bola: indicador do centro, fixa no mesmo "left:50%/top:50%" que os
+   slots usam (nunca desalinha, é a mesma âncora CSS) — não é mais um
+   sticker: volume pequeno, glow curto e sem saturação exagerada, atrás
+   dos ícones (z-index abaixo dos slots) pra nunca cobrir nada. Troca de
+   opacidade com um fade curto (nada de pulso de escala/giro) sempre que o
+   centro muda — BottomNav.js força isso remontando via `key={centro}`. */
+.pl-nav-ball-track {
+  position: absolute; left: 50%; top: 50%; z-index: 1;
+  width: 26px; height: 26px;
+  margin: -13px 0 0 -13px;
+  pointer-events: none;
+  filter: drop-shadow(0 0 2px rgba(166,255,0,0.4));
+  animation: pl-nav-ball-fade 220ms ease-out both;
+}
+.pl-nav-ball-svg { width: 100%; height: 100%; display: block; }
+@keyframes pl-nav-ball-fade {
+  0% { opacity: 0; }
+  100% { opacity: 0.55; }
+}
+.pl-nav-ball-reduzido { animation: pl-nav-ball-fade 100ms linear both; }
 
 /* flash de toque — resposta física/energética antes de navegar */
 .pl-bottom-nav-flash {
@@ -1904,10 +1951,10 @@ body::after {
   /* .pl-nav-flat — modo estático de prefers-reduced-motion: BottomNav.js
      não aplica nenhum style inline nos slots nesse modo (geo=null), então
      essa classe é quem define o layout inteiro — volta a ser uma grade
-     simples de 6 colunas (o "carrossel" some por completo, sem posição/
-     escala/rotação calculada), só a cor do item ativo indicando o estado.
-     Fica dentro deste media query pra não forçar a barra a aparecer em
-     telas largas (onde .pl-bottom-nav continua display:none). */
+     simples de 5 colunas (o "carrossel" some por completo, sem posição/
+     escala calculada), só a cor do item ativo indicando o estado. Fica
+     dentro deste media query pra não forçar a barra a aparecer em telas
+     largas (onde .pl-bottom-nav continua display:none). */
   .pl-nav-flat {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
