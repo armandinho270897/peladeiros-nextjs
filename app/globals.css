@@ -1685,29 +1685,24 @@ body::after {
 }
 
 /* Navegação inferior fixa — só em telas estreitas (mobile). "A Quadra
-   Viva": grafite/rua, corte angular na barra, textura de concreto. A aba
-   ativa é marcada por UMA bola só que VIAJA entre setores (ver
-   BottomNavBall.js) — não é mais uma bola própria por item que
-   aparecia/sumia no lugar; a mesma bola desliza + gira + escala até o
-   novo setor, e o giro reflete a direção do movimento (índice de coluna
-   maior gira num sentido, menor no outro — ver rotacaoDaColuna no
-   componente). Grid de 6 colunas iguais (em vez de flex+space-around) pra
-   distribuir os itens de forma equilibrada de verdade, incluindo o "+"
-   central — ele ocupa uma coluna como qualquer outro item, só um pouco
-   levantado (transform, não margin — não mexe na altura das colunas
-   vizinhas). Tokens de cor/opacidade/glow da bola ficam centralizados
-   aqui embaixo (--nav-ball-*); duração/easing/rotação do TRAJETO moram em
-   BottomNavBall.js (calculados em JS junto da posição, não dava pra
-   separar sem duplicar a conta). Rotas/páginas/lógica de cada destino
+   Viva": grafite/rua, corte angular na barra, textura de concreto.
+   CARROSSEL: a aba da rota ativa sempre ocupa o centro; as outras 5 se
+   organizam ao redor numa ordem circular fixa (lib/bottomNavWheel.js).
+   Cada item é um "slot" (.pl-nav-slot) absolutamente posicionado a partir
+   do centro da barra — trocar de aba não reordena o DOM nem teleporta:
+   o offset de cada item (calculado em JS, sempre pelo caminho mais curto)
+   muda, e a transição de CSS abaixo desliza/gira/escala pra posição nova.
+   A bola (BottomNavBall.js) agora fica FIXA no centro — é o item que
+   viaja até ela, não o contrário; ela só pulsa (escala+fade+giro curto,
+   disparado remontando o componente) quando o centro muda.
+   .pl-nav-flat é o modo estático de prefers-reduced-motion: mesmos 6
+   itens, layout de grid comum (sem posicionamento/rotação calculados),
+   só cor indicando o ativo. Rotas/páginas/lógica de cada destino
    continuam as mesmas — só o visual e a interação mudaram. */
 .pl-bottom-nav {
-  --nav-ball-opacity: 0.4;
-  --nav-ball-glow: rgba(166,255,0,0.55);
   display: none;
   position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 30;
   height: 68px;
-  grid-template-columns: repeat(6, 1fr);
-  align-items: center; justify-items: center;
   padding: 0 6px 8px;
   background: rgba(16, 18, 16, 0.86);
   border: 1px solid rgba(166,255,0,0.12);
@@ -1716,6 +1711,10 @@ body::after {
      ecoando os cortes diagonais do "P" do ícone do app */
   clip-path: polygon(0% 16px, 30px 0%, calc(100% - 20px) 0%, 100% 10px, 100% 100%, 0% 100%);
   overflow: hidden;
+  /* dica pro navegador: gestos horizontais são tratados aqui (swipe do
+     carrossel) — não afeta rolagem vertical da página, que nem passa por
+     essa barra fixa (não faz parte do fluxo rolável do conteúdo). */
+  touch-action: pan-y;
 }
 /* textura de concreto de baixa opacidade — mesmo mecanismo de feTurbulence
    já usado no fundo do app (ver body::before acima) */
@@ -1728,6 +1727,22 @@ body::after {
   pointer-events: none;
 }
 
+/* Slot do carrossel: âncora no centro exato da barra (left:50%/top:50%),
+   a translate(-50%,-50%) inicial centraliza a CAIXA do próprio item nesse
+   ponto, e o translate(Xpx,Ypx)/scale/rotate que vem inline (JS) desloca
+   a partir daí — sempre translate/scale/rotate/opacity, nunca left/top
+   animado, pra não disparar layout. Duração/easing como literais (não
+   var()): uma propriedade TRANSICIONADA cujo valor vem de var() fica
+   presa sem assentar — bug real, testado ao vivo nos dois ciclos
+   anteriores deste componente (uma vez em opacity, outra em @keyframes). */
+.pl-nav-slot {
+  position: absolute; left: 50%; top: 50%;
+  transition-property: transform, opacity;
+  transition-duration: 320ms;
+  transition-timing-function: cubic-bezier(0.22, 1.12, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
 .pl-bottom-nav-item {
   position: relative;
   display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
@@ -1738,9 +1753,8 @@ body::after {
   cursor: pointer; -webkit-tap-highlight-color: transparent;
   transition: color 180ms ease;
 }
-/* item ativo: cor + o ícone subindo um pouco + o rótulo ganhando peso —
-   a bola em si é um elemento à parte que viaja por cima (BottomNavBall),
-   não filha de cada item; aqui só reage à presença dela na sua coluna. */
+/* item ativo = sempre o item central (offset 0) — a bola marca ele por
+   baixo; aqui só reage à cor + um pequeno respiro no ícone/rótulo. */
 .pl-bottom-nav-item.active { color: var(--paper); }
 .pl-bottom-nav-item:focus-visible {
   outline: 2px solid var(--neon); outline-offset: -3px; border-radius: 10px;
@@ -1761,44 +1775,31 @@ body::after {
 }
 .pl-bottom-nav-item.active .pl-bottom-nav-label { transform: scale(1.05); }
 
-/* A bola: elemento único, absolutamente posicionado, que TRAVEL entre
-   colunas (ver BottomNavBall.js) — por isso fica fora do fluxo do grid
-   (position:absolute tira do cálculo de colunas) e atrás dos ícones
-   (z-index 1 contra o 2 do ícone acima). translate()/rotate() só — nada
-   de left/top animado, pra não disparar layout. Opacidade de repouso
-   moderada (--nav-ball-opacity) pra nunca virar um fundo pesado atrás do
-   ícone; o brilho é do drop-shadow + do próprio anel de borda desenhado
-   na svg, não de uma mancha atrás. */
+/* A bola: fixa no centro da barra (não viaja mais — é o item que viaja
+   até ela). Só stroke na svg (sem fill pesado), brilho concentrado no
+   anel de borda + drop-shadow curto, nunca uma mancha atrás do ícone.
+   A animação de entrada roda sempre que o componente MONTA — BottomNav.js
+   força isso trocando a `key` toda vez que o centro muda, então remontar
+   já reproduz o pulso sozinho, sem precisar de classe alternada em JS. */
 .pl-nav-ball-track {
-  position: absolute; left: 0; top: 50%; z-index: 1;
+  position: absolute; left: 50%; top: 50%; z-index: 1;
   width: 32px; height: 32px;
+  margin: -16px 0 0 -16px;
   pointer-events: none;
-  /* valor literal, não var(--nav-ball-opacity) — testado ao vivo que uma
-     propriedade TRANSICIONADA cujo valor vem de var() fica presa perto do
-     zero (o navegador parece tratar a substituição da variável como uma
-     mudança contínua e nunca deixa a transição assentar). --nav-ball-
-     opacity continua declarada acima como referência documentada; mudou
-     lá, muda aqui também — mesmo trato que duração/easing/rotação, que já
-     são literais por causa do bug irmão em @keyframes (ver comentário do
-     pulso mais abaixo). */
-  opacity: 0.4;
-  filter: drop-shadow(0 0 3px var(--nav-ball-glow)) drop-shadow(0 0 1px var(--nav-ball-glow));
-  transition-property: transform, opacity;
-  /* duração/easing vêm inline (JS) — ver DURACAO_MS/EASING em BottomNavBall.js */
+  color: var(--neon);
+  filter: drop-shadow(0 0 3px rgba(166,255,0,0.55)) drop-shadow(0 0 1px rgba(166,255,0,0.55));
+  animation: pl-nav-ball-pulse 320ms cubic-bezier(0.22, 1.12, 0.36, 1) both;
 }
 .pl-nav-ball-svg { width: 100%; height: 100%; display: block; }
-
-/* Pulso de trajeto: dispara uma vez por troca de aba (classe "flash",
-   mesmo padrão de lib/tapFlash.js — soma sozinha e remove sozinha).
-   Valores fixos, sem var() dentro do @keyframes: uma animação com var()
-   referenciada nos keyframes reinicia sozinha a cada recálculo de estilo
-   não relacionado na página (testado ao vivo no ciclo anterior deste
-   componente) — aqui não há nenhuma variável envolvida, só números. */
-.pl-nav-ball-pulse-on { animation: pl-nav-ball-pulse 280ms ease-out; }
 @keyframes pl-nav-ball-pulse {
-  0% { transform: scale(1); opacity: 1; }
-  40% { transform: scale(0.8); opacity: 0.55; }
-  100% { transform: scale(1); opacity: 1; }
+  0% { opacity: 0; transform: scale(0.55) rotate(-22deg); }
+  62% { opacity: 0.42; transform: scale(1.08) rotate(4deg); }
+  100% { opacity: 0.4; transform: scale(1) rotate(0deg); }
+}
+.pl-nav-ball-reduzido { animation: pl-nav-ball-pulse-reduzido 100ms linear both; }
+@keyframes pl-nav-ball-pulse-reduzido {
+  0% { opacity: 0; }
+  100% { opacity: 0.4; }
 }
 
 /* flash de toque — resposta física/energética antes de navegar */
@@ -1870,24 +1871,33 @@ body::after {
 @keyframes pl-ring-out { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(2.1); opacity: 0; } }
 
 @media (max-width: 700px) {
-  .pl-bottom-nav { display: grid; }
   body { padding-bottom: 88px; }
   .pl-toast-container { bottom: 98px; }
 }
 
-/* Reduz drasticamente o floreio sem tirar a indicação de estado: a bola
-   continua pulando direto pro novo setor (sem deslocamento/giro visível —
-   BottomNavBall.js também para de aplicar a transição de transform nesse
-   modo, então a posição só "troca" em vez de viajar), só com uma troca
-   curta de opacidade marcando a mudança. Resto do loop/tremor/giro do "+"
-   some por completo. */
+/* .pl-nav-flat — modo estático de prefers-reduced-motion: BottomNav.js não
+   aplica nenhum style inline nos slots nesse modo (geo=null), então essa
+   classe é quem define o layout inteiro — volta a ser uma grade simples de
+   6 colunas (o "carrossel" some por completo, sem posição/escala/rotação
+   calculada), só a cor do item ativo indicando o estado. */
+.pl-nav-flat {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: center;
+  justify-items: center;
+}
+.pl-nav-flat .pl-nav-slot {
+  position: static;
+  transform: none;
+  opacity: 1;
+  transition: none;
+}
+
+/* Reduz drasticamente o floreio sem tirar a indicação de estado: os itens
+   nem chegam a ter posição animada nesse modo (.pl-nav-flat cuida disso
+   acima) — aqui só resta desligar os micro-movimentos que sobrariam nos
+   componentes internos (ícone/rótulo ativo, tremor de avisos, giro do "+"). */
 @media (prefers-reduced-motion: reduce) {
-  /* .pl-nav-ball-track não precisa de regra aqui: BottomNavBall.js já lê
-     matchMedia e zera transitionDuration/rotação direto no inline style
-     (inline sempre vence uma regra de folha pra essa mesma propriedade,
-     então sobrescrever por aqui não faria nada). Só o pulso de opacidade
-     continua, mais curto. */
-  .pl-nav-ball-pulse-on { animation: pl-nav-ball-pulse-reduzido 110ms ease-out; }
   .pl-bottom-nav-item.active .pl-bottom-nav-icon { transform: none; }
   .pl-bottom-nav-item.active .pl-bottom-nav-label { transform: none; }
   .pl-bottom-nav-avisos.shake .pl-bottom-nav-icon svg { animation: none !important; }
@@ -1896,10 +1906,6 @@ body::after {
   .pl-bottom-nav-central.spin .pl-central-icon-ball { animation: none; }
   .pl-bottom-nav-central.expand::after { display: none; }
   .pl-bottom-nav-flash { display: none; }
-}
-@keyframes pl-nav-ball-pulse-reduzido {
-  0% { opacity: 0.5; }
-  100% { opacity: 1; }
 }
 
 /* Mapa — pino com foto (círculo com a imagem dentro, borda dourada
