@@ -1716,6 +1716,7 @@ body::after {
      essa barra fixa (não faz parte do fluxo rolável do conteúdo). */
   touch-action: pan-y;
 }
+@media (max-width: 700px) { .pl-bottom-nav { display: block; } }
 /* textura de concreto de baixa opacidade — mesmo mecanismo de feTurbulence
    já usado no fundo do app (ver body::before acima) */
 .pl-bottom-nav::before {
@@ -1873,24 +1874,25 @@ body::after {
 @media (max-width: 700px) {
   body { padding-bottom: 88px; }
   .pl-toast-container { bottom: 98px; }
-}
-
-/* .pl-nav-flat — modo estático de prefers-reduced-motion: BottomNav.js não
-   aplica nenhum style inline nos slots nesse modo (geo=null), então essa
-   classe é quem define o layout inteiro — volta a ser uma grade simples de
-   6 colunas (o "carrossel" some por completo, sem posição/escala/rotação
-   calculada), só a cor do item ativo indicando o estado. */
-.pl-nav-flat {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  align-items: center;
-  justify-items: center;
-}
-.pl-nav-flat .pl-nav-slot {
-  position: static;
-  transform: none;
-  opacity: 1;
-  transition: none;
+  /* .pl-nav-flat — modo estático de prefers-reduced-motion: BottomNav.js
+     não aplica nenhum style inline nos slots nesse modo (geo=null), então
+     essa classe é quem define o layout inteiro — volta a ser uma grade
+     simples de 6 colunas (o "carrossel" some por completo, sem posição/
+     escala/rotação calculada), só a cor do item ativo indicando o estado.
+     Fica dentro deste media query pra não forçar a barra a aparecer em
+     telas largas (onde .pl-bottom-nav continua display:none). */
+  .pl-nav-flat {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    align-items: center;
+    justify-items: center;
+  }
+  .pl-nav-flat .pl-nav-slot {
+    position: static;
+    transform: none;
+    opacity: 1;
+    transition: none;
+  }
 }
 
 /* Reduz drasticamente o floreio sem tirar a indicação de estado: os itens
