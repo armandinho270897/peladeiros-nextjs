@@ -9,7 +9,6 @@ import PeladasBallIcon from './PeladasBallIcon';
 import ShieldIcon from './ShieldIcon';
 import CriarButton from './CriarButton';
 import OrganizarFab from './OrganizarFab';
-import BottomNavBall from './BottomNavBall';
 import { tapFlash } from '@/lib/tapFlash';
 import {
   ORDEM_NAV, ROTA_POR_INDICE, indiceDaRota, offsetMaisProximo, geometriaDoOffset, proximoIndiceNavegavel,
@@ -46,15 +45,19 @@ function useReducedMotion() {
 const SWIPE_MIN_PX = 42;
 const SWIPE_RAZAO_MIN = 1.3;
 
-// "A Quadra Viva" — navegação inferior fixa (mobile), um carrossel: o item
-// da rota ativa sempre fica no centro, os outros 4 se organizam ao redor
-// numa ordem circular fixa (ORDEM_NAV). Trocar de aba não teleporta nem
-// reordena o DOM — cada item é um slot absolutamente posicionado que
-// desliza pra sua nova posição relativa ao novo centro (offsetMaisProximo
-// escolhe sempre o caminho mais curto), com a geometria calculada a partir
-// da largura REAL medida da barra (ver `largura` abaixo), não de um valor
-// fixo — é isso que mantém a bola, o item central e a trilha exatamente no
-// mesmo eixo em qualquer largura de tela. Rotas/páginas/lógica de cada
+// "A Quadra Viva" — navegação inferior fixa (mobile), um carrossel RASO:
+// o item da rota ativa sempre fica no centro, os outros 4 se organizam ao
+// redor numa ordem circular fixa (ORDEM_NAV), sempre na MESMA linha de
+// base (sem curva, sem rotação — só translateX + leve scale/opacity).
+// Trocar de aba não teleporta nem reordena o DOM — cada item é um slot
+// absolutamente posicionado que desliza pra sua nova posição relativa ao
+// novo centro (offsetMaisProximo escolhe sempre o caminho mais curto),
+// com a geometria calculada a partir da largura REAL medida da barra (ver
+// `largura` abaixo), não de um valor fixo — é isso que mantém o item
+// central exatamente no eixo do centro do viewport em qualquer largura de
+// tela. A bola neon vive dentro do ícone de cada item (CSS, ver
+// .pl-bottom-nav-icon::before em globals.css) — viaja junto com o item,
+// não precisa de componente/posição própria. Rotas/páginas/lógica de cada
 // destino continuam as mesmas de sempre; só o visual/interação mudou.
 export default function BottomNav() {
   const { user } = useAuth();
@@ -138,15 +141,6 @@ export default function BottomNav() {
         onPointerUp={onPointerUp}
         onPointerCancel={() => { swipeRef.current = null; }}
       >
-        {!reduzido && (
-          <span className="pl-nav-trilha" aria-hidden="true">
-            <svg viewBox="0 0 100 12" preserveAspectRatio="none">
-              <path d="M 0 9 Q 50 0 100 9" />
-            </svg>
-          </span>
-        )}
-        <BottomNavBall key={reduzido ? 'flat' : centro} reduzido={reduzido} />
-
         {ORDEM_NAV.map((id, i) => {
           const geo = reduzido ? null : geometriaDoOffset(offsets[i], largura);
           // Duração/easing do slide moram só no CSS (.pl-nav-slot), como
@@ -156,7 +150,7 @@ export default function BottomNav() {
           // o modo reduzido usa outra árvore de estilo (.pl-nav-flat, só CSS).
           const style = geo
             ? {
-                transform: `translate(-50%, -50%) translate(${geo.x}px, ${geo.y}px) scale(${geo.scale})`,
+                transform: `translate(-50%, -50%) translate(${geo.x}px, 0) scale(${geo.scale})`,
                 opacity: geo.opacity,
                 zIndex: geo.zIndex,
               }

@@ -1684,42 +1684,32 @@ body::after {
   text-decoration: none; box-shadow: 0 0 20px rgba(166,255,0,0.3);
 }
 
-/* Navegação inferior fixa — só em telas estreitas (mobile). "A Quadra
-   Viva": grafite/rua, textura de concreto discreta. CARROSSEL: a aba da
-   rota ativa sempre ocupa o centro; as outras 4 se organizam ao redor
-   numa ordem circular fixa (lib/bottomNavWheel.js). Cada item é um "slot"
-   (.pl-nav-slot) absolutamente posicionado a partir do centro da barra —
-   trocar de aba não reordena o DOM nem teleporta: o offset de cada item
-   (calculado em JS a partir da largura REAL medida da barra, sempre pelo
-   caminho mais curto) muda, e a transição de CSS abaixo desliza/escala
-   pra posição nova. O item central se destaca com maior escala/opacidade
-   (geometriaDoOffset + cor/.active) e a bola neon (.pl-nav-ball-track)
-   marca o mesmo ponto — ambos ancorados no mesmíssimo "left:50%" deste
-   container, nunca podem desalinhar entre si.
-   Formato: retângulo de cantos arredondados simétricos (nada de corte
-   angular só de um lado) — é isso, mais os 10px de margem IGUAIS dos dois
-   lados (com env(safe-area-inset-*) somado), que garante que nenhum item
-   fica visualmente mais perto de uma borda do aparelho que o seu
-   simétrico do lado oposto.
-   .pl-nav-flat é o modo estático de prefers-reduced-motion: mesmos 5
-   itens, layout de grid comum (sem posicionamento calculado), só cor
-   indicando o ativo. "Organizar" não faz mais parte da roda — vive em
-   .pl-organizar-fab, um botão flutuante à parte (ver mais abaixo). Rotas/
+/* Navegação inferior fixa — só em telas estreitas (mobile). CARROSSEL
+   RASO: a aba da rota ativa sempre ocupa o centro; as outras 4 se
+   organizam ao redor numa ordem circular fixa (lib/bottomNavWheel.js).
+   Cada item é um "slot" (.pl-nav-slot) absolutamente posicionado a partir
+   do centro da barra — trocar de aba não reordena o DOM nem teleporta: o
+   offset de cada item (calculado em JS a partir da largura REAL medida da
+   barra, sempre pelo caminho mais curto) muda, e a transição de CSS
+   abaixo desliza pra posição nova — só translateX + leve scale/opacity,
+   SEMPRE na mesma linha de base (sem curva, sem rotação). A bola neon é
+   um ::before de .pl-bottom-nav-icon (ver mais abaixo): mora dentro de
+   CADA item, então ela já nasce alinhada ao ícone daquele item e viaja
+   junto com ele — nunca um elemento separado que possa desalinhar.
+   Barra: borda a borda do aparelho (sem margem lateral flutuante, sem
+   cantos arredondados) — fundo sólido, sem textura, sem vidro, sem linha
+   decorativa. .pl-nav-flat é o modo estático de prefers-reduced-motion:
+   mesmos 5 itens, grid comum, só cor indicando o ativo. "Organizar" não
+   faz parte da roda — vive em .pl-organizar-fab (ver mais abaixo). Rotas/
    páginas/lógica de cada destino continuam as mesmas — só o visual e a
    interação mudaram. */
 .pl-bottom-nav {
   display: none;
   position: fixed;
-  left: calc(10px + env(safe-area-inset-left, 0px));
-  right: calc(10px + env(safe-area-inset-right, 0px));
-  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-  z-index: 30;
-  height: 68px;
-  padding: 0 6px 8px;
-  background: rgba(16, 18, 16, 0.86);
-  border: 1px solid rgba(166,255,0,0.12);
-  border-radius: 20px;
-  box-shadow: 0 12px 26px rgba(0,0,0,0.52), inset 0 1px 0 rgba(255,255,255,0.05);
+  left: 0; right: 0; bottom: 0; z-index: 30;
+  height: 76px;
+  padding: 0 4px calc(env(safe-area-inset-bottom, 0px));
+  background: #121310;
   overflow: hidden;
   /* dica pro navegador: gestos horizontais são tratados aqui (swipe do
      carrossel) — não afeta rolagem vertical da página, que nem passa por
@@ -1727,103 +1717,72 @@ body::after {
   touch-action: pan-y;
 }
 @media (max-width: 700px) { .pl-bottom-nav { display: block; } }
-/* textura de concreto quase imperceptível — mesmo mecanismo de
-   feTurbulence já usado no fundo do app (ver body::before acima), só que
-   bem mais discreta aqui: é acabamento de material, não decoração. */
-.pl-bottom-nav::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.05;
-  mix-blend-mode: overlay;
-  pointer-events: none;
-}
-
-/* Trilha: uma curva quase invisível que só existe pra sugerir "os itens
-   deslizam sobre um trilho", não pra decorar — por isso o stroke é tão
-   fraco. Estática (não acompanha o movimento), atrás de tudo (z-index
-   implícito por ordem no DOM, antes dos slots). Ausente por completo no
-   modo .pl-nav-flat (nem chega a ser renderizada por BottomNav.js ali). */
-.pl-nav-trilha {
-  position: absolute; left: 8px; right: 8px; top: 50%;
-  height: 12px; margin-top: -6px;
-  pointer-events: none;
-}
-.pl-nav-trilha svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.pl-nav-trilha path {
-  fill: none; stroke: rgba(210,255,150,0.1); stroke-width: 1; vector-effect: non-scaling-stroke;
-}
 
 /* Slot do carrossel: âncora no centro exato da barra (left:50%/top:50%),
    a translate(-50%,-50%) inicial centraliza a CAIXA do próprio item nesse
-   ponto, e o translate(Xpx,Ypx)/scale que vem inline (JS) desloca a
-   partir daí — sempre translate/scale/opacity, nunca left/top animado,
-   pra não disparar layout. Duração/easing como literais (não var()): uma
+   ponto, e o translate(Xpx)/scale que vem inline (JS) desloca a partir
+   daí — sempre translate/scale/opacity, nunca left/top animado, pra não
+   disparar layout. Duração/easing como literais (não var()): uma
    propriedade TRANSICIONADA cujo valor vem de var() fica presa sem
    assentar — bug real, testado ao vivo em ciclos anteriores deste
-   componente. Overshoot mínimo na curva (sem keyframes extra) e sem
-   rotação — só peso/inércia, não giro de carrossel de feira. */
+   componente. Easing puramente de desaceleração (nenhum control point
+   passa de 1) — zero overshoot, zero bounce. */
 .pl-nav-slot {
   position: absolute; left: 50%; top: 50%;
   transition-property: transform, opacity;
-  transition-duration: 300ms;
-  transition-timing-function: cubic-bezier(0.30, 1.04, 0.34, 1);
+  transition-duration: 240ms;
+  transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
   -webkit-tap-highlight-color: transparent;
 }
 
 .pl-bottom-nav-item {
   position: relative;
-  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-  gap: 3px; min-width: 48px; min-height: 48px; padding: 4px 6px 2px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 5px; min-width: 44px; min-height: 44px; padding: 4px 6px;
   background: none; border: none; color: var(--paper-dim); text-decoration: none;
-  font-size: 9.5px; font-family: var(--font-body); font-weight: 700;
+  font-size: 11px; font-family: var(--font-body); font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.01em;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
-  transition: color 180ms ease;
+  transition: color 180ms ease, transform 240ms cubic-bezier(0.33, 1, 0.68, 1);
 }
 /* item ativo = sempre o item central (offset 0), já maior/mais opaco via
-   geometriaDoOffset; aqui só reage à cor + um pequeno respiro no
-   ícone/rótulo. */
-.pl-bottom-nav-item.active { color: var(--paper); }
+   geometriaDoOffset; aqui reage à cor e sobe no máximo 3px — ícone E
+   rótulo juntos, como uma unidade só (nunca o ícone descolando do
+   rótulo). */
+.pl-bottom-nav-item.active { color: var(--paper); transform: translateY(-3px); }
 .pl-bottom-nav-item:focus-visible {
   outline: 2px solid var(--neon); outline-offset: -3px; border-radius: 10px;
 }
 
 .pl-bottom-nav-icon {
-  position: relative; width: 34px; height: 34px;
+  position: relative; width: 42px; height: 42px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 10px;
-  transition: transform 180ms ease;
 }
-.pl-bottom-nav-item.active .pl-bottom-nav-icon { transform: translateY(-3px); }
-.pl-bottom-nav-icon svg { position: relative; z-index: 2; color: inherit; filter: url(#pl-rough-filter); }
-
-.pl-bottom-nav-label {
-  transition: opacity 180ms ease, transform 180ms ease;
-  transform-origin: center top;
+.pl-bottom-nav-icon svg {
+  position: relative; z-index: 2; color: inherit; filter: url(#pl-rough-filter);
+  width: 28px; height: 28px;
+  transition: width 240ms cubic-bezier(0.33, 1, 0.68, 1), height 240ms cubic-bezier(0.33, 1, 0.68, 1);
 }
-.pl-bottom-nav-item.active .pl-bottom-nav-label { transform: scale(1.05); }
+.pl-bottom-nav-item.active .pl-bottom-nav-icon svg { width: 34px; height: 34px; }
 
-/* A bola: indicador do centro, fixa no mesmo "left:50%/top:50%" que os
-   slots usam (nunca desalinha, é a mesma âncora CSS) — não é mais um
-   sticker: volume pequeno, glow curto e sem saturação exagerada, atrás
-   dos ícones (z-index abaixo dos slots) pra nunca cobrir nada. Troca de
-   opacidade com um fade curto (nada de pulso de escala/giro) sempre que o
-   centro muda — BottomNav.js força isso remontando via `key={centro}`. */
-.pl-nav-ball-track {
-  position: absolute; left: 50%; top: 50%; z-index: 1;
-  width: 26px; height: 26px;
-  margin: -13px 0 0 -13px;
+.pl-bottom-nav-label { transition: color 180ms ease, opacity 180ms ease; }
+
+/* Bola: assinatura discreta da aba ativa, não ilustração — vive DENTRO do
+   ícone de cada item (::before de .pl-bottom-nav-icon), então nasce
+   sempre no mesmo eixo do ícone daquele item e viaja junto com ele quando
+   o carrossel reordena (não é mais um elemento separado ancorado no
+   centro da barra). Opacidade baixa, sem glow largo, sem pulso — só
+   aparece por trás do ícone (z-index abaixo do svg) quando o item vira o
+   ativo, com um fade curto. */
+.pl-bottom-nav-icon::before {
+  content: ''; position: absolute; inset: 0; border-radius: 50%; z-index: 1;
+  background: radial-gradient(circle at 38% 32%, rgba(214,255,150,0.85), rgba(166,255,0,0.4) 48%, rgba(70,110,0,0) 72%);
+  opacity: 0;
+  transition: opacity 220ms ease;
   pointer-events: none;
-  filter: drop-shadow(0 0 2px rgba(166,255,0,0.4));
-  animation: pl-nav-ball-fade 220ms ease-out both;
 }
-.pl-nav-ball-svg { width: 100%; height: 100%; display: block; }
-@keyframes pl-nav-ball-fade {
-  0% { opacity: 0; }
-  100% { opacity: 0.55; }
-}
-.pl-nav-ball-reduzido { animation: pl-nav-ball-fade 100ms linear both; }
+.pl-bottom-nav-item.active .pl-bottom-nav-icon::before { opacity: 0.85; }
 
 /* flash de toque — resposta física/energética antes de navegar */
 .pl-bottom-nav-flash {
@@ -1905,8 +1864,8 @@ body::after {
 .pl-organizar-fab {
   display: none;
   position: fixed;
-  right: 22px;
-  bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  right: 18px;
+  bottom: calc(90px + env(safe-area-inset-bottom, 0px));
   z-index: 31;
   width: 48px; height: 48px;
   border-radius: 50%;
@@ -1969,13 +1928,15 @@ body::after {
   }
 }
 
-/* Reduz drasticamente o floreio sem tirar a indicação de estado: os itens
-   nem chegam a ter posição animada nesse modo (.pl-nav-flat cuida disso
-   acima) — aqui só resta desligar os micro-movimentos que sobrariam nos
-   componentes internos (ícone/rótulo ativo, tremor de avisos, giro do "+"). */
+/* Sem deslocamento: os itens nem chegam a ter posição animada nesse modo
+   (.pl-nav-flat cuida disso acima) — aqui desligamos toda transição que
+   sobraria nos componentes internos (elevação do item ativo, tamanho do
+   ícone, fade da bola, tremor de avisos, giro do "+"), trocando por uma
+   atualização estática e instantânea de estado. */
 @media (prefers-reduced-motion: reduce) {
-  .pl-bottom-nav-item.active .pl-bottom-nav-icon { transform: none; }
-  .pl-bottom-nav-item.active .pl-bottom-nav-label { transform: none; }
+  .pl-bottom-nav-item { transition: none; }
+  .pl-bottom-nav-icon svg { transition: none; }
+  .pl-bottom-nav-icon::before { transition: none; }
   .pl-bottom-nav-avisos.shake .pl-bottom-nav-icon svg { animation: none !important; }
   .pl-bottom-nav-central.sink, .pl-bottom-nav-central.spin { transform: none !important; }
   .pl-central-icon-plus, .pl-central-icon-ball { transition-duration: 60ms; }
