@@ -1684,25 +1684,19 @@ body::after {
   text-decoration: none; box-shadow: 0 0 20px rgba(166,255,0,0.3);
 }
 
-/* Navegação inferior fixa — só em telas estreitas (mobile). CARROSSEL
-   RASO: a aba da rota ativa sempre ocupa o centro; as outras 4 se
-   organizam ao redor numa ordem circular fixa (lib/bottomNavWheel.js).
-   Cada item é um "slot" (.pl-nav-slot) absolutamente posicionado a partir
-   do centro da barra — trocar de aba não reordena o DOM nem teleporta: o
-   offset de cada item (calculado em JS a partir da largura REAL medida da
-   barra, sempre pelo caminho mais curto) muda, e a transição de CSS
-   abaixo desliza pra posição nova — só translateX + leve scale/opacity,
-   SEMPRE na mesma linha de base (sem curva, sem rotação). A bola neon é
-   um ::before de .pl-bottom-nav-icon (ver mais abaixo): mora dentro de
-   CADA item, então ela já nasce alinhada ao ícone daquele item e viaja
-   junto com ele — nunca um elemento separado que possa desalinhar.
+/* Navegação inferior fixa — só em telas estreitas (mobile). Barra de abas
+   ESTÁTICA: os 5 setores ficam sempre na mesma ordem/posição da esquerda
+   pra direita (ORDEM_NAV em lib/bottomNavWheel.js) — início, peladas,
+   criar, avisos, perfil — igual uma barra de abas nativa comum, nada se
+   desloca lateralmente ao trocar de rota. Só o ESTILO do item ativo muda,
+   no lugar onde ele já está: ícone maior, bola neon atrás dele (::before
+   de .pl-bottom-nav-icon — mora dentro de CADA item, nunca um elemento
+   separado que possa desalinhar) e leve elevação (até 3px).
    Barra: borda a borda do aparelho (sem margem lateral flutuante, sem
    cantos arredondados) — fundo sólido, sem textura, sem vidro, sem linha
-   decorativa. .pl-nav-flat é o modo estático de prefers-reduced-motion:
-   mesmos 5 itens, grid comum, só cor indicando o ativo. "Organizar" não
-   faz parte da roda — vive em .pl-organizar-fab (ver mais abaixo). Rotas/
-   páginas/lógica de cada destino continuam as mesmas — só o visual e a
-   interação mudaram. */
+   decorativa. "Organizar" não faz parte dela — vive em .pl-organizar-fab
+   (ver mais abaixo). Rotas/páginas/lógica de cada destino continuam as
+   mesmas — só o visual mudou. */
 .pl-bottom-nav {
   display: none;
   position: fixed;
@@ -1711,29 +1705,12 @@ body::after {
   padding: 0 4px calc(env(safe-area-inset-bottom, 0px));
   background: #121310;
   overflow: hidden;
-  /* dica pro navegador: gestos horizontais são tratados aqui (swipe do
-     carrossel) — não afeta rolagem vertical da página, que nem passa por
-     essa barra fixa (não faz parte do fluxo rolável do conteúdo). */
+  /* dica pro navegador: gestos horizontais são tratados aqui (swipe entre
+     abas) — não afeta rolagem vertical da página, que nem passa por essa
+     barra fixa (não faz parte do fluxo rolável do conteúdo). */
   touch-action: pan-y;
 }
 @media (max-width: 700px) { .pl-bottom-nav { display: block; } }
-
-/* Slot do carrossel: âncora no centro exato da barra (left:50%/top:50%),
-   a translate(-50%,-50%) inicial centraliza a CAIXA do próprio item nesse
-   ponto, e o translate(Xpx)/scale que vem inline (JS) desloca a partir
-   daí — sempre translate/scale/opacity, nunca left/top animado, pra não
-   disparar layout. Duração/easing como literais (não var()): uma
-   propriedade TRANSICIONADA cujo valor vem de var() fica presa sem
-   assentar — bug real, testado ao vivo em ciclos anteriores deste
-   componente. Easing puramente de desaceleração (nenhum control point
-   passa de 1) — zero overshoot, zero bounce. */
-.pl-nav-slot {
-  position: absolute; left: 50%; top: 50%;
-  transition-property: transform, opacity;
-  transition-duration: 240ms;
-  transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
-  -webkit-tap-highlight-color: transparent;
-}
 
 .pl-bottom-nav-item {
   position: relative;
@@ -1745,10 +1722,9 @@ body::after {
   cursor: pointer; -webkit-tap-highlight-color: transparent;
   transition: color 180ms ease, transform 240ms cubic-bezier(0.33, 1, 0.68, 1);
 }
-/* item ativo = sempre o item central (offset 0), já maior/mais opaco via
-   geometriaDoOffset; aqui reage à cor e sobe no máximo 3px — ícone E
-   rótulo juntos, como uma unidade só (nunca o ícone descolando do
-   rótulo). */
+/* item ativo = cor + sobe no máximo 3px — ícone E rótulo juntos, como uma
+   unidade só (nunca o ícone descolando do rótulo); o ícone em si fica
+   maior via .pl-bottom-nav-icon svg abaixo. */
 .pl-bottom-nav-item.active { color: var(--paper); transform: translateY(-3px); }
 .pl-bottom-nav-item:focus-visible {
   outline: 2px solid var(--neon); outline-offset: -3px; border-radius: 10px;
@@ -1907,24 +1883,15 @@ body::after {
 @media (max-width: 700px) {
   body { padding-bottom: 88px; }
   .pl-toast-container { bottom: 98px; }
-  /* .pl-nav-flat — modo estático de prefers-reduced-motion: BottomNav.js
-     não aplica nenhum style inline nos slots nesse modo (geo=null), então
-     essa classe é quem define o layout inteiro — volta a ser uma grade
-     simples de 5 colunas (o "carrossel" some por completo, sem posição/
-     escala calculada), só a cor do item ativo indicando o estado. Fica
-     dentro deste media query pra não forçar a barra a aparecer em telas
-     largas (onde .pl-bottom-nav continua display:none). */
+  /* Grade fixa de 5 colunas — cada .pl-nav-slot ocupa sua própria coluna,
+     sempre na mesma ordem (ORDEM_NAV), nunca reposicionada. Fica dentro
+     deste media query pra não forçar a barra a aparecer em telas largas
+     (onde .pl-bottom-nav continua display:none). */
   .pl-nav-flat {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     align-items: center;
     justify-items: center;
-  }
-  .pl-nav-flat .pl-nav-slot {
-    position: static;
-    transform: none;
-    opacity: 1;
-    transition: none;
   }
 }
 
