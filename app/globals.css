@@ -1704,7 +1704,14 @@ body::after {
   height: 76px;
   padding: 0 4px calc(env(safe-area-inset-bottom, 0px));
   background: #121310;
+  border-top: 1px solid rgba(243,243,238,0.14);
   overflow: hidden;
+  /* entalhe circular no topo, centralizado, onde o botão "+" fica
+     encaixado — um mask-image responde a "50%" sempre no centro real da
+     barra, então acompanha qualquer largura sem precisar de um SVG
+     próprio calculado em JS. */
+  -webkit-mask-image: radial-gradient(circle 27px at 50% 0px, transparent 99%, black 100%);
+  mask-image: radial-gradient(circle 27px at 50% 0px, transparent 99%, black 100%);
   /* dica pro navegador: gestos horizontais são tratados aqui (swipe entre
      abas) — não afeta rolagem vertical da página, que nem passa por essa
      barra fixa (não faz parte do fluxo rolável do conteúdo). */
@@ -1722,13 +1729,17 @@ body::after {
   cursor: pointer; -webkit-tap-highlight-color: transparent;
   transition: color 180ms ease, transform 240ms cubic-bezier(0.33, 1, 0.68, 1);
 }
-/* item ativo = cor + sobe no máximo 3px — ícone E rótulo juntos, como uma
-   unidade só (nunca o ícone descolando do rótulo); o ícone em si fica
-   maior via .pl-bottom-nav-icon svg abaixo. */
-.pl-bottom-nav-item.active { color: var(--paper); transform: translateY(-3px); }
 .pl-bottom-nav-item:focus-visible {
   outline: 2px solid var(--neon); outline-offset: -3px; border-radius: 10px;
 }
+
+/* Aba ativa = um "selo" neon atrás do ícone (chanfro nos dois cantos de
+   cima, mesma linguagem angular do botão central) + sobe no máximo 3px —
+   ícone E rótulo juntos, como uma unidade só. Ícone fica escuro (--ink)
+   em cima do selo bem claro; rótulo fica na cor neon, já que não está
+   mais sobre um fundo escuro. */
+.pl-bottom-nav-item.active { transform: translateY(-3px); }
+.pl-bottom-nav-item.active .pl-bottom-nav-label { color: var(--neon); }
 
 .pl-bottom-nav-icon {
   position: relative; width: 42px; height: 42px;
@@ -1740,25 +1751,24 @@ body::after {
   width: 28px; height: 28px;
   transition: width 240ms cubic-bezier(0.33, 1, 0.68, 1), height 240ms cubic-bezier(0.33, 1, 0.68, 1);
 }
-.pl-bottom-nav-item.active .pl-bottom-nav-icon svg { width: 34px; height: 34px; }
+.pl-bottom-nav-item.active .pl-bottom-nav-icon svg { width: 34px; height: 34px; color: var(--ink); }
 
 .pl-bottom-nav-label { transition: color 180ms ease, opacity 180ms ease; }
 
-/* Bola: assinatura discreta da aba ativa, não ilustração — vive DENTRO do
-   ícone de cada item (::before de .pl-bottom-nav-icon), então nasce
-   sempre no mesmo eixo do ícone daquele item e viaja junto com ele quando
-   o carrossel reordena (não é mais um elemento separado ancorado no
-   centro da barra). Opacidade baixa, sem glow largo, sem pulso — só
-   aparece por trás do ícone (z-index abaixo do svg) quando o item vira o
-   ativo, com um fade curto. */
+/* Selo: cresce a partir do ícone (::before de .pl-bottom-nav-icon) —
+   nasce sempre no mesmo eixo do ícone daquele item e viaja junto com ele
+   se o item se mover. Chanfro nos cantos de cima ecoa o corte do botão
+   central (.pl-bottom-nav-central), pra parecer a mesma família visual
+   em vez de dois estilos de botão diferentes na mesma barra. */
 .pl-bottom-nav-icon::before {
-  content: ''; position: absolute; inset: 0; border-radius: 50%; z-index: 1;
-  background: radial-gradient(circle at 38% 32%, rgba(214,255,150,0.85), rgba(166,255,0,0.4) 48%, rgba(70,110,0,0) 72%);
+  content: ''; position: absolute; inset: -3px -9px -11px; z-index: 1;
+  background: linear-gradient(160deg, var(--neon), var(--neon-dim));
+  clip-path: polygon(22% 0%, 78% 0%, 100% 24%, 100% 100%, 0% 100%, 0% 24%);
   opacity: 0;
   transition: opacity 220ms ease;
   pointer-events: none;
 }
-.pl-bottom-nav-item.active .pl-bottom-nav-icon::before { opacity: 0.85; }
+.pl-bottom-nav-item.active .pl-bottom-nav-icon::before { opacity: 1; }
 
 /* flash de toque — resposta física/energética antes de navegar */
 .pl-bottom-nav-flash {

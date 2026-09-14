@@ -4,16 +4,16 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import NotificationBell from './NotificationBell';
-import QuadraIcon from './QuadraIcon';
-import PeladasBallIcon from './PeladasBallIcon';
-import ShieldIcon from './ShieldIcon';
+import InicioIcon from './InicioIcon';
+import PeladasCampoIcon from './PeladasCampoIcon';
+import CoroaIcon from './CoroaIcon';
 import CriarButton from './CriarButton';
 import OrganizarFab from './OrganizarFab';
 import { tapFlash } from '@/lib/tapFlash';
 import { ORDEM_NAV, ROTA_POR_INDICE, indiceDaRota, proximoIndiceNavegavel } from '@/lib/bottomNavWheel';
 
 const LABEL = { inicio: 'Início', peladas: 'Peladas', avisos: 'Avisos', perfil: 'Perfil' };
-const ICONE = { inicio: QuadraIcon, peladas: PeladasBallIcon, perfil: ShieldIcon };
+const ICONE = { inicio: InicioIcon, peladas: PeladasCampoIcon, perfil: CoroaIcon };
 
 function useReducedMotion() {
   const [reduzido, setReduzido] = useState(false);

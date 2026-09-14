@@ -1,4 +1,4 @@
-export default function QuadraIcon({ size = 20 }) {
+export default function PeladasCampoIcon({ size = 20 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <rect x="3.2" y="6" width="17.6" height="12" rx="2" stroke="currentColor" strokeWidth="1.8" />
