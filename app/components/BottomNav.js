@@ -78,7 +78,10 @@ export default function BottomNav() {
     router.push(ROTA_POR_INDICE[alvo]);
   }
 
-  if (!user) return null;
+  // /admin é uma área operacional separada, com navegação própria (abas no
+  // topo) — a barra de baixo do app comum (e o FAB de Organizar) não fazem
+  // sentido sobrepostos nela.
+  if (!user || pathname?.startsWith('/admin')) return null;
 
   return (
     <>

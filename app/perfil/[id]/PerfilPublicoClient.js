@@ -10,6 +10,8 @@ import PatenteCard from '../../components/PatenteCard';
 import PerfilSobre from '../../components/PerfilSobre';
 import PerfilTags from '../../components/PerfilTags';
 import BackLink from '../../components/BackLink';
+import DenunciarModal from '../../components/DenunciarModal';
+import { useToast } from '../../components/ToastProvider';
 import { fmtDate, MODALIDADE_LABEL, POSICAO_LABEL, RESULTADO_LABEL, RESULTADO_COR } from '@/lib/gameUtils';
 
 // Perfil público de OUTRO jogador — mesma estrutura visual de app/perfil/page.js
@@ -22,7 +24,9 @@ export default function PerfilPublicoClient({ id }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(false);
+  const [denunciando, setDenunciando] = useState(false);
   const router = useRouter();
+  const { showToast } = useToast();
 
   useEffect(() => {
     let cancelado = false;
@@ -84,8 +88,21 @@ export default function PerfilPublicoClient({ id }) {
               {profile.posicoes?.length > 0 && ` · ${profile.posicoes.map((s) => POSICAO_LABEL[s] || s).join(' / ')}`}
             </p>
           )}
+          <button type="button" className="pl-link-muted" style={{ marginTop: 6 }} onClick={() => setDenunciando(true)}>
+            Denunciar jogador
+          </button>
         </div>
       </div>
+
+      {denunciando && (
+        <DenunciarModal
+          alvoTipo="jogador"
+          alvoId={id}
+          alvoLabel="jogador"
+          onClose={() => setDenunciando(false)}
+          onEnviado={() => { setDenunciando(false); showToast('Denúncia enviada. A administração vai analisar.'); }}
+        />
+      )}
 
       <div className="pl-perfil-stats">
         <div className="pl-stat">

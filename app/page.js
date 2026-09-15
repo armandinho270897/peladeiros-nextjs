@@ -10,6 +10,7 @@ import PeladasEmDestaque from './components/PeladasEmDestaque';
 import MeusTimesDestaque from './components/MeusTimesDestaque';
 import HomeFooterCta from './components/HomeFooterCta';
 import NewGameModal from './components/NewGameModal';
+import AvisoBanner from './components/AvisoBanner';
 
 // Frase de status do topo — reaproveita a "moral" (lib/moral.js, já
 // calculada por /api/perfil), não inventa métrica nova.
@@ -67,6 +68,8 @@ export default function Home() {
   return (
     <div>
       <HomeHero profile={profile} statusFrase={statusFrase} patenteId={perfil?.patente?.id} />
+
+      <AvisoBanner />
 
       <div className="pl-home-blocks">
         <PendingActionCards acaoPendente={perfil?.acaoPendente} onChanged={carregarPerfil} />

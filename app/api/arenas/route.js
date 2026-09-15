@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { errJson } from '@/lib/apiError';
 import { ADMIN_USER_ID } from '@/lib/adminConfig';
+import { assertUsuarioAtivo } from '@/lib/moderacao';
 
 const TIPOS_VALIDOS = ['quadra escolar', 'arena', 'quadra pública', 'rua', 'campo', 'estádio'];
 
@@ -55,6 +56,10 @@ export async function POST(request) {
   if (!user) {
     return NextResponse.json({ error: 'Precisa estar logado pra cadastrar uma arena.' }, { status: 401 });
   }
+
+  const { data: perfilAtivo } = await supabase.from('profiles').select('status, suspenso_ate').eq('id', user.id).maybeSingle();
+  const bloqueio = assertUsuarioAtivo(perfilAtivo);
+  if (bloqueio) return NextResponse.json({ error: bloqueio }, { status: 403 });
 
   const body = await request.json();
   const { nome, endereco, bairro, tipo, latitude, longitude, fotoUrl } = body;

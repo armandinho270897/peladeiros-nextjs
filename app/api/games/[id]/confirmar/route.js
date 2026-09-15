@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
+import { assertUsuarioAtivo } from '@/lib/moderacao';
 
 export async function POST(request, { params }) {
   if (!checkRateLimit(`confirmar:${getClientIp(request)}`)) {
@@ -14,8 +15,11 @@ export async function POST(request, { params }) {
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login pra confirmar presença.' }, { status: 401 });
 
-  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro').eq('id', user.id).maybeSingle();
+  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro, status, suspenso_ate').eq('id', user.id).maybeSingle();
   if (!profile) return NextResponse.json({ error: 'Complete seu perfil antes de confirmar presença.' }, { status: 400 });
+
+  const bloqueio = assertUsuarioAtivo(profile);
+  if (bloqueio) return NextResponse.json({ error: bloqueio }, { status: 403 });
 
   const { mensagem } = await request.json().catch(() => ({}));
   const mensagemLimpa = mensagem?.trim().slice(0, 200) || null;
@@ -24,11 +28,12 @@ export async function POST(request, { params }) {
 
   const { data: game, error: gameError } = await supabase
     .from('games')
-    .select('id, local, owner_id')
+    .select('id, local, owner_id, pausada_em')
     .eq('id', id)
     .single();
 
   if (gameError || !game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
+  if (game.pausada_em) return NextResponse.json({ error: 'Essa pelada foi pausada pela administração e não aceita novas confirmações agora.' }, { status: 403 });
 
   const { data: existente } = await supabase
     .from('confirmacoes')

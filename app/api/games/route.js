@@ -7,6 +7,7 @@ import { attachNotaMedia } from '@/lib/ratings';
 import { createNotification } from '@/lib/notify';
 import { sweepExpiredConfirmacoes } from '@/lib/confirmacoesExpiry';
 import { errJson } from '@/lib/apiError';
+import { assertUsuarioAtivo } from '@/lib/moderacao';
 import { todayISO, addDiasISO, fimDeSemanaRange, periodoDe, ocupandoVagaDe, haversineKm, MODALIDADE_LABEL } from '@/lib/gameUtils';
 
 // Bug real encontrado em produção: esse GET (supabaseAdmin, sem leitura de
@@ -219,8 +220,11 @@ export async function POST(request) {
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login pra criar uma pelada.' }, { status: 401 });
 
-  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro').eq('id', user.id).maybeSingle();
+  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro, status, suspenso_ate').eq('id', user.id).maybeSingle();
   if (!profile) return NextResponse.json({ error: 'Complete seu perfil antes de criar uma pelada.' }, { status: 400 });
+
+  const bloqueio = assertUsuarioAtivo(profile);
+  if (bloqueio) return NextResponse.json({ error: bloqueio }, { status: 403 });
 
   const body = await request.json();
   const { local, bairro, data, horario, vagasTotais, latitude, longitude, arenaId, jogadoresIniciais, tipo, nivel, valor, regras } = body;

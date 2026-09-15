@@ -70,6 +70,9 @@ export default function PerfilPage() {
             <Link href="/minhas-peladas" className="pl-share-btn" style={{ textDecoration: 'none' }}>Minhas peladas</Link>
             <Link href="/times" className="pl-share-btn" style={{ textDecoration: 'none' }}>Meus times</Link>
             <Link href="/configuracoes" className="pl-share-btn" style={{ textDecoration: 'none' }}>Notificações</Link>
+            {profile.role === 'admin' && (
+              <Link href="/admin" className="pl-share-btn" style={{ textDecoration: 'none' }}>Administração</Link>
+            )}
             <button className="pl-share-btn" onClick={signOut}>Sair</button>
           </div>
         </div>

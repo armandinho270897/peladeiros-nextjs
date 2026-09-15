@@ -1,126 +1,166 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import dynamic from 'next/dynamic';
-import { ADMIN_USER_ID } from '@/lib/adminConfig';
-import { useAuth } from '../../components/AuthProvider';
 import { useToast } from '../../components/ToastProvider';
-import TicketButton from '../../components/TicketButton';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
-import BackLink from '../../components/BackLink';
+import MotivoModal from '../MotivoModal';
 
-const ArenaMiniMap = dynamic(() => import('../../components/ArenaMiniMap'), { ssr: false });
+const FILTROS = [
+  { id: 'pendente', label: 'Pendentes' },
+  { id: 'aprovada', label: 'Aprovadas' },
+  { id: 'pausada', label: 'Pausadas' },
+  { id: 'rejeitada', label: 'Rejeitadas' },
+];
 
-// Fila de aprovação de arena — só o dono do app acessa (verificado pelo
-// user_id fixo em lib/adminConfig.js). Quem não é o dono vê uma mensagem
-// de acesso negado em vez do conteúdo da fila.
-export default function AprovarArenasPage() {
-  const { user, loading: authLoading } = useAuth();
+const BADGE = { pendente: '', aprovada: 'positivo', pausada: '', rejeitada: 'negativo' };
+
+export default function AdminArenasPage() {
   const { showToast } = useToast();
-  const [pendentes, setPendentes] = useState([]);
+  const [filtro, setFiltro] = useState('pendente');
+  const [arenas, setArenas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processando, setProcessando] = useState(null);
+  const [modal, setModal] = useState(null);
+  const [editando, setEditando] = useState(null);
 
-  const carregar = useCallback(async () => {
+  const carregar = useCallback(async (status) => {
     setLoading(true);
-    const res = await fetch('/api/arenas/pendentes');
+    const res = await fetch(`/api/admin/arenas?status=${status}`);
     const data = await res.json();
-    setPendentes(Array.isArray(data) ? data : []);
+    setArenas(Array.isArray(data) ? data : []);
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    if (user?.id === ADMIN_USER_ID) carregar();
-  }, [user, carregar]);
+  useEffect(() => { carregar(filtro); }, [filtro, carregar]);
 
-  async function handleDecisao(id, acao) {
+  async function aprovar(id) {
     setProcessando(id);
-    const res = await fetch(`/api/arenas/${id}/${acao}`, { method: 'POST' });
-    const result = await res.json();
+    const res = await fetch(`/api/admin/arenas/${id}/aprovar`, { method: 'POST' });
     setProcessando(null);
-    if (!res.ok) { showToast(result.error || 'Não consegui processar. Tenta de novo.'); return; }
-    setPendentes((prev) => prev.filter((a) => a.id !== id));
-    showToast(acao === 'aprovar' ? 'Arena aprovada — já aparece no mapa!' : 'Arena rejeitada.');
+    const result = await res.json();
+    if (!res.ok) { showToast(result.error || 'Não consegui processar.'); return; }
+    setArenas((prev) => prev.filter((a) => a.id !== id));
+    showToast('Arena aprovada.');
   }
 
-  if (authLoading) {
-    return (
-      <div>
-        <div className="pl-header"><BackLink href="/peladas" /></div>
-        <div className="pl-list" style={{ paddingTop: 14 }}><div className="pl-skeleton" style={{ height: 200 }} /></div>
-      </div>
-    );
+  async function despausar(id) {
+    setProcessando(id);
+    const res = await fetch(`/api/admin/arenas/${id}/despausar`, { method: 'POST' });
+    setProcessando(null);
+    const result = await res.json();
+    if (!res.ok) { showToast(result.error || 'Não consegui processar.'); return; }
+    setArenas((prev) => prev.filter((a) => a.id !== id));
+    showToast('Arena reativada.');
   }
 
-  if (user?.id !== ADMIN_USER_ID) {
-    return (
-      <div>
-        <div className="pl-header"><BackLink href="/peladas" /></div>
-        <div className="pl-empty">
-          <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>Sem permissão</h3>
-          <p>Essa página é só pra administração do app.</p>
-        </div>
-      </div>
-    );
+  async function salvarEdicao(id, campos) {
+    const res = await fetch(`/api/admin/arenas/${id}/editar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(campos) });
+    const result = await res.json();
+    if (!res.ok) { showToast(result.error || 'Não consegui salvar.'); return; }
+    setArenas((prev) => prev.map((a) => (a.id === id ? { ...a, ...result } : a)));
+    setEditando(null);
+    showToast('Arena atualizada.');
+  }
+
+  async function comMotivo(id, acao, motivo) {
+    const res = await fetch(`/api/admin/arenas/${id}/${acao}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ motivo }) });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error);
+    setArenas((prev) => prev.filter((a) => a.id !== id));
+    setModal(null);
+    showToast(acao === 'rejeitar' ? 'Arena rejeitada.' : 'Arena pausada.');
   }
 
   return (
     <div>
-      <div className="pl-header"><BackLink href="/peladas" /></div>
-
-      <div className="pl-hero-title-row" style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px' }}>
-        <h2 className="pl-hero-title">Aprovar arenas</h2>
-        <span className="pl-hero-count">{pendentes.length} pendente{pendentes.length === 1 ? '' : 's'}</span>
+      <div className="pl-admin-toolbar">
+        {FILTROS.map((f) => (
+          <button key={f.id} type="button" className={`pl-tab ${filtro === f.id ? 'active' : ''}`} onClick={() => setFiltro(f.id)}>{f.label}</button>
+        ))}
       </div>
 
-      <div style={{ maxWidth: 640, margin: '14px auto 0', padding: '0 16px 24px' }}>
-        {loading ? (
-          <div className="pl-list">
-            {[1, 2].map((i) => <div key={i} className="pl-skeleton" style={{ height: 220 }} />)}
-          </div>
-        ) : pendentes.length === 0 ? (
-          <div className="pl-empty">
-            <EmptyFieldIcon />
-            <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>Fila vazia</h3>
-            <p>Nenhuma arena esperando aprovação agora.</p>
-          </div>
-        ) : (
-          <div className="pl-list">
-            {pendentes.map((a) => (
-              <div key={a.id} className="pl-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {a.foto_url && (
-                  <img src={a.foto_url} alt={a.nome} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
-                )}
+      {loading ? (
+        <div className="pl-admin-cards">{[1, 2].map((i) => <div key={i} className="pl-skeleton" style={{ height: 140 }} />)}</div>
+      ) : arenas.length === 0 ? (
+        <div className="pl-empty"><EmptyFieldIcon /><p>Nenhuma arena aqui agora.</p></div>
+      ) : (
+        <div className="pl-admin-cards">
+          {arenas.map((a) => (
+            <div key={a.id} className="pl-card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                 <div>
                   <h3 style={{ margin: '0 0 2px', fontFamily: 'var(--font-display)', color: 'var(--paper)', textTransform: 'uppercase' }}>{a.nome}</h3>
                   <div style={{ fontSize: 12, color: 'var(--paper-dim)', textTransform: 'capitalize' }}>{a.tipo} · {a.bairro}</div>
                   <div style={{ fontSize: 12, color: 'var(--paper-dim)' }}>{a.endereco}</div>
-                  <div style={{ fontSize: 12, color: 'var(--paper-dim)', marginTop: 4 }}>
-                    Proposto por: {a.proposto_por_nome || 'Desconhecido'}
-                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--paper-dim)', marginTop: 4 }}>Proposto por: {a.proposto_por_nome || 'Desconhecido'}</div>
                 </div>
-                {a.latitude != null && a.longitude != null ? (
-                  <ArenaMiniMap lat={Number(a.latitude)} lng={Number(a.longitude)} />
-                ) : (
-                  <div style={{ fontSize: 12, color: 'var(--paper-dim)', fontStyle: 'italic' }}>Sem localização marcada no mapa.</div>
-                )}
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button
-                    type="button"
-                    className="pl-btn-secondary"
-                    style={{ flex: 1 }}
-                    disabled={processando === a.id}
-                    onClick={() => handleDecisao(a.id, 'rejeitar')}
-                  >
-                    Rejeitar
-                  </button>
-                  <TicketButton style={{ flex: 1 }} disabled={processando === a.id} onClick={() => handleDecisao(a.id, 'aprovar')}>
-                    {processando === a.id ? 'Processando...' : 'Aprovar'}
-                  </TicketButton>
-                </div>
+                <span className={`pl-admin-badge ${BADGE[a.status]}`}>{a.status}</span>
               </div>
-            ))}
-          </div>
-        )}
+
+              {editando === a.id ? (
+                <EditarArenaForm arena={a} onCancel={() => setEditando(null)} onSalvar={(campos) => salvarEdicao(a.id, campos)} />
+              ) : (
+                <div className="pl-admin-row-actions">
+                  {a.status === 'pendente' && (
+                    <>
+                      <button type="button" className="pl-btn-secondary pl-btn-danger" disabled={processando === a.id} onClick={() => setModal({ id: a.id, acao: 'rejeitar' })}>Rejeitar</button>
+                      <button type="button" className="pl-btn-secondary" disabled={processando === a.id} onClick={() => aprovar(a.id)}>{processando === a.id ? 'Processando...' : 'Aprovar'}</button>
+                    </>
+                  )}
+                  {a.status === 'aprovada' && (
+                    <button type="button" className="pl-btn-secondary" disabled={processando === a.id} onClick={() => setModal({ id: a.id, acao: 'pausar' })}>Pausar</button>
+                  )}
+                  {a.status === 'pausada' && (
+                    <button type="button" className="pl-btn-secondary" disabled={processando === a.id} onClick={() => despausar(a.id)}>Reativar</button>
+                  )}
+                  <button type="button" className="pl-btn-secondary" onClick={() => setEditando(a.id)}>Editar dados</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {modal && (
+        <MotivoModal
+          titulo={modal.acao === 'rejeitar' ? 'Rejeitar arena' : 'Pausar arena'}
+          labelBotao={modal.acao === 'rejeitar' ? 'Rejeitar' : 'Pausar'}
+          onCancel={() => setModal(null)}
+          onConfirm={(motivo) => comMotivo(modal.id, modal.acao, motivo)}
+        />
+      )}
+    </div>
+  );
+}
+
+const TIPOS_ARENA = ['quadra escolar', 'arena', 'quadra pública', 'rua', 'campo', 'estádio'];
+
+function EditarArenaForm({ arena, onCancel, onSalvar }) {
+  const [nome, setNome] = useState(arena.nome);
+  const [endereco, setEndereco] = useState(arena.endereco);
+  const [bairro, setBairro] = useState(arena.bairro);
+  const [tipo, setTipo] = useState(arena.tipo);
+  const [salvando, setSalvando] = useState(false);
+
+  async function handleSalvar() {
+    setSalvando(true);
+    await onSalvar({ nome, endereco, bairro, tipo });
+    setSalvando(false);
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="pl-field"><label>Nome</label><input value={nome} onChange={(e) => setNome(e.target.value)} /></div>
+      <div className="pl-field"><label>Endereço</label><input value={endereco} onChange={(e) => setEndereco(e.target.value)} /></div>
+      <div className="pl-field"><label>Bairro</label><input value={bairro} onChange={(e) => setBairro(e.target.value)} /></div>
+      <div className="pl-field">
+        <label>Tipo</label>
+        <select className="pl-select" value={tipo} onChange={(e) => setTipo(e.target.value)} style={{ width: '100%' }}>
+          {TIPOS_ARENA.map((t) => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </div>
+      <div className="pl-admin-row-actions">
+        <button type="button" className="pl-btn-secondary" onClick={onCancel}>Cancelar</button>
+        <button type="button" className="pl-btn-secondary" disabled={salvando} onClick={handleSalvar}>{salvando ? 'Salvando...' : 'Salvar'}</button>
       </div>
     </div>
   );

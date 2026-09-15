@@ -17,6 +17,7 @@ import GameArtBanner from '../../components/GameArtBanner';
 import EmptyFieldIcon from '../../components/EmptyFieldIcon';
 import BackLink from '../../components/BackLink';
 import Brand from '../../components/Brand';
+import DenunciarModal from '../../components/DenunciarModal';
 
 // Só quem pode editar a pelada (capitão) vê o botão, e só depois que o
 // horário já passou e ela ainda não foi encerrada.
@@ -213,7 +214,30 @@ export default function PeladaClient({ id }) {
         </div>
       )}
 
+      <div className="pl-list" style={{ paddingTop: 0, paddingBottom: 8, display: 'flex', gap: 8, justifyContent: 'center' }}>
+        <button type="button" className="pl-link-muted" onClick={() => setModal({ type: 'denunciar-pelada' })}>Denunciar pelada</button>
+        {game.arena_id && (
+          <button type="button" className="pl-link-muted" onClick={() => setModal({ type: 'denunciar-arena' })}>Denunciar arena</button>
+        )}
+      </div>
+
       <PeladaAbas game={game} />
+
+      {modal?.type === 'denunciar-pelada' && (
+        <DenunciarModal
+          alvoTipo="pelada" alvoId={game.id} alvoLabel="pelada"
+          onClose={() => setModal(null)}
+          onEnviado={() => { setModal(null); showToast('Denúncia enviada. A administração vai analisar.'); }}
+        />
+      )}
+
+      {modal?.type === 'denunciar-arena' && (
+        <DenunciarModal
+          alvoTipo="arena" alvoId={game.arena_id} alvoLabel="arena"
+          onClose={() => setModal(null)}
+          onEnviado={() => { setModal(null); showToast('Denúncia enviada. A administração vai analisar.'); }}
+        />
+      )}
 
       {modal?.type === 'confirm' && (
         <ConfirmModal game={modal.game} onCancel={() => setModal(null)} onConfirmed={() => { setModal(null); loadGame(); showToast('Solicitação enviada! Aguardando aprovação do capitão.'); }} />
