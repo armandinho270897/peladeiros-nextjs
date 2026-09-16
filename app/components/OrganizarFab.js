@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import OrganizarIcon from './OrganizarIcon';
+import OrganizarIcon from './icons/OrganizarIcon';
 import { tapFlash } from '@/lib/tapFlash';
 
 // "Organizar" saiu do carrossel de abas (lib/bottomNavWheel.js) e virou
