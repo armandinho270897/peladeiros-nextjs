@@ -4,9 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import NotificationBell from './NotificationBell';
-import InicioIcon from './InicioIcon';
-import PeladasCampoIcon from './PeladasCampoIcon';
-import CoroaIcon from './CoroaIcon';
+import NavIcon from './icons/NavIcon';
 import BottomNavBall from './BottomNavBall';
 import CriarButton from './CriarButton';
 import OrganizarFab from './OrganizarFab';
@@ -14,7 +12,6 @@ import { tapFlash } from '@/lib/tapFlash';
 import { ORDEM_NAV, ROTA_POR_INDICE, indiceDaRota, proximoIndiceNavegavel } from '@/lib/bottomNavWheel';
 
 const LABEL = { inicio: 'Início', peladas: 'Peladas', avisos: 'Avisos', perfil: 'Perfil' };
-const ICONE = { inicio: InicioIcon, peladas: PeladasCampoIcon, perfil: CoroaIcon };
 
 function useReducedMotion() {
   const [reduzido, setReduzido] = useState(false);
@@ -113,7 +110,6 @@ export default function BottomNav() {
             );
           }
           const ativo = rotaIndex === i;
-          const Icone = ICONE[id];
           return (
             <span key={id} className="pl-nav-slot">
               <Link
@@ -125,7 +121,7 @@ export default function BottomNav() {
                 <span className="nav-icon-shell">
                   <BottomNavBall />
                   <span className="pl-bottom-nav-flash" aria-hidden="true" />
-                  <Icone />
+                  <NavIcon id={id} active={ativo} />
                 </span>
                 <span className="pl-bottom-nav-label">{LABEL[id]}</span>
               </Link>

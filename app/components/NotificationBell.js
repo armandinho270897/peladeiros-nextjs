@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import BellIcon from './BellIcon';
-import MegafoneIcon from './MegafoneIcon';
+import NavIcon from './icons/NavIcon';
 import BottomNavBall from './BottomNavBall';
 import { tapFlash, flashClass } from '@/lib/tapFlash';
 
@@ -82,7 +82,7 @@ export default function NotificationBell({ variant = 'header' }) {
         <span className="nav-icon-shell" ref={iconWrapRef}>
           <BottomNavBall />
           <span className="pl-bottom-nav-flash" aria-hidden="true" />
-          <MegafoneIcon />
+          <NavIcon id="avisos" active={active} />
           {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}
         </span>
         <span className="pl-bottom-nav-label">Avisos</span>

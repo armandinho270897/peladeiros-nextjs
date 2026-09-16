@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import GameCardIcon from './icons/GameCardIcon';
 
 // "expand" fica de pé o tempo inteiro da animação do anel (pl-ring-out,
 // 420ms em globals.css) — se fosse mais curto que isso, a classe some e o
@@ -54,9 +55,7 @@ export default function CriarButton() {
       onClick={handleClick}
       aria-label="Criar pelada"
     >
-      <svg className="pl-central-icon-plus" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
-      </svg>
+      <GameCardIcon className="pl-central-icon-plus" size={22} />
       <svg className="pl-central-icon-ball" width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true" filter="url(#pl-rough-filter)">
         <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.9" />
         <path d="M12 8.8L15.04 11.01 13.88 14.59 10.12 14.59 8.96 11.01Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
