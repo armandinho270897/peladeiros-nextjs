@@ -122,7 +122,7 @@ export default function BottomNav() {
                 aria-current={ativo ? 'page' : undefined}
                 onClick={tapFlash}
               >
-                <span className="pl-bottom-nav-icon">
+                <span className="nav-icon-shell">
                   <BottomNavBall />
                   <span className="pl-bottom-nav-flash" aria-hidden="true" />
                   <Icone />

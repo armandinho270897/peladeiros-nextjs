@@ -1687,20 +1687,23 @@ body::after {
    pra direita (ORDEM_NAV em lib/bottomNavWheel.js) — início, peladas,
    criar, avisos, perfil — igual uma barra de abas nativa comum, nada se
    desloca lateralmente ao trocar de rota. Só o ESTILO do item ativo muda,
-   no lugar onde ele já está: ícone maior, bola neon atrás dele (::before
-   de .pl-bottom-nav-icon — mora dentro de CADA item, nunca um elemento
-   separado que possa desalinhar) e leve elevação (até 3px).
-   Barra: borda a borda do aparelho (sem margem lateral flutuante, sem
-   cantos arredondados) — fundo sólido, sem textura, sem vidro, sem linha
-   decorativa. "Organizar" não faz parte dela — vive em .pl-organizar-fab
-   (ver mais abaixo). Rotas/páginas/lógica de cada destino continuam as
+   no lugar onde ele já está: ícone maior, bola neon atrás dele (marca
+   d'água — ver .nav-icon-shell/.pl-nav-ball-wrap abaixo, mora dentro de
+   CADA item, nunca um elemento separado que possa desalinhar) e leve
+   elevação (até 2px). Barra: borda a borda do aparelho (sem margem
+   lateral flutuante, sem cantos arredondados) — fundo sólido, sem
+   textura, sem vidro, sem linha decorativa; respeita a safe area dos
+   três lados que importam aqui (esquerda/direita pra notch em landscape
+   e entalhes laterais, baixo pra home indicator) sem nenhum cálculo em
+   JS. "Organizar" não faz parte dela — vive em .pl-organizar-fab (ver
+   mais abaixo). Rotas/páginas/lógica de cada destino continuam as
    mesmas — só o visual mudou. */
 .pl-bottom-nav {
   display: none;
   position: fixed;
   left: 0; right: 0; bottom: 0; z-index: 30;
   height: 76px;
-  padding: 0 4px calc(env(safe-area-inset-bottom, 0px));
+  padding: 0 max(4px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom, 0px)) max(4px, env(safe-area-inset-left));
   background: #121310;
   border-top: 1px solid rgba(243,243,238,0.14);
   overflow: hidden;
@@ -1713,57 +1716,75 @@ body::after {
 
 .pl-bottom-nav-item {
   position: relative;
+  width: 100%; height: 100%;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 5px; min-width: 44px; min-height: 44px; padding: 4px 6px;
+  gap: 4px; min-width: 44px; min-height: 44px; padding: 4px 6px;
   background: none; border: none; color: var(--paper-dim); text-decoration: none;
   font-size: 11px; font-family: var(--font-body); font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.01em;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
-  transition: color 180ms ease, transform 240ms cubic-bezier(0.33, 1, 0.68, 1);
+  transition: color 180ms ease, transform 200ms cubic-bezier(0.33, 1, 0.68, 1);
 }
 .pl-bottom-nav-item:focus-visible {
   outline: 2px solid var(--neon); outline-offset: -3px; border-radius: 10px;
 }
 
-/* Aba ativa = um "selo" neon atrás do ícone (chanfro nos dois cantos de
-   cima, mesma linguagem angular do botão central) + sobe no máximo 3px —
-   ícone E rótulo juntos, como uma unidade só. Ícone fica escuro (--ink)
-   em cima do selo bem claro; rótulo fica na cor neon, já que não está
-   mais sobre um fundo escuro. */
-.pl-bottom-nav-item.active { transform: translateY(-3px); }
+/* Aba ativa = três sinais discretos, sempre juntos: bola neon atrás do
+   ícone (marca d'água), ícone + rótulo na cor de destaque, elevação de
+   no máximo 2px. Nada de cartão, sombra pesada, vidro ou gradiente
+   decorativo por trás — isso pareceria efeito de game UI, não navegação
+   nativa de app. */
+.pl-bottom-nav-item.active { transform: translateY(-2px); }
 .pl-bottom-nav-item.active .pl-bottom-nav-label { color: var(--neon); }
 
-.pl-bottom-nav-icon {
-  position: relative; width: 42px; height: 42px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 10px;
+/* Referência geométrica única do ícone E da bola — um <svg> (o ícone) e
+   um <span> (a bola, ver .pl-nav-ball-wrap) competem pelo mesmo centro
+   exato deste quadrado fixo de 44px (a área mínima de toque recomendada,
+   igual ao resto do item). display:grid + place-items:center centra o
+   ícone (conteúdo real do grid); a bola sai do fluxo via position:absolute
+   e usa o MESMO centro (top/left 50% + translate -50%,-50%) — nunca outro
+   ponto de referência, nunca calculado por rota. isolation:isolate cria
+   um contexto de empilhamento próprio pra o z-index da bola (0) e do
+   ícone (1) valerem só aqui dentro, sem disputar com o resto da barra. */
+.nav-icon-shell {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
 }
-.pl-bottom-nav-icon svg {
-  position: relative; z-index: 2; color: inherit;
-  width: 28px; height: 28px;
-  transition: width 240ms cubic-bezier(0.33, 1, 0.68, 1), height 240ms cubic-bezier(0.33, 1, 0.68, 1);
+/* ">" (filho direto), não descendente qualquer: a bola também é um <svg>
+   lá dentro de .pl-nav-ball-wrap, um nível mais fundo — sem o ">" essa
+   regra pegaria as duas e a bola herdaria o tamanho/cor do ícone. */
+.nav-icon-shell > svg {
+  position: relative; z-index: 1; color: inherit;
+  width: 26px; height: 26px;
+  transition: width 200ms cubic-bezier(0.33, 1, 0.68, 1), height 200ms cubic-bezier(0.33, 1, 0.68, 1), color 180ms ease;
 }
-.pl-bottom-nav-item.active .pl-bottom-nav-icon svg { width: 34px; height: 34px; color: var(--paper); }
+.pl-bottom-nav-item.active .nav-icon-shell > svg { width: 28px; height: 28px; color: var(--neon); }
 
-.pl-bottom-nav-label { transition: color 180ms ease, opacity 180ms ease; }
+.pl-bottom-nav-label { transition: color 180ms ease, opacity 180ms ease; white-space: nowrap; }
 
-/* Bola: MARCA D'ÁGUA atrás do ícone (BottomNavBall.js) — mesmo tamanho do
-   ícone ativo (34px), nunca maior, e translúcida (0.4 de opacidade final,
-   igual ao desenho original) pra sinalizar a aba sem competir com o
-   desenho do SVG por cima. Uma instância por item, sempre montada, só
-   aparece via opacity+scale quando o item ganha .active — nasce no mesmo
-   eixo do ícone daquele item, sem precisar viajar nem remontar. */
-.pl-nav-ball-svg {
-  position: absolute; top: 50%; left: 50%; z-index: 1;
-  width: 34px; height: 34px;
+/* Bola: MARCA D'ÁGUA atrás do ícone (BottomNavBall.js) — nunca maior que
+   o ícone a ponto de competir com ele (40px, ícone ativo tem 28px),
+   opacidade baixa (0.32 no auge) e brilho contido num único drop-shadow
+   pequeno — sem halo grande, sem pulso/rotação contínuos, só o
+   aparecer/crescer de 220ms quando o item vira .active. Uma instância
+   por item, sempre montada (nunca remonta nem viaja) — nasce e morre no
+   mesmo eixo do shell daquele item. */
+.pl-nav-ball-wrap {
+  position: absolute; top: 50%; left: 50%; z-index: 0;
+  width: 40px; height: 40px;
   display: block;
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.7);
-  filter: drop-shadow(0 0 3px rgba(166,255,0,0.55)) drop-shadow(0 0 5px rgba(166,255,0,0.3));
+  transform: translate(-50%, -50%) scale(0.72);
+  filter: drop-shadow(0 0 2.5px rgba(166,255,0,0.45));
   transition: opacity 220ms ease, transform 220ms cubic-bezier(0.33, 1, 0.68, 1);
   pointer-events: none;
 }
-.pl-bottom-nav-item.active .pl-nav-ball-svg { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+.pl-nav-ball-svg { display: block; width: 100%; height: 100%; }
+.pl-bottom-nav-item.active .pl-nav-ball-wrap { opacity: 0.32; transform: translate(-50%, -50%) scale(1); }
 
 /* flash de toque — resposta física/energética antes de navegar */
 .pl-bottom-nav-flash {
@@ -1779,7 +1800,7 @@ body::after {
 }
 
 /* Avisos — tremor no toque e sempre que um aviso novo chega */
-.pl-bottom-nav-avisos.shake .pl-bottom-nav-icon svg { animation: pl-avisos-shake 340ms ease; }
+.pl-bottom-nav-avisos.shake .nav-icon-shell > svg { animation: pl-avisos-shake 340ms ease; }
 @keyframes pl-avisos-shake {
   0%, 100% { transform: rotate(0deg); }
   20% { transform: rotate(-11deg); }
@@ -1888,28 +1909,40 @@ body::after {
 @media (max-width: 700px) {
   body { padding-bottom: 88px; }
   .pl-toast-container { bottom: 98px; }
-  /* Grade fixa de 5 colunas — cada .pl-nav-slot ocupa sua própria coluna,
-     sempre na mesma ordem (ORDEM_NAV), nunca reposicionada. Fica dentro
-     deste media query pra não forçar a barra a aparecer em telas largas
-     (onde .pl-bottom-nav continua display:none). */
+  /* Grade real de 5 colunas iguais — cada .pl-nav-slot OCUPA a coluna
+     inteira (stretch é o default do grid, por isso nem precisa declarar
+     align-items/justify-items aqui: a versão antiga forçava "center" nos
+     dois eixos, o que encolhia cada slot pro tamanho do conteúdo e
+     deixava as 5 abas com pinta de blob solto no meio da coluna em vez
+     de ocupar a barra de ponta a ponta). minmax(0,1fr) em vez de 1fr:
+     trava a coluna em 1/5 da barra mesmo se algum conteúdo interno
+     tentasse crescer além disso (nenhum ícone/rótulo faz isso hoje, mas
+     é a forma correta de declarar "coluna igual" numa grade real). Fica
+     dentro deste media query pra não forçar a barra a aparecer em telas
+     largas (onde .pl-bottom-nav continua display:none). */
   .pl-nav-flat {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    align-items: center;
-    justify-items: center;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .pl-nav-flat .pl-nav-slot {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%;
   }
 }
 
 /* Sem deslocamento: os itens nem chegam a ter posição animada nesse modo
    (.pl-nav-flat cuida disso acima) — aqui desligamos toda transição que
    sobraria nos componentes internos (elevação do item ativo, tamanho do
-   ícone, fade da bola, tremor de avisos, giro do "+"), trocando por uma
-   atualização estática e instantânea de estado. */
+   ícone, fade da bola, tremor de avisos, giro do "+") E removemos a
+   própria elevação do item ativo (não só a anima), trocando por uma
+   atualização estática e instantânea de estado — só cor/opacidade mudam,
+   nada se desloca. */
 @media (prefers-reduced-motion: reduce) {
   .pl-bottom-nav-item { transition: none; }
-  .pl-bottom-nav-icon svg { transition: none; }
-  .pl-nav-ball-svg { transition: none; }
-  .pl-bottom-nav-avisos.shake .pl-bottom-nav-icon svg { animation: none !important; }
+  .pl-bottom-nav-item.active { transform: none; }
+  .nav-icon-shell > svg { transition: none; }
+  .pl-nav-ball-wrap { transition: none; }
+  .pl-bottom-nav-avisos.shake .nav-icon-shell > svg { animation: none !important; }
   .pl-bottom-nav-central.sink, .pl-bottom-nav-central.spin { transform: none !important; }
   .pl-central-icon-plus, .pl-central-icon-ball { transition-duration: 60ms; }
   .pl-bottom-nav-central.spin .pl-central-icon-ball { animation: none; }

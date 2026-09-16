@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import BellIcon from './BellIcon';
 import MegafoneIcon from './MegafoneIcon';
+import BottomNavBall from './BottomNavBall';
 import { tapFlash, flashClass } from '@/lib/tapFlash';
 
 // Só o ícone + contador de não lidos — o clique navega pra /avisos (página
@@ -78,7 +79,8 @@ export default function NotificationBell({ variant = 'header' }) {
     const active = pathname === '/avisos';
     return (
       <Link href="/avisos" className={`pl-bottom-nav-item pl-bottom-nav-avisos ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined} onClick={tapFlash}>
-        <span className="pl-bottom-nav-icon" ref={iconWrapRef}>
+        <span className="nav-icon-shell" ref={iconWrapRef}>
+          <BottomNavBall />
           <span className="pl-bottom-nav-flash" aria-hidden="true" />
           <MegafoneIcon />
           {naoLidas > 0 && <span className="pl-bell-badge">{naoLidas > 9 ? '9+' : naoLidas}</span>}
