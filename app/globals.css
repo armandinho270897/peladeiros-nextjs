@@ -1747,20 +1747,22 @@ body::after {
 
 .pl-bottom-nav-label { transition: color 180ms ease, opacity 180ms ease; }
 
-/* Selo: cresce a partir do ícone (::before de .pl-bottom-nav-icon) —
-   nasce sempre no mesmo eixo do ícone daquele item e viaja junto com ele
-   se o item se mover. Chanfro nos cantos de cima ecoa o corte do botão
-   central (.pl-bottom-nav-central), pra parecer a mesma família visual
-   em vez de dois estilos de botão diferentes na mesma barra. */
-.pl-bottom-nav-icon::before {
-  content: ''; position: absolute; inset: -3px -9px -11px; z-index: 1;
-  background: linear-gradient(160deg, var(--neon), var(--neon-dim));
-  clip-path: polygon(22% 0%, 78% 0%, 100% 24%, 100% 100%, 0% 100%, 0% 24%);
+/* Bola: marca a aba ativa atrás do ícone (BottomNavBall.js) — uma
+   instância por item, sempre montada, só aparece via opacity+scale quando
+   o item ganha .active (nasce no mesmo eixo do ícone daquele item, sem
+   precisar viajar nem remontar). Brilho neon verde concentrado num
+   drop-shadow duplo (curto e difuso), nunca uma mancha sólida atrás do
+   ícone. */
+.pl-nav-ball-svg {
+  position: absolute; inset: -4px; z-index: 1;
+  display: block;
   opacity: 0;
-  transition: opacity 220ms ease;
+  transform: scale(0.7);
+  filter: drop-shadow(0 0 3px rgba(166,255,0,0.6)) drop-shadow(0 0 9px rgba(166,255,0,0.35));
+  transition: opacity 220ms ease, transform 220ms cubic-bezier(0.33, 1, 0.68, 1);
   pointer-events: none;
 }
-.pl-bottom-nav-item.active .pl-bottom-nav-icon::before { opacity: 1; }
+.pl-bottom-nav-item.active .pl-nav-ball-svg { opacity: 1; transform: scale(1); }
 
 /* flash de toque — resposta física/energética antes de navegar */
 .pl-bottom-nav-flash {
@@ -1905,7 +1907,7 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   .pl-bottom-nav-item { transition: none; }
   .pl-bottom-nav-icon svg { transition: none; }
-  .pl-bottom-nav-icon::before { transition: none; }
+  .pl-nav-ball-svg { transition: none; }
   .pl-bottom-nav-avisos.shake .pl-bottom-nav-icon svg { animation: none !important; }
   .pl-bottom-nav-central.sink, .pl-bottom-nav-central.spin { transform: none !important; }
   .pl-central-icon-plus, .pl-central-icon-ball { transition-duration: 60ms; }

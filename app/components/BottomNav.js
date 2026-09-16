@@ -7,6 +7,7 @@ import NotificationBell from './NotificationBell';
 import InicioIcon from './InicioIcon';
 import PeladasCampoIcon from './PeladasCampoIcon';
 import CoroaIcon from './CoroaIcon';
+import BottomNavBall from './BottomNavBall';
 import CriarButton from './CriarButton';
 import OrganizarFab from './OrganizarFab';
 import { tapFlash } from '@/lib/tapFlash';
@@ -122,6 +123,7 @@ export default function BottomNav() {
                 onClick={tapFlash}
               >
                 <span className="pl-bottom-nav-icon">
+                  <BottomNavBall />
                   <span className="pl-bottom-nav-flash" aria-hidden="true" />
                   <Icone />
                 </span>
