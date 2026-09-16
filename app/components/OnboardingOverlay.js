@@ -10,8 +10,8 @@ import TicketButton from './TicketButton';
 
 const PASSOS = [
   { Icon: OnboardingDescobrirIcon, titulo: 'Ache uma pelada perto de você', texto: 'Veja as peladas rolando no seu bairro, com horário, vagas e quem já vai.' },
-  { Icon: OnboardingConfirmarIcon, titulo: 'Confirme presença em 1 toque', texto: 'Peça pra entrar, o capitão aprova e pronto — sua vaga garantida.' },
-  { Icon: OnboardingAvaliarIcon, titulo: 'Jogue, avalie, suba de moral', texto: 'Depois da partida, avalia a galera e constrói sua reputação no futebol de várzea.' },
+  { Icon: OnboardingConfirmarIcon, titulo: 'Confirme presença em 1 toque', texto: 'Viu a pelada perto de você, veja quantas vagas há e peça para entrar. Espere apenas a aprovação do capitão de jogo.' },
+  { Icon: OnboardingAvaliarIcon, titulo: 'Jogue, avalie, suba de moral', texto: 'Acabou a partida, dá tua avaliação dos outros jogadores e eles a sua, vai montando tua reputação na manha.' },
 ];
 
 // Só aparece na primeira visita (localStorage) — nunca mais depois de
