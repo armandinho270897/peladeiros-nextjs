@@ -1,6 +1,6 @@
 import HomeIcon from './HomeIcon';
 import TacticalPitchIcon from './TacticalPitchIcon';
-import WhistleIcon from './WhistleIcon';
+import CornerFlagIcon from './CornerFlagIcon';
 import JerseyIcon from './JerseyIcon';
 import GameCardIcon from './GameCardIcon';
 
@@ -11,7 +11,7 @@ import GameCardIcon from './GameCardIcon';
 const ICONS = {
   inicio: HomeIcon,
   peladas: TacticalPitchIcon,
-  avisos: WhistleIcon,
+  avisos: CornerFlagIcon,
   perfil: JerseyIcon,
   criar: GameCardIcon,
 };
