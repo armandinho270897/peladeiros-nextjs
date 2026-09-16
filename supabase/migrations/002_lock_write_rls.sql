@@ -1,4 +1,4 @@
--- Peladeiros — trava escrita via anon key (Fase 1.5)
+-- Peladeiros — trava escrita via anon key
 --
 -- ⚠️ Só rode isso DEPOIS de confirmar que SUPABASE_SERVICE_ROLE_KEY está configurada
 -- e funcionando (local .env.local + variáveis de ambiente na Vercel). A partir daqui,

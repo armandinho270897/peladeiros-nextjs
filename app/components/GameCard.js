@@ -51,11 +51,11 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
   const g = game;
   const d = fmtDate(g.data);
   const aprovados = aprovadosDe(g);
-  // Capitão sempre aparece primeiro entre os confirmados. Peladas criadas
-  // depois do fix de 2026-08-30 já trazem a linha dele em confirmacoes (só
-  // reordena pra frente); peladas antigas ou um insert que falhou não têm
-  // essa linha — sintetiza uma entrada só com o nome (sem foto/moral) pra
-  // não sumir com o capitão da lista de qualquer forma.
+  // Capitão sempre aparece primeiro entre os confirmados. A maioria das
+  // peladas já traz a linha dele em confirmacoes (só reordena pra frente);
+  // peladas antigas ou um insert que falhou não têm essa linha — sintetiza
+  // uma entrada só com o nome (sem foto/moral) pra não sumir com o capitão
+  // da lista de qualquer forma.
   // g.owner_id é null em peladas antigas sem capitão — sem o `!!g.owner_id`
   // aqui, um convidado sem conta (user_id também null) seria confundido
   // com "o capitão já tem linha" (null === null), e o sort logo abaixo

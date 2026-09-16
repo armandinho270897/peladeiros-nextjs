@@ -7,8 +7,7 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 // Mínimo de peladas passadas pra um insight virar "padrão" em vez de
-// coincidência — pedido explícito do briefing ("não tratar poucos dados
-// como tendência").
+// coincidência — evita tratar poucos dados como tendência.
 const MIN_HISTORICO_INSIGHTS = 3;
 
 function mesAtualISO() {

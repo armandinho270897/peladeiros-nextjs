@@ -39,9 +39,9 @@ async function peladasBoasComoCapitao(userId, today) {
 }
 
 // Mesmo critério de "falta" usado em lib/ratings.js (attachNotaMedia) pro
-// selo de moral que aparece nos avatares de outros jogadores — reaplicado
-// aqui pro próprio dono do perfil, pra "moral" significar a mesma coisa
-// nos dois lugares. IMPORTANTE: busca por user_id direto, sem restringir
+// selo de moral que aparece nos avatares de outros jogadores — usado
+// também aqui pro próprio dono do perfil, pra "moral" significar a mesma
+// coisa nos dois lugares. Busca por user_id direto, sem restringir
 // a game_id de confirmações aprovadas — uma confirmação cancelada nunca
 // tem status 'aprovado' ao mesmo tempo (mesma linha, um constraint
 // unique(game_id,user_id) só permite um status por vez), então filtrar

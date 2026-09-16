@@ -772,15 +772,13 @@ body::after {
 .pl-btn-ball { position: absolute; left: 1px; top: 0; font-size: 16px; line-height: 1; animation: pl-bounce 700ms ease-in-out infinite; }
 .pl-btn-ball-shadow { position: absolute; bottom: 1px; left: 3px; width: 14px; height: 4px; border-radius: 50%; background: rgba(0,0,0,0.4); animation: pl-shadow-pulse 700ms ease-in-out infinite; }
 
-/* Fase 3 — bola interativa com física de verdade (PitchBall.js): toque
-   simples, arrastar-e-soltar com "flick", gravidade/atrito/quique,
-   mini-gol num canto. Posição/rotação são escritas direto em
-   transform via ref a cada frame (nunca via state do React) — o CSS
-   aqui só cuida da aparência estática de cada peça. Puramente lúdica,
-   mesma filosofia do easter egg do logo.
-   V3: campo de jogo virou a página inteira — o cartão de login agora
-   é um obstáculo sólido (a física ricocheteia nele), não mais uma área
-   proibida que encolhia o espaço de jogo a uma faixa no rodapé. */
+/* Bola interativa com física de verdade (PitchBall.js): toque simples,
+   arrastar-e-soltar com "flick", gravidade/atrito/quique, mini-gol num
+   canto. Posição/rotação são escritas direto em transform via ref a cada
+   frame (nunca via state do React) — o CSS aqui só cuida da aparência
+   estática de cada peça. Puramente lúdica, mesma filosofia do easter egg
+   do logo. O campo de jogo ocupa a página inteira; o cartão de login é um
+   obstáculo sólido, a física ricocheteia nele. */
 .pl-pitch-zone {
   z-index: 1; pointer-events: none; overflow: hidden;
 }
@@ -844,10 +842,10 @@ body::after {
   100% { transform: scale(1); }
 }
 
-/* Fase 2 — chute a gol no botão Entrar (só no modo "entrar", ver
-   login/page.js). A bolinha "sai chutada" de cima do botão e some — sem
-   desenhar gol nenhum no cenário (rejeitado antes como visual poluído).
-   O resultado (gol/trave) aparece no próprio botão. */
+/* Chute a gol no botão Entrar (só no modo "entrar", ver login/page.js).
+   A bolinha "sai chutada" de cima do botão e some — sem desenhar gol
+   nenhum no cenário, pra não poluir o visual. O resultado (gol/trave)
+   aparece no próprio botão. */
 .pl-launch-ball {
   position: absolute; left: 50%; bottom: 100%; margin-bottom: 4px;
   font-size: 20px; line-height: 1; transform: translateX(-50%);
@@ -869,7 +867,7 @@ body::after {
   80% { transform: translateX(3px); }
 }
 
-/* Fase 2 — flash de refletor na transição pro Home após login bem-sucedido.
+/* Flash de refletor na transição pro Home após login bem-sucedido.
    Só cosmético: dispara depois que a autenticação já deu certo, nunca
    atrasa a chamada real — janela fixa e curta (<1s) antes de navegar. */
 .pl-login-flash {

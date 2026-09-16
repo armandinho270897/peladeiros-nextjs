@@ -51,7 +51,7 @@ alter table profiles add constraint profiles_posicoes_validas_check
 
 -- Campo antigo (posição única) substituído pelos dois de cima. Nada no
 -- código volta a ler "posicao" depois desta migration (EscalacaoField,
--- lib/ratings.js e ManageModal foram todos atualizados no mesmo commit).
+-- lib/ratings.js e ManageModal foram todos atualizados junto).
 alter table profiles drop column if exists posicao;
 
 -- Mensagem opcional do jogador ao solicitar presença, e resposta opcional

@@ -5,10 +5,10 @@ import { authorizeAdmin, ehSuperAdmin } from '@/lib/adminAuth';
 import { registrarAuditoria } from '@/lib/auditLog';
 
 // Promover/rebaixar admin é restrito a uma única conta fixa (o dono do
-// app), não a "qualquer admin" — regra explícita e protegida contra
-// auto-promoção, pedida na spec. O banco também bloqueia isso pra qualquer
-// outra sessão autenticada via trigger (migration 039); esta rota é a única
-// porta de entrada possível, e só abre pra essa conta específica.
+// app), não a "qualquer admin" — regra explícita contra auto-promoção. O
+// banco também bloqueia troca de papel de qualquer outra sessão
+// autenticada via trigger (migration 039); esta rota é a única porta de
+// entrada possível, e só abre pra essa conta específica.
 export async function POST(request, { params }) {
   const auth = await authorizeAdmin();
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });

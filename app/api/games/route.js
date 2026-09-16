@@ -10,13 +10,11 @@ import { errJson } from '@/lib/apiError';
 import { assertUsuarioAtivo } from '@/lib/moderacao';
 import { todayISO, addDiasISO, fimDeSemanaRange, periodoDe, ocupandoVagaDe, haversineKm, MODALIDADE_LABEL } from '@/lib/gameUtils';
 
-// Bug real encontrado em produção: esse GET (supabaseAdmin, sem leitura de
-// cookie) tem o mesmo formato de risco que já pegou /api/games/mapa — o
-// Data Cache do Next pra chamadas fetch (usadas pelo supabase-js por
-// baixo) pode servir uma resposta cacheada antiga entre deploys, mesmo o
-// endpoint sendo classificado como dinâmico. Esse aqui é o mais crítico
-// dos três: é a lista principal de peladas, carregada em quase toda
-// abertura do app.
+// Esse GET usa supabaseAdmin sem leitura de cookie — o Data Cache do Next
+// pra chamadas fetch (usadas pelo supabase-js por baixo) pode servir uma
+// resposta cacheada antiga entre deploys, mesmo o endpoint sendo
+// classificado como dinâmico. Crítico aqui: é a lista principal de
+// peladas, carregada em quase toda abertura do app.
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
@@ -28,14 +26,13 @@ function statusDaOcupacao(g) {
   return { restantes, lotado: restantes === 0 };
 }
 
-// "Recomendadas" sem IA paga: pontuação simples e explicável a partir do
-// que já existe hoje — distância (se a pessoa compartilhou localização),
-// modalidade do perfil, vagas disponíveis e proximidade da data. Não usa
-// "nível preferido" nem "horário preferido" porque profiles não guarda
-// nenhum dos dois hoje (só modalidade_principal/posicoes/bairro) — inventar
-// essas colunas só pra essa pontuação seria a "mudança grande no banco"
-// que o briefing pediu pra evitar; documentado como limitação no lugar de
-// fingir uma correspondência que não existe.
+// "Recomendadas": pontuação simples e explicável a partir do que já existe
+// hoje — distância (se a pessoa compartilhou localização), modalidade do
+// perfil, vagas disponíveis e proximidade da data. Não usa "nível
+// preferido" nem "horário preferido" porque profiles não guarda nenhum dos
+// dois hoje (só modalidade_principal/posicoes/bairro) — é uma limitação
+// conhecida, documentada aqui em vez de fingir uma correspondência que não
+// existe.
 function pontuarRecomendacao(g, { latNum, lngNum, modalidadeLabel, hojeISO }) {
   let score = 0;
   let motivo = null;
@@ -260,10 +257,7 @@ export async function POST(request) {
   // fluxo de solicitação/aprovação (ele não vai aprovar a presença dele
   // mesmo) — ocupa uma vaga de vagas_totais como qualquer outro jogador.
   // Roda junto com a busca de perfis dos jogadoresIniciais (não há
-  // dependência entre as duas). Reaplicado em 2026-08-30 depois de um
-  // revert anterior (commit 52ab221) sem registro do motivo — se esse
-  // insert voltar a causar problema, a suspeita nº 1 é o -1 na conta de
-  // vagas logo abaixo, não este insert em si.
+  // dependência entre as duas).
   const [{ error: confirmacaoCapitaoError }, { data: perfis }] = await Promise.all([
     supabase.from('confirmacoes').insert({
       game_id: game.id, user_id: user.id, nome: profile.nome, whatsapp: profile.whatsapp, bairro: profile.bairro, status: 'aprovado',

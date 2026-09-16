@@ -46,18 +46,16 @@ export default function OnboardingConfirmarIcon({ width = 160 }) {
         <path d={ticketPath} fill="url(#pl-onb-ticket-body)" className="pl-onb-fill" />
         <path pathLength="1" d={ticketPath} fill="none" stroke="var(--gold)" strokeWidth="1.5" className="pl-onb-draw" />
       </g>
-      {/* brilho de "verniz" preso ao formato do ticket via clipPath — a
-          versão anterior era um traço solto por cima, sem recorte, e
-          flutuava visivelmente acima da borda dourada (lia como risco
-          acidental, não como brilho). */}
+      {/* brilho de "verniz" preso ao formato do ticket via clipPath — sem
+          o recorte, o traço flutua acima da borda dourada e lê como risco
+          acidental, não como brilho. */}
       <g clipPath="url(#pl-onb-ticket-clip)" className="pl-onb-fill">
         <rect x="20" y="34" width="120" height="20" fill="url(#pl-onb-ticket-sheen)" />
       </g>
 
       {/* ticket desenha de y=34 (topo) a y=74 (base) — altura real 40,
           não 52. Divisória, código de barras e selo têm que caber
-          dentro disso; antes estavam calculados pra uma altura errada
-          e o selo chegava a passar 1.5px do fundo do ticket. */}
+          dentro disso. */}
       {/* picote "rasga" ao vivo (scaleY a partir do centro) em vez de só
           aparecer — usar stroke-dasharray/pathLength pra isso quebraria
           o padrão tracejado "3 4" (propriedade CSS de dasharray venceria

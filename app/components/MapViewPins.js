@@ -45,9 +45,8 @@ const RECALCULO_GLOW_MS = 60 * 1000;
 // Mediana em vez de média pra centralizar o mapa: uma única coordenada
 // mal cravada (ex: geolocalização falhou e devolveu um ponto absurdo tipo
 // Atlântico Sul) não consegue puxar o centro pra longe de onde os pins de
-// verdade estão — a média simples deixava exatamente isso acontecer (bug
-// real encontrado em produção: um jogo com coordenada quebrada jogava o
-// mapa inteiro pra um lugar vazio, sem nenhum pin visível).
+// verdade estão. Com média simples, um jogo assim jogaria o mapa inteiro
+// pra um lugar vazio, sem nenhum pin visível.
 function mediana(valores) {
   const ordenado = [...valores].sort((a, b) => a - b);
   const meio = Math.floor(ordenado.length / 2);

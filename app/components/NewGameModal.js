@@ -155,9 +155,9 @@ export default function NewGameModal({ onCancel, onCreated }) {
   // Mesma regra de preenchimento de POST /api/games: o capitão ocupa uma
   // vaga automaticamente, então só os primeiros (vagasTotais - 1) outros
   // jogadores entram como aprovado — o resto vai pra espera. Sem espelhar
-  // essa conta aqui, a revisão prometia "X de Y vagas preenchidas" com
-  // todo mundo aprovado, e depois de publicar o servidor mandava o último
-  // pra espera silenciosamente — divergência real encontrada em revisão.
+  // essa conta aqui, a revisão prometeria "X de Y vagas preenchidas" com
+  // todo mundo aprovado, e depois de publicar o servidor mandaria o
+  // último pra espera silenciosamente.
   const previewVagasTotais = parseInt(vagasTotais, 10) || jogadores.length + 1 || 1;
   const previewVagasParaOutros = Math.max(0, previewVagasTotais - 1);
   const previewGame = {

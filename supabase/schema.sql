@@ -1,4 +1,4 @@
--- Peladeiros — schema inicial (Fase 1)
+-- Peladeiros — schema base
 -- Rode isso no SQL Editor do seu projeto Supabase (supabase.com -> New Project -> SQL Editor)
 
 create extension if not exists "pgcrypto";
@@ -12,7 +12,7 @@ create table if not exists games (
   horario time not null,
   vagas_totais int not null check (vagas_totais > 0),
   capitao text not null,
-  codigo text, -- PIN de 4 dígitos. Fallback pra peladas antigas sem owner_id (Fase 2 usa auth.uid()).
+  codigo text, -- PIN de 4 dígitos. Fallback pra peladas sem owner_id — peladas com login usam auth.uid().
   owner_id uuid references auth.users(id),
   latitude numeric,
   longitude numeric,

@@ -1,53 +1,82 @@
-# Peladeiros — Fase 1 (Next.js + Supabase)
+# Peladeiros
 
-Esse projeto substitui o protótipo em artifact por um app de verdade, com link fixo e
-banco de dados real, sem custo. A UI e a lógica são as mesmas que já validamos — só
-trocou o "onde os dados moram".
+App pra encontrar, organizar e participar de peladas de futebol/futsal — do convite até o placar final.
 
-## Passo a passo pra colocar no ar (grátis)
+**App em produção:** [peladeiros-nextjs.vercel.app](https://peladeiros-nextjs.vercel.app)
 
-### 1. Criar o banco (Supabase)
-1. Crie uma conta em https://supabase.com e um novo projeto (grátis).
-2. Vá em **SQL Editor** e cole o conteúdo de `supabase/schema.sql`, depois rode.
-3. Vá em **Project Settings -> API** e copie a **Project URL** e a **anon public key**.
+## O que o app oferece
 
-### 2. Configurar o projeto localmente
-1. Copie `.env.local.example` para `.env.local` e cole a URL e a chave do passo anterior.
-2. Rode:
-   ```
+**Encontrar e entrar em peladas**
+Lista e mapa com filtro por bairro, modalidade e distância, recomendação de peladas com o motivo explicado ("perto de você", "mesma modalidade", "vagas abertas"), pedido de vaga com aprovação do organizador.
+
+**Confirmação, espera e check-in**
+Fluxo de duas etapas — o organizador aprova o pedido, o jogador confirma a vaga dentro de um prazo — com promoção automática de quem está na lista de espera quando alguém sai, e check-in no dia da partida com tolerância de atraso.
+
+**Perfil, presença, pontualidade e moral**
+Histórico de partidas, nota média recebida, percentuais de presença/pontualidade/fair play, uma pontuação de "moral" que combina tudo isso, patentes e conquistas por marco alcançado (nunca um ranking comparativo entre jogadores).
+
+**Organização de partidas e financeiro**
+Painel do organizador por pelada, montagem de times, encerramento de partida com placar, cobrança de mensalidade ou valor por partida, times permanentes com elenco e desafios entre times.
+
+**Administração e segurança**
+Painel administrativo separado do painel de organização, com papel de administrador validado no servidor: aprovação de arenas, denúncias de jogador/pelada/arena, moderação de usuário (advertência, suspensão, bloqueio), avisos gerais in-app, auditoria de toda ação administrativa e configurações globais.
+
+## Stack
+
+- [Next.js 14](https://nextjs.org/) (App Router) + React 18
+- [Supabase](https://supabase.com/) — Postgres, Auth, Row Level Security, Storage
+- Deploy contínuo na [Vercel](https://vercel.com/)
+- Mapas com Leaflet e tiles da Jawg
+- E-mail transacional via SMTP do Gmail (nodemailer)
+- Monitoramento de erros com Sentry
+- Lembrete de 24h via cron nativo da Vercel; lembrete de 3h via GitHub Actions (o plano gratuito da Vercel só libera cron 1x/dia)
+- PWA instalável (funciona como app no celular)
+
+## Rodando localmente
+
+1. Instale as dependências:
+   ```bash
    npm install
+   ```
+2. Crie um projeto gratuito no [Supabase](https://supabase.com/) e rode, em ordem, no SQL Editor: `supabase/schema.sql` e depois cada arquivo de `supabase/migrations/`.
+3. Copie `.env.local.example` para `.env.local` e preencha com as chaves do seu projeto.
+4. Suba o servidor de desenvolvimento:
+   ```bash
    npm run dev
    ```
-3. Abra `http://localhost:3000` — o app já deve estar funcionando com o banco real.
+5. Abra `http://localhost:3000`.
 
-### 3. Publicar (Vercel — grátis)
-1. Crie uma conta em https://vercel.com (dá pra logar com GitHub).
-2. Suba esse projeto pra um repositório no GitHub.
-3. No Vercel, clique **New Project**, escolha o repositório.
-4. Em **Environment Variables**, adicione as mesmas duas variáveis do `.env.local`.
-5. Clique em **Deploy**. Em ~1 minuto você tem um link fixo tipo `peladeiros.vercel.app`.
+## Variáveis de ambiente
 
-### Se preferir, use o Claude Code
-Esse é o momento certo pra abrir o **Claude Code** (desktop ou terminal) apontando pra essa
-pasta — ele consegue rodar `npm install`, testar localmente, criar o repositório Git e
-até te guiar no deploy do Vercel interativamente, coisa que eu não consigo fazer daqui
-do chat (sem acesso à internet neste ambiente).
+Nomes usados pelo projeto (sem valores — veja `.env.local.example`):
 
-## O que já está pronto
-- Criar pelada, confirmar presença, fila de espera automática, editar/cancelar com
-  código de 4 dígitos, filtro por bairro, compartilhar no WhatsApp, seção "hoje" em
-  destaque, perfil salvo no navegador.
+| Variável | Obrigatória | Uso |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | sim | URL do projeto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | sim | chave pública, respeita RLS |
+| `SUPABASE_SERVICE_ROLE_KEY` | sim | chave de servidor, só usada em rotas `/api` |
+| `NEXT_PUBLIC_JAWG_ACCESS_TOKEN` | sim | tiles do mapa |
+| `GMAIL_USER` / `GMAIL_APP_PASSWORD` | sim | envio de e-mail transacional |
+| `NEXT_PUBLIC_SENTRY_DSN` | opcional | monitoramento de erros |
+| `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | opcional | upload de sourcemap no build |
+| `CRON_SECRET` | opcional | autentica as chamadas de cron |
 
-## O que muda estruturalmente em relação ao artifact
-- Dados ficam em Postgres de verdade (Supabase), não mais em `window.storage`.
-- Duas tabelas (`games` e `confirmacoes`) em vez de um JSON único — isso é o que
-  permite adicionar perfis de usuário, avaliações e histórico na Fase 2 sem reescrever
-  o banco do zero.
-- O link passa a ser fixo — resolve o maior bloqueio de growth que tínhamos.
+## Estrutura do projeto
 
-## O que NÃO foi implementado de propósito (Fase 2/3)
-- Login de verdade (Supabase Auth) — o PIN de 4 dígitos continua sendo a trava por
-  enquanto, mas o schema já foi desenhado pra aceitar `auth.uid()` depois sem migração
-  dolorosa.
-- Mapa, chat, notificações push, pagamentos — ver o backlog priorizado que já
-  conversamos.
+```
+app/              rotas (App Router) — páginas e app/api/**
+app/components/   componentes de UI compartilhados
+app/admin/        painel administrativo
+lib/              regras de negócio, autorização por rota, integrações
+supabase/         schema base + histórico de migrations versionadas
+```
+
+## Status do projeto
+
+Em produção, com uso ativo. Já cobre: descoberta e confirmação de pelada, perfil com reputação (moral, presença, pontualidade, fair play), organização financeira, times permanentes com desafios entre times, e um painel de administração completo.
+
+## Próximos passos
+
+- Convite público de time por link (hoje só quem já tem conta consegue pedir entrada)
+- Preferências explícitas de recomendação (nível e horário preferido do jogador)
+- Lembrete automático pro organizador que esquece de encerrar a partida

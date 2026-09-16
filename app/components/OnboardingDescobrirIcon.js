@@ -1,8 +1,6 @@
-// Pino com "ping" de radar — troca o diagrama de campo em linha (achado
-// visualmente sem graça, "só linhas", sentado sobre um fundo vazio) por
-// algo que já lê como "achando pelada perto de você" de cara, e que faz
-// sentido por cima do cenário de quadra à noite (NightPitchBackground)
-// que passou a ficar atrás de todo o onboarding.
+// Pino com "ping" de radar — lê como "achando pelada perto de você" de
+// cara, e faz sentido por cima do cenário de quadra à noite
+// (NightPitchBackground) que fica atrás de todo o onboarding.
 export default function OnboardingDescobrirIcon({ width = 160 }) {
   const pinPath = 'M80 22c-14.9 0-27 12-27 27 0 20 27 45 27 45s27-25 27-45c0-15-12.1-27-27-27z';
   return (
