@@ -1,13 +1,9 @@
-// Apito de juiz — bojo redondo (cx=15 cy=12 r=5.2) + bocal em "trilho
-// duplo": duas linhas que nascem exatamente sobre a circunferência do
-// bojo — em (10.2, 10) e (10.2, 14), os pontos onde as cordas y=10 e
-// y=14 tocam o círculo (15 - sqrt(5.2² - 2²) = 10.2) — e seguem pra fora
-// em linha reta. v1 (cápsula única) lia como pendrive; v2 (círculo +
-// retângulo por cima) e v3 (hexágono único) tinham contornos se cruzando
-// ou virando outra coisa (gravata, folha). Como as linhas do trilho
-// começam EXATAMENTE em cima do contorno do círculo, nunca entram nele —
-// não sobra nenhum traço cruzado, só um bojo com um cano de verdade
-// saindo dele.
+// Apito de juiz (tipo "pea whistle", o clássico usado em campo) — corpo
+// alongado (nunca redondo: apito de verdade é um cilindro comprido, não
+// uma bola — a v3 com bojo circular lia como chocalho), linha separando
+// bocal do corpo, fenda de som encaixada na borda de cima e a argolinha
+// de cordão na ponta — é ESSE detalhe que assina "apito" sem ambiguidade
+// (sem ele, corpo + linha + furo lê como controle/pendrive, como a v1).
 export default function WhistleIcon({ active = false, className = '', size = 24 }) {
   return (
     <svg
@@ -23,10 +19,10 @@ export default function WhistleIcon({ active = false, className = '', size = 24 
       data-active={active || undefined}
       aria-hidden="true"
     >
-      <circle cx="15" cy="12" r="5.2" />
-      <line x1="10.2" y1="10" x2="4" y2="10" />
-      <line x1="10.2" y1="14" x2="4" y2="14" />
-      <path d="M13.5 8v1.6" />
+      <rect x="4" y="9.3" width="13" height="5.4" rx="2.7" />
+      <line x1="8.5" y1="9.3" x2="8.5" y2="14.7" />
+      <path d="M12.5 9.3v1.4" />
+      <circle cx="18.8" cy="12" r="1.5" />
     </svg>
   );
 }
