@@ -1,7 +1,13 @@
-// Apito de juiz — bojo redondo, bocal (tubo) à esquerda e uma fenda de som
-// no topo do bojo. Três formas simples, sem argola de cordão, pra não virar
-// clipart — mas o bojo circular + bocal é o que faz ler como apito de
-// verdade (a primeira versão, em cápsula única, lia como botão/pendrive).
+// Apito de juiz — bojo redondo (cx=15 cy=12 r=5.2) + bocal em "trilho
+// duplo": duas linhas que nascem exatamente sobre a circunferência do
+// bojo — em (10.2, 10) e (10.2, 14), os pontos onde as cordas y=10 e
+// y=14 tocam o círculo (15 - sqrt(5.2² - 2²) = 10.2) — e seguem pra fora
+// em linha reta. v1 (cápsula única) lia como pendrive; v2 (círculo +
+// retângulo por cima) e v3 (hexágono único) tinham contornos se cruzando
+// ou virando outra coisa (gravata, folha). Como as linhas do trilho
+// começam EXATAMENTE em cima do contorno do círculo, nunca entram nele —
+// não sobra nenhum traço cruzado, só um bojo com um cano de verdade
+// saindo dele.
 export default function WhistleIcon({ active = false, className = '', size = 24 }) {
   return (
     <svg
@@ -17,9 +23,10 @@ export default function WhistleIcon({ active = false, className = '', size = 24 
       data-active={active || undefined}
       aria-hidden="true"
     >
-      <circle cx="15" cy="12" r="5" />
-      <rect x="3.5" y="10" width="7.5" height="4" rx="2" />
-      <line x1="13.2" y1="8" x2="16.8" y2="8" />
+      <circle cx="15" cy="12" r="5.2" />
+      <line x1="10.2" y1="10" x2="4" y2="10" />
+      <line x1="10.2" y1="14" x2="4" y2="14" />
+      <path d="M13.5 8v1.6" />
     </svg>
   );
 }
