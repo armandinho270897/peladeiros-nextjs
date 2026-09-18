@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { aprovadosDe, shareUrl, jaAconteceu } from '@/lib/gameUtils';
+import { aprovadosDe, shareUrl, jaAconteceu, haversineKm } from '@/lib/gameUtils';
 import { useJustLotou } from '@/lib/useJustLotou';
 import { useAuth } from '../../components/AuthProvider';
 import { useToast } from '../../components/ToastProvider';
@@ -44,7 +44,26 @@ export default function PeladaClient({ id }) {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [modal, setModal] = useState(null);
+  const [minhaLocalizacao, setMinhaLocalizacao] = useState(null);
   const justLotaram = useJustLotou(game, loading);
+
+  // Pedido automático, sem toggle — diferente de /peladas (onde é opt-in,
+  // porque afeta filtro de raio pra uma lista inteira), aqui é só pra
+  // mostrar "a quantos km" nesta ÚNICA pelada, então o mesmo padrão
+  // silencioso do mapa (MapViewPins.js) se aplica: nunca bloqueia a
+  // renderização, e negar/não suportar só deixa a distância de fora.
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setMinhaLocalizacao({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { timeout: 10000 }
+    );
+  }, []);
+
+  const distanciaKm = minhaLocalizacao && game?.latitude != null && game?.longitude != null
+    ? haversineKm(minhaLocalizacao.lat, minhaLocalizacao.lng, Number(game.latitude), Number(game.longitude))
+    : null;
 
   // silent=true pros refetches em segundo plano (poll, volta de aba) —
   // sem isso a tela inteira piscava pro skeleton de novo a cada 15s.
@@ -170,6 +189,7 @@ export default function PeladaClient({ id }) {
           onUndoCheckin={handleUndoCheckin}
           justLotou={!!justLotaram[game?.id]}
           showArt={false}
+          distanciaKm={distanciaKm}
         />
       </div>
 
