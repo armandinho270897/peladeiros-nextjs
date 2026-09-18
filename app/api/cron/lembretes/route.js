@@ -86,8 +86,23 @@ export async function GET(request) {
   }
 
   const criadasEncerrar = await notificarEncerrarPendente();
+  const desafiadosApagados = await apagarDesafiadosExpirados();
 
-  return NextResponse.json({ ok: true, criadas: criadasProximas + criadasEncerrar });
+  return NextResponse.json({ ok: true, criadas: criadasProximas + criadasEncerrar, desafiadosApagados });
+}
+
+// Sessão de Desafiado (app/api/desafiado/**) é passageira de propósito —
+// não é pelada de verdade, não deve virar peso morto no banco. 3 dias dá
+// folga de sobra pra quem quiser voltar e olhar o placar depois do rachão;
+// o delete em cascade (migrations 047-050) já limpa times/jogadores/
+// partidas junto.
+const DIAS_EXPIRACAO_DESAFIADO = 3;
+
+async function apagarDesafiadosExpirados() {
+  const limite = new Date(Date.now() - DIAS_EXPIRACAO_DESAFIADO * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase.from('desafiado_sessoes').delete().lt('created_at', limite).select('id');
+  if (error) return 0;
+  return data?.length || 0;
 }
 
 // Organizador que joga e nunca volta pra encerrar a partida trava

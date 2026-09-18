@@ -6,6 +6,7 @@ function isPublicPath(pathname) {
   if (pathname.startsWith('/auth/')) return true;
   if (pathname.startsWith('/pelada/')) return true;
   if (pathname.startsWith('/time/')) return true;
+  if (pathname.startsWith('/desafiado/')) return true;
   return false;
 }
 
