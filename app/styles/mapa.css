@@ -1,0 +1,200 @@
+/* app/styles/mapa.css — fatia de app/globals.css (dividido por área, mesmo conteúdo).
+   Pines, popups, cluster e bottom sheet do mapa (Leaflet). */
+
+/* Mapa — pino com foto (círculo com a imagem dentro, borda dourada
+   igual ao pino padrão de arena) */
+.pl-map-photo-pin {
+  width: 34px; height: 34px; border-radius: var(--radius-circle);
+  border: 2.5px solid var(--gold); overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.pl-map-photo-pin img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Mapa — token circular de arena no seletor de local (LocationPickerMap),
+   "estilo Poképarada" (mesma linguagem visual de .pl-map-modalidade-pin,
+   só que sinalizando status da arena em vez de vaga da pelada): aprovada
+   ganha borda dourada + glow verde-neon, pendente fica cinza/translúcida
+   com um relógio no canto. Badge de "tem pelada marcada" (.pl-map-arena-ctx-badge,
+   já existe acima) continua reaproveitado só na variante aprovada. */
+/* Wrapper de 52px — é ele que o Leaflet trata como o marcador clicável
+   (ver comentário em lib/leafletIcon.js); o círculo de 38px fica
+   centralizado dentro, sem mudar de tamanho visual. */
+.pl-map-arena-token-hit { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; }
+.pl-map-arena-token-pin { position: relative; width: 38px; height: 38px; }
+.pl-map-arena-token-photo {
+  width: 100%; height: 100%; border-radius: var(--radius-circle);
+  overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--ink);
+}
+.pl-map-arena-token-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pl-map-arena-token-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.pl-map-arena-token-pin.aprovada .pl-map-arena-token-photo { border: 3px solid var(--gold); }
+.pl-map-arena-token-pin.pendente .pl-map-arena-token-photo { border: 3px solid var(--concrete); opacity: 0.55; }
+.pl-map-arena-token-glow {
+  position: absolute; inset: -7px; border-radius: var(--radius-circle);
+  background: rgba(166,255,0,0.35);
+  animation: pl-map-user-pulse 2s ease-out infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-map-arena-token-glow { animation: none; opacity: 0.25; }
+}
+.pl-map-arena-token-badge-clock {
+  position: absolute; bottom: -2px; right: -2px; width: 16px; height: 16px;
+  border-radius: var(--radius-circle); background: var(--concrete);
+  border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center;
+}
+
+/* Tag de status no bottom sheet do seletor de local (arena oficial x
+   pendente de aprovação) */
+.pl-map-sheet-tag {
+  display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: var(--radius-pill);
+  margin: 2px 0 6px;
+}
+.pl-map-sheet-tag.oficial { background: rgba(166,255,0,0.15); color: var(--neon); border: 1px solid rgba(166,255,0,0.4); }
+.pl-map-sheet-tag.pendente { background: rgba(110,113,120,0.2); color: var(--paper-dim); border: 1px solid rgba(110,113,120,0.4); }
+
+/* Mapa — pino de arena no seletor de local (LocationPickerMap), com badge
+   de "tem pelada marcada" no canto — visível sem precisar tocar no pino. */
+.pl-map-arena-ctx-pin { position: relative; width: 28px; height: 40px; }
+.pl-map-arena-ctx-badge {
+  position: absolute; top: -2px; right: -2px; width: 11px; height: 11px;
+  border-radius: var(--radius-circle); background: var(--neon);
+  border: 2px solid var(--ink);
+}
+
+/* Popup do Leaflet (usado só no seletor de local, pro "usar este local" da
+   arena) — o padrão da lib é um card branco, destoa do resto do app.
+   !important necessário: leaflet/dist/leaflet.css é importado dentro do
+   componente (LocationPickerMap.js), e o Next empacota esse CSS depois do
+   globals.css no bundle final — mesma especificidade de seletor, então
+   quem carrega por último vence o cascade (confirmado inspecionando as
+   stylesheets em produção: a regra do Leaflet com fundo branco aparecia
+   depois da nossa). */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: var(--card-bg) !important; color: var(--paper) !important;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.leaflet-popup-content { margin: 10px 12px; font-family: var(--font-body); }
+.leaflet-popup-close-button { color: var(--paper-dim) !important; }
+.pl-map-popup-title { font-family: var(--font-display); text-transform: uppercase; font-size: 13px; margin: 0 0 4px; color: var(--paper); }
+.pl-map-popup-status { font-size: 12px; color: var(--paper-dim); margin: 0 0 8px; }
+.pl-map-popup-btn {
+  width: 100%; padding: 6px 10px; border-radius: var(--radius-pill);
+  background: var(--neon); color: var(--ink); border: none;
+  font-weight: 700; font-size: 12px; cursor: pointer;
+}
+
+/* Mapa — pino gamificado de pelada (arte da modalidade + anel de status).
+   Anel reaproveita as MESMAS 3 cores que já significam a mesma coisa em
+   peladaIcon/peladaLotadaIcon e no badge "últimas vagas" do card — não é
+   uma paleta nova. */
+.pl-map-modalidade-pin { position: relative; width: 36px; height: 36px; }
+.pl-map-modalidade-pin-photo {
+  width: 100%; height: 100%; border-radius: var(--radius-circle);
+  border: 3px solid var(--concrete); overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.pl-map-modalidade-pin-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pl-map-modalidade-pin.aberta .pl-map-modalidade-pin-photo { border-color: var(--neon); }
+.pl-map-modalidade-pin.ultimas .pl-map-modalidade-pin-photo { border-color: var(--gold); }
+.pl-map-modalidade-pin.lotada .pl-map-modalidade-pin-photo { border-color: var(--concrete); }
+
+/* Glow de "começa em ≤1h" — mesma animação (pl-map-user-pulse, definida
+   mais abaixo) já usada no ponto de localização do usuário nesse mesmo
+   mapa: transform+opacity (barato de compositar), não box-shadow, pra
+   aguentar vários pins pulsando ao mesmo tempo sem pesar. */
+.pl-map-modalidade-pin-glow {
+  position: absolute; inset: -7px; border-radius: var(--radius-circle);
+  background: rgba(166,255,0,0.35);
+  animation: pl-map-user-pulse 2s ease-out infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-map-modalidade-pin-glow { animation: none; opacity: 0.25; }
+}
+
+/* Cluster de pins — sobrescreve o visual padrão do leaflet.markercluster
+   pra usar a paleta do app em vez do amarelo/laranja/vermelho de fábrica */
+.pl-map-cluster {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  background: var(--neon);
+  border: 3px solid var(--card-bg);
+  border-radius: var(--radius-circle);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 14px;
+  box-shadow: 0 0 12px rgba(166,255,0,0.4);
+}
+
+/* Bottom sheet do mapa — desliza de baixo pra cima ao tocar num pino,
+   substitui o popup pequeno padrão do Leaflet */
+.pl-map-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  background: var(--card-bg); border-top: 2px solid var(--concrete);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 16px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.5);
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  max-width: 640px; margin: 0 auto;
+}
+.pl-map-sheet-open { transform: translateY(0); }
+.pl-map-sheet-handle {
+  width: 36px; height: 4px; border-radius: var(--radius-pill);
+  background: var(--concrete); margin: 0 auto 12px;
+}
+.pl-map-sheet-body { display: flex; gap: 12px; align-items: flex-start; }
+.pl-map-sheet-photo {
+  width: 64px; height: 64px; border-radius: var(--radius-md);
+  object-fit: cover; flex-shrink: 0; background: var(--ink);
+}
+.pl-map-sheet-title { margin: 0 0 2px; font-family: var(--font-display); color: var(--paper); text-transform: uppercase; font-size: 18px; }
+.pl-map-sheet-meta { font-size: 12px; color: var(--paper-dim); margin: 2px 0; }
+.pl-map-sheet-close {
+  background: none; border: none; color: var(--paper-dim); font-size: 20px;
+  cursor: pointer; padding: 4px 8px; line-height: 1;
+}
+.pl-map-sheet-actions { display: flex; gap: 8px; margin-top: 12px; }
+.pl-map-sheet-rota-btn {
+  flex: 1; background: none; border: 1px solid rgba(110,113,120,0.5);
+  color: var(--paper-dim); border-radius: var(--radius-sm); font-size: 12.5px;
+  font-weight: 600; font-family: var(--font-body); cursor: pointer; padding: 0 10px;
+}
+.pl-map-sheet-rota-btn:disabled { opacity: 0.6; cursor: default; }
+
+/* Ponto de posição do usuário no mapa — distinto dos pins de jogo/arena
+   (círculo sólido + anel pulsante, não o formato de gota). */
+.pl-map-user-dot {
+  width: 14px; height: 14px; border-radius: var(--radius-circle);
+  background: var(--neon); border: 2px solid var(--ink);
+  box-shadow: 0 0 8px rgba(166,255,0,0.8);
+  position: relative;
+}
+.pl-map-user-dot-pulse {
+  position: absolute; inset: -6px; border-radius: var(--radius-circle);
+  background: rgba(166,255,0,0.35);
+  animation: pl-map-user-pulse 2s ease-out infinite;
+}
+@keyframes pl-map-user-pulse {
+  0% { transform: scale(0.4); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-map-user-dot-pulse { animation: none; opacity: 0.3; }
+}
+
+/* Chrome nativo do Leaflet que ainda aparece (atribuição obrigatória do
+   OSM/CARTO) — tema escuro pra não destoar do resto do mapa. Controle de
+   zoom fica oculto (zoomControl={false} no MapContainer), mobile usa
+   gesto de pinça. */
+.leaflet-control-attribution {
+  background: rgba(10,10,10,0.7) !important; color: var(--paper-dim) !important;
+  font-size: 10px !important;
+}
+.leaflet-control-attribution a { color: var(--paper-dim) !important; }
+.leaflet-routing-container { display: none !important; }
+

@@ -4,8 +4,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import GameCardIcon from './icons/GameCardIcon';
 
 // "expand" fica de pé o tempo inteiro da animação do anel (pl-ring-out,
-// 420ms em globals.css) — se fosse mais curto que isso, a classe some e o
-// anel corta pela metade em vez de terminar de desaparecer.
+// 420ms em app/styles/nav.css) — se fosse mais curto que isso, a classe
+// some e o anel corta pela metade em vez de terminar de desaparecer.
 const STAGES_FULL = [['sink', 110], ['ball', 160], ['spin', 300], ['expand', 420]];
 const STAGES_REDUCED = [['ball', 40], ['expand', 40]];
 

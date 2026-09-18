@@ -1,0 +1,273 @@
+/* app/styles/nav.css — fatia de app/globals.css (dividido por área, mesmo conteúdo).
+   Navegação inferior fixa e o botão flutuante do Organizar. */
+
+/* Navegação inferior fixa — só em telas estreitas (mobile). Barra de abas
+   ESTÁTICA: os 5 setores ficam sempre na mesma ordem/posição da esquerda
+   pra direita (ORDEM_NAV em lib/bottomNavWheel.js) — início, peladas,
+   criar, avisos, perfil — igual uma barra de abas nativa comum, nada se
+   desloca lateralmente ao trocar de rota. Só o ESTILO do item ativo muda,
+   no lugar onde ele já está: ícone maior, bola neon atrás dele (marca
+   d'água — ver .nav-icon-shell/.pl-nav-ball-wrap abaixo, mora dentro de
+   CADA item, nunca um elemento separado que possa desalinhar) e leve
+   elevação (até 2px). Barra: borda a borda do aparelho (sem margem
+   lateral flutuante, sem cantos arredondados) — fundo sólido, sem
+   textura, sem vidro, sem linha decorativa; respeita a safe area dos
+   três lados que importam aqui (esquerda/direita pra notch em landscape
+   e entalhes laterais, baixo pra home indicator) sem nenhum cálculo em
+   JS. "Organizar" não faz parte dela — vive em .pl-organizar-fab (ver
+   mais abaixo). Rotas/páginas/lógica de cada destino continuam as
+   mesmas — só o visual mudou. */
+.pl-bottom-nav {
+  display: none;
+  position: fixed;
+  left: 0; right: 0; bottom: 0; z-index: 30;
+  height: 76px;
+  padding: 0 max(4px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom, 0px)) max(4px, env(safe-area-inset-left));
+  background: #121310;
+  border-top: 1px solid rgba(243,243,238,0.14);
+  overflow: hidden;
+  /* dica pro navegador: gestos horizontais são tratados aqui (swipe entre
+     abas) — não afeta rolagem vertical da página, que nem passa por essa
+     barra fixa (não faz parte do fluxo rolável do conteúdo). */
+  touch-action: pan-y;
+}
+@media (max-width: 700px) { .pl-bottom-nav { display: block; } }
+
+.pl-bottom-nav-item {
+  position: relative;
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; min-width: 44px; min-height: 44px; padding: 4px 6px;
+  background: none; border: none; color: var(--paper-dim); text-decoration: none;
+  font-size: 11px; font-family: var(--font-body); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.01em;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: color 180ms ease, transform 200ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+.pl-bottom-nav-item:focus-visible {
+  outline: 2px solid var(--neon); outline-offset: -3px; border-radius: 10px;
+}
+
+/* Aba ativa = três sinais discretos, sempre juntos: bola neon atrás do
+   ícone (marca d'água), ícone + rótulo na cor de destaque, elevação de
+   no máximo 2px. Nada de cartão, sombra pesada, vidro ou gradiente
+   decorativo por trás — isso pareceria efeito de game UI, não navegação
+   nativa de app. */
+.pl-bottom-nav-item.active { transform: translateY(-2px); }
+.pl-bottom-nav-item.active .pl-bottom-nav-label { color: var(--neon); }
+
+/* Referência geométrica única do ícone E da bola — um <svg> (o ícone) e
+   um <span> (a bola, ver .pl-nav-ball-wrap) competem pelo mesmo centro
+   exato deste quadrado fixo de 44px (a área mínima de toque recomendada,
+   igual ao resto do item). display:grid + place-items:center centra o
+   ícone (conteúdo real do grid); a bola sai do fluxo via position:absolute
+   e usa o MESMO centro (top/left 50% + translate -50%,-50%) — nunca outro
+   ponto de referência, nunca calculado por rota. isolation:isolate cria
+   um contexto de empilhamento próprio pra o z-index da bola (0) e do
+   ícone (1) valerem só aqui dentro, sem disputar com o resto da barra. */
+.nav-icon-shell {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+/* ">" (filho direto), não descendente qualquer: a bola também é um <svg>
+   lá dentro de .pl-nav-ball-wrap, um nível mais fundo — sem o ">" essa
+   regra pegaria as duas e a bola herdaria o tamanho/cor do ícone. */
+.nav-icon-shell > svg {
+  position: relative; z-index: 1; color: inherit;
+  width: 26px; height: 26px;
+  transition: width 200ms cubic-bezier(0.33, 1, 0.68, 1), height 200ms cubic-bezier(0.33, 1, 0.68, 1), color 180ms ease;
+}
+.pl-bottom-nav-item.active .nav-icon-shell > svg { width: 28px; height: 28px; color: var(--neon); }
+
+.pl-bottom-nav-label { transition: color 180ms ease, opacity 180ms ease; white-space: nowrap; }
+
+/* Bola: MARCA D'ÁGUA atrás do ícone (BottomNavBall.js) — nunca maior que
+   o ícone a ponto de competir com ele (40px, ícone ativo tem 28px),
+   opacidade baixa (0.32 no auge) e brilho contido num único drop-shadow
+   pequeno — sem halo grande, sem pulso/rotação contínuos, só o
+   aparecer/crescer de 220ms quando o item vira .active. Uma instância
+   por item, sempre montada (nunca remonta nem viaja) — nasce e morre no
+   mesmo eixo do shell daquele item. */
+.pl-nav-ball-wrap {
+  position: absolute; top: 50%; left: 50%; z-index: 0;
+  width: 40px; height: 40px;
+  display: block;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.72);
+  filter: drop-shadow(0 0 2.5px rgba(166,255,0,0.45));
+  transition: opacity 220ms ease, transform 220ms cubic-bezier(0.33, 1, 0.68, 1);
+  pointer-events: none;
+}
+.pl-nav-ball-svg { display: block; width: 100%; height: 100%; }
+.pl-bottom-nav-item.active .pl-nav-ball-wrap { opacity: 0.32; transform: translate(-50%, -50%) scale(1); }
+
+/* flash de toque — resposta física/energética antes de navegar */
+.pl-bottom-nav-flash {
+  position: absolute; inset: -10px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(166,255,0,0.55), transparent 65%);
+  opacity: 0; pointer-events: none;
+}
+.pl-bottom-nav-item.flash .pl-bottom-nav-flash,
+.pl-organizar-fab.flash .pl-bottom-nav-flash { animation: pl-tap-flash 140ms ease-out; }
+@keyframes pl-tap-flash {
+  0% { opacity: 0.9; transform: scale(0.5); }
+  100% { opacity: 0; transform: scale(1.3); }
+}
+
+/* Avisos — tremor no toque e sempre que um aviso novo chega */
+.pl-bottom-nav-avisos.shake .nav-icon-shell > svg { animation: pl-avisos-shake 340ms ease; }
+@keyframes pl-avisos-shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-11deg); }
+  40% { transform: rotate(9deg); }
+  60% { transform: rotate(-6deg); }
+  80% { transform: rotate(3deg); }
+}
+
+/* botão central — corte angular, um item de grid como qualquer outro (só
+   levemente levantado via margin-top negativo, que não briga com os
+   `transform: ... !important` dos estágios sink/spin/expand abaixo, ao
+   contrário de um translateY). Halo estático (sem loop) no lugar do pulso
+   contínuo que existia antes — "premium" sem ficar piscando o tempo todo. */
+.pl-bottom-nav-central {
+  position: relative; width: 46px; height: 46px; margin-top: -6px;
+  border-radius: 14px;
+  background: linear-gradient(150deg, var(--neon), var(--neon-dim));
+  box-shadow: 0 0 12px rgba(166,255,0,0.4), 0 3px 8px rgba(0,0,0,0.4);
+  clip-path: polygon(18% 0%, 100% 0%, 100% 82%, 82% 100%, 0% 100%, 0% 18%);
+  display: flex; align-items: center; justify-content: center;
+  border: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.pl-bottom-nav-central:hover { box-shadow: 0 0 16px rgba(166,255,0,0.55), 0 3px 8px rgba(0,0,0,0.4); }
+.pl-bottom-nav-central:focus-visible {
+  outline: 2px solid var(--neon); outline-offset: 2px; border-radius: 14px;
+}
+.pl-bottom-nav-central svg { position: absolute; color: var(--ink); }
+.pl-central-icon-plus { opacity: 1; transform: scale(1) rotate(0deg); transition: opacity 150ms ease, transform 150ms ease; }
+.pl-central-icon-ball { opacity: 0; transform: scale(0.5) rotate(-40deg); transition: opacity 150ms ease, transform 150ms ease; }
+.pl-bottom-nav-central.sink,
+.pl-bottom-nav-central.spin,
+.pl-bottom-nav-central.expand { animation-play-state: paused; }
+.pl-bottom-nav-central.sink { transform: scale(0.86) !important; }
+/* o "+" fica escondido e a bola visível a partir do momento que vira bola
+   até o fim da sequência (gira, expande) — só volta a mostrar "+" no idle */
+.pl-bottom-nav-central.ball .pl-central-icon-plus,
+.pl-bottom-nav-central.spin .pl-central-icon-plus,
+.pl-bottom-nav-central.expand .pl-central-icon-plus { opacity: 0; transform: scale(0.5) rotate(40deg); }
+.pl-bottom-nav-central.ball .pl-central-icon-ball,
+.pl-bottom-nav-central.spin .pl-central-icon-ball,
+.pl-bottom-nav-central.expand .pl-central-icon-ball { opacity: 1; transform: scale(1) rotate(0deg); }
+.pl-bottom-nav-central.spin { transform: scale(1.05) !important; }
+.pl-bottom-nav-central.spin .pl-central-icon-ball { animation: pl-ball-spin 300ms linear; }
+@keyframes pl-ball-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.pl-bottom-nav-central.expand { transform: scale(1) !important; }
+.pl-bottom-nav-central.expand::after {
+  content: ''; position: absolute; inset: -3px; border-radius: 16px;
+  border: 2px solid var(--neon);
+  clip-path: polygon(18% 0%, 100% 0%, 100% 82%, 82% 100%, 0% 100%, 0% 18%);
+  animation: pl-ring-out 420ms cubic-bezier(0.2,0.7,0.3,1) forwards;
+}
+@keyframes pl-ring-out { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(2.1); opacity: 0; } }
+
+/* Botão flutuante do "Organizar" — saiu do carrossel de abas e virou um
+   satélite à parte: ancorado num ponto fixo (não gira com a roda), boiando
+   acima da barra perto de onde o "+" de criar costuma estar. Vidro escuro
+   com aro neon (mesma paleta do resto da barra) em vez do preenchimento
+   sólido do botão central — sinaliza "ação secundária" sem competir com o
+   "+" pela atenção. Entra com um pop elástico só uma vez, ao montar;
+   depois fica parado (mesmo princípio do botão central: brilho estático,
+   sem loop piscando). */
+.pl-organizar-fab {
+  display: none;
+  position: fixed;
+  right: 18px;
+  bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  z-index: 31;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  align-items: center; justify-content: center;
+  background: rgba(20, 24, 18, 0.82);
+  backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(166,255,0,0.55);
+  box-shadow: 0 0 14px rgba(166,255,0,0.28), 0 6px 16px rgba(0,0,0,0.5);
+  color: var(--neon);
+  text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  animation: pl-organizar-fab-pop 420ms cubic-bezier(0.22, 1.35, 0.32, 1) both;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+@media (max-width: 700px) { .pl-organizar-fab { display: flex; } }
+.pl-organizar-fab svg { position: relative; z-index: 2; }
+.pl-organizar-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(166,255,0,0.4), 0 8px 18px rgba(0,0,0,0.55);
+}
+.pl-organizar-fab:active { transform: scale(0.88); }
+.pl-organizar-fab:focus-visible {
+  outline: 2px solid var(--neon); outline-offset: 3px;
+}
+/* ativo (na própria /organizar) — mesmo preenchimento sólido do botão
+   central, pra ficar claro que é "aqui que você está" mesmo sendo um
+   satélite fora da roda. */
+.pl-organizar-fab.active {
+  background: linear-gradient(150deg, var(--neon), var(--neon-dim));
+  border-color: transparent;
+  color: var(--ink);
+  box-shadow: 0 0 18px rgba(166,255,0,0.5), 0 6px 16px rgba(0,0,0,0.5);
+}
+@keyframes pl-organizar-fab-pop {
+  0% { opacity: 0; transform: scale(0.4) translateY(10px); }
+  70% { opacity: 1; transform: scale(1.08) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 700px) {
+  body { padding-bottom: 88px; }
+  .pl-toast-container { bottom: 98px; }
+  /* Grade real de 5 colunas iguais — cada .pl-nav-slot OCUPA a coluna
+     inteira (stretch é o default do grid, por isso nem precisa declarar
+     align-items/justify-items aqui: a versão antiga forçava "center" nos
+     dois eixos, o que encolhia cada slot pro tamanho do conteúdo e
+     deixava as 5 abas com pinta de blob solto no meio da coluna em vez
+     de ocupar a barra de ponta a ponta). minmax(0,1fr) em vez de 1fr:
+     trava a coluna em 1/5 da barra mesmo se algum conteúdo interno
+     tentasse crescer além disso (nenhum ícone/rótulo faz isso hoje, mas
+     é a forma correta de declarar "coluna igual" numa grade real). Fica
+     dentro deste media query pra não forçar a barra a aparecer em telas
+     largas (onde .pl-bottom-nav continua display:none). */
+  .pl-nav-flat {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .pl-nav-flat .pl-nav-slot {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%;
+  }
+}
+
+/* Sem deslocamento: os itens nem chegam a ter posição animada nesse modo
+   (.pl-nav-flat cuida disso acima) — aqui desligamos toda transição que
+   sobraria nos componentes internos (elevação do item ativo, tamanho do
+   ícone, fade da bola, tremor de avisos, giro do "+") E removemos a
+   própria elevação do item ativo (não só a anima), trocando por uma
+   atualização estática e instantânea de estado — só cor/opacidade mudam,
+   nada se desloca. */
+@media (prefers-reduced-motion: reduce) {
+  .pl-bottom-nav-item { transition: none; }
+  .pl-bottom-nav-item.active { transform: none; }
+  .nav-icon-shell > svg { transition: none; }
+  .pl-nav-ball-wrap { transition: none; }
+  .pl-bottom-nav-avisos.shake .nav-icon-shell > svg { animation: none !important; }
+  .pl-bottom-nav-central.sink, .pl-bottom-nav-central.spin { transform: none !important; }
+  .pl-central-icon-plus, .pl-central-icon-ball { transition-duration: 60ms; }
+  .pl-bottom-nav-central.spin .pl-central-icon-ball { animation: none; }
+  .pl-bottom-nav-central.expand::after { display: none; }
+  .pl-bottom-nav-flash { display: none; }
+  .pl-organizar-fab { animation: none; opacity: 1; }
+  .pl-organizar-fab:hover, .pl-organizar-fab:active { transform: none; }
+}
+

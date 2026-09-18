@@ -1,0 +1,206 @@
+/* app/styles/login.css — fatia de app/globals.css (dividido por área, mesmo conteúdo).
+   Tela de login/cadastro: entrada animada, campos, bola interativa (PitchBall), chute a gol, toasts/skeleton/loading/estado vazio (compartilhados, mas definidos aqui na sequência original). */
+
+
+/* Entrada encenada: logo → tagline → formulário. Delays somados pra já
+   contar com o fade-in de 280ms que .pl-page-fade (template.js) já faz por
+   fora — sem isso, as duas animações se misturavam e o efeito sumia. */
+@keyframes pl-stagger-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.pl-stagger-1, .pl-stagger-2, .pl-stagger-3 { animation: pl-stagger-in 220ms cubic-bezier(.2,.7,.3,1) both; opacity: 0; }
+.pl-stagger-1 { animation-delay: 300ms; }
+.pl-stagger-2 { animation-delay: 420ms; }
+.pl-stagger-3 { animation-delay: 540ms; }
+
+/* Campo reativo: label flutuante + borda em degradê no foco — estilo
+   crítico vai inline em FloatingInput.js/PasswordField.js (React state),
+   não CSS reagindo a :focus/:has() (frágil demais nos testes desta tela). */
+.pl-field-collapse { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 240ms ease, opacity 180ms ease; }
+.pl-field-collapse.open { max-height: 100px; opacity: 1; }
+
+/* Botão: brilho neon ao tocar, além do scale que já existia. */
+.pl-authcard .pl-ticket:active { box-shadow: 0 0 0 2px rgba(166,255,0,0.25), 0 0 26px rgba(166,255,0,0.5); }
+
+/* Bola girando dentro do botão (estado de carregamento) — reaproveita as
+   mesmas keyframes do LoadingBall de página cheia, só menor. */
+.pl-btn-ball-stage { position: relative; display: inline-block; width: 20px; height: 30px; vertical-align: middle; }
+.pl-btn-ball { position: absolute; left: 1px; top: 0; font-size: 16px; line-height: 1; animation: pl-bounce 700ms ease-in-out infinite; }
+.pl-btn-ball-shadow { position: absolute; bottom: 1px; left: 3px; width: 14px; height: 4px; border-radius: 50%; background: rgba(0,0,0,0.4); animation: pl-shadow-pulse 700ms ease-in-out infinite; }
+
+/* Bola interativa com física de verdade (PitchBall.js): toque simples,
+   arrastar-e-soltar com "flick", gravidade/atrito/quique, mini-gol num
+   canto. Posição/rotação são escritas direto em transform via ref a cada
+   frame (nunca via state do React) — o CSS aqui só cuida da aparência
+   estática de cada peça. Puramente lúdica, mesma filosofia do easter egg
+   do logo. O campo de jogo ocupa a página inteira; o cartão de login é um
+   obstáculo sólido, a física ricocheteia nele. */
+.pl-pitch-zone {
+  z-index: 1; pointer-events: none; overflow: hidden;
+}
+.pl-pitch-turf {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 12% 92%, rgba(166,255,0,0.05), transparent 45%),
+    radial-gradient(circle at 88% 85%, rgba(166,255,0,0.04), transparent 42%),
+    radial-gradient(circle at 50% 100%, rgba(166,255,0,0.035), transparent 55%);
+}
+.pl-pitch-goal {
+  position: absolute; right: 14px; bottom: 14px; width: 92px; height: 72px;
+  pointer-events: none;
+}
+.pl-pitch-ball-shadow {
+  position: absolute; top: 0; left: 0; width: 42px; height: 13px;
+  border-radius: 50%; background: rgba(0,0,0,0.55); filter: blur(2px);
+  pointer-events: none; will-change: transform, opacity;
+}
+.pl-pitch-ball-btn {
+  position: absolute; top: 0; left: 0;
+  background: none; border: none; padding: 0; margin: 0; cursor: grab;
+  pointer-events: auto; touch-action: none; -webkit-tap-highlight-color: transparent;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.45));
+  will-change: transform;
+}
+.pl-pitch-ball-btn:active { cursor: grabbing; }
+.pl-pitch-ball-btn:focus-visible { outline: 2px solid var(--neon); outline-offset: 3px; border-radius: 50%; }
+.pl-pitch-ball-btn.pl-ball-squash svg { animation: pl-ball-squash 220ms ease-out; }
+@keyframes pl-ball-squash {
+  0% { transform: scaleX(1.22) scaleY(0.8); }
+  55% { transform: scaleX(0.92) scaleY(1.08); }
+  100% { transform: scaleX(1) scaleY(1); }
+}
+.pl-pitch-gol-txt {
+  position: absolute; right: 12px; bottom: 92px; z-index: 2;
+  font-family: var(--font-display); text-transform: uppercase; font-size: 17px;
+  color: var(--neon); text-shadow: 0 0 10px rgba(166,255,0,0.7), 0 2px 4px rgba(0,0,0,0.6);
+  pointer-events: none; animation: pl-gol-pop 400ms cubic-bezier(.3,1.6,.4,1) both;
+}
+@keyframes pl-gol-pop {
+  0% { opacity: 0; transform: translateY(6px) scale(0.7); }
+  60% { opacity: 1; transform: translateY(-2px) scale(1.08); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* prefers-reduced-motion: sem zona, sem física — botão parado com um
+   pulso curto de escala ao tocar (esse pulso É o feedback reduzido
+   pedido, não uma simulação de movimento, por isso não entra na lista
+   de animações desligadas no media query lá embaixo). */
+.pl-pitch-ball-simple {
+  position: absolute; z-index: 1; left: 18%; bottom: 6%;
+  background: none; border: none; padding: 6px; margin: 0; cursor: pointer;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,0.45));
+}
+.pl-pitch-ball-simple:focus-visible { outline: 2px solid var(--neon); outline-offset: 3px; border-radius: 50%; }
+.pl-pitch-ball-simple.pl-pulse { animation: pl-ball-pulse 260ms ease; }
+@keyframes pl-ball-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+/* Chute a gol no botão Entrar (só no modo "entrar", ver login/page.js).
+   A bolinha "sai chutada" de cima do botão e some — sem desenhar gol
+   nenhum no cenário, pra não poluir o visual. O resultado (gol/trave)
+   aparece no próprio botão. */
+.pl-launch-ball {
+  position: absolute; left: 50%; bottom: 100%; margin-bottom: 4px;
+  font-size: 20px; line-height: 1; transform: translateX(-50%);
+  animation: pl-fly-away 550ms cubic-bezier(.4,0,.3,1) forwards;
+}
+@keyframes pl-fly-away {
+  0% { transform: translate(-50%,0) scale(1) rotate(0deg); opacity: 1; }
+  100% { transform: translate(-50%,-140px) scale(0.3) rotate(360deg); opacity: 0; }
+}
+.pl-authcard .pl-ticket.pl-kickbtn-post { background: var(--tag-red); animation: pl-kick-shake 420ms ease; }
+.pl-authcard .pl-ticket.pl-kickbtn-goal { background: var(--lilas); }
+.pl-authcard .pl-ticket.pl-kickbtn-post .pl-ticket-label,
+.pl-authcard .pl-ticket.pl-kickbtn-goal .pl-ticket-label { color: var(--paper); }
+@keyframes pl-kick-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+/* Flash de refletor na transição pro Home após login bem-sucedido.
+   Só cosmético: dispara depois que a autenticação já deu certo, nunca
+   atrasa a chamada real — janela fixa e curta (<1s) antes de navegar. */
+.pl-login-flash {
+  position: fixed; inset: 0; z-index: 999; pointer-events: none;
+  background: radial-gradient(circle at 50% 30%, rgba(230,255,200,0.9), rgba(230,255,200,0) 70%);
+  animation: pl-flash-seq 400ms ease-out;
+}
+@keyframes pl-flash-seq {
+  0% { opacity: 0; }
+  25% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-lamp-core, .pl-lamp-beam { animation: none; opacity: 0.85; }
+  .pl-onb-radar-ring { animation: none; opacity: 0; }
+  .pl-onb-glow { animation: none; opacity: 1; }
+  .pl-onb-icon-wrap { animation: none; opacity: 1; transform: none; }
+  .pl-onb-title span, .pl-onboarding-content p { animation: none; opacity: 1; transform: none; }
+  .pl-onb-draw { animation: none; stroke-dashoffset: 0; }
+  .pl-onb-tear { animation: none; transform: none; }
+  .pl-onb-fill { animation: none; opacity: 1; }
+  .pl-onb-badge { animation: none; opacity: 1; transform: none; }
+  .pl-onb-spark { animation: none; opacity: 0; }
+  .pl-onb-twinkle { animation: none; opacity: 0.85; transform: none; }
+  .pl-onb-cta .pl-ticket-label::after { animation: none; display: none; }
+  .pl-stagger-1, .pl-stagger-2, .pl-stagger-3 { animation: none; opacity: 1; transform: none; }
+  .pl-btn-ball, .pl-btn-ball-shadow { animation: none; }
+  .pl-pitch-gol-txt { animation: none; opacity: 1; transform: none; }
+  .pl-pitch-ball-btn.pl-ball-squash svg { animation: none; }
+  .pl-authcard .pl-ticket:active { box-shadow: none; }
+  .pl-launch-ball { animation: none; opacity: 0; }
+  .pl-authcard .pl-ticket.pl-kickbtn-post { animation: none; }
+  .pl-login-flash { display: none; }
+}
+
+/* Toasts */
+.pl-toast-container {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 200;
+  width: 100%; max-width: 360px; padding: 0 16px; pointer-events: none;
+}
+.pl-toast {
+  background: var(--card-bg); border: 1.5px solid var(--neon); color: var(--paper);
+  padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 220ms ease, transform 220ms ease;
+  pointer-events: auto;
+}
+.pl-toast-show { opacity: 1; transform: translateY(0); }
+.pl-toast-error { border-color: var(--tag-red); }
+
+/* Skeleton shimmer */
+.pl-skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 37%, rgba(255,255,255,0.04) 63%);
+  background-size: 400% 100%;
+  animation: pl-shimmer 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes pl-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+/* Loading: bola quicando */
+.pl-loading-ball-wrap { display: flex; justify-content: center; padding: 34px 0; }
+.pl-loading-ball-stage { position: relative; width: 40px; height: 64px; }
+.pl-loading-ball { position: absolute; left: 2px; top: 0; font-size: 32px; line-height: 1; animation: pl-bounce 700ms ease-in-out infinite; }
+.pl-loading-shadow { position: absolute; bottom: 2px; left: 6px; width: 30px; height: 8px; border-radius: 50%; background: rgba(0,0,0,0.45); animation: pl-shadow-pulse 700ms ease-in-out infinite; }
+@keyframes pl-bounce {
+  0%, 100% { transform: translateY(0) scaleX(1); }
+  40% { transform: translateY(-26px) scaleX(0.96); }
+  50% { transform: translateY(-30px) scaleX(1); }
+  60% { transform: translateY(-26px) scaleX(0.96); }
+}
+@keyframes pl-shadow-pulse { 0%, 100% { transform: scaleX(1); opacity: 0.5; } 50% { transform: scaleX(0.55); opacity: 0.22; } }
+
+/* Estado vazio: campo riscado a giz */
+.pl-empty { text-align: center; padding: 60px 20px; color: var(--paper-dim); }
+.pl-empty svg { margin-bottom: 10px; }
+

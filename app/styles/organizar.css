@@ -1,0 +1,171 @@
+/* app/styles/organizar.css — fatia de app/globals.css (dividido por área, mesmo conteúdo).
+   Painel do Organizador (visão geral, painel por pelada, check-in). */
+
+/* ============================================================
+   Painel do Organizador (/organizar) — visão geral, gestão por
+   pelada, insights e financeiro. Reaproveita tokens/padrões já
+   estabelecidos (.pl-stat, .pl-tabs, .pl-empty, .pl-skeleton) em
+   vez de inventar um sistema visual novo. Verde-limão = ação
+   positiva/destaque, dourado = atenção, vermelho = risco real —
+   cor semântica reservada só pra esses três casos, nunca decorativa.
+   ============================================================ */
+.pl-org-page { max-width: 720px; margin: 0 auto; padding: 16px 16px 32px; }
+.pl-org-header { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+.pl-org-header h1 { font-family: var(--font-display); text-transform: uppercase; font-size: 22px; margin: 0; }
+.pl-org-header p { color: var(--paper-dim); font-size: 13px; margin: 2px 0 0; }
+
+.pl-org-hero {
+  background: linear-gradient(160deg, rgba(166,255,0,0.08), var(--card-bg) 55%);
+  border: 1px solid rgba(166,255,0,0.25); border-radius: var(--radius-lg);
+  padding: 16px; margin-bottom: 16px;
+  animation: pl-org-rise 320ms cubic-bezier(.2,.7,.3,1) both;
+}
+.pl-org-hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--neon); font-weight: 700; margin: 0 0 6px; }
+.pl-org-hero-title { font-family: var(--font-display); text-transform: uppercase; font-size: 19px; margin: 0 0 4px; }
+.pl-org-hero-meta { color: var(--paper-dim); font-size: 13px; margin: 0 0 12px; }
+.pl-org-hero-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.pl-org-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.pl-org-card {
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.35); border-radius: var(--radius-md);
+  padding: 13px 14px; animation: pl-org-rise 320ms cubic-bezier(.2,.7,.3,1) both;
+}
+.pl-org-card .num { font-family: var(--font-display); font-size: 24px; color: var(--paper); display: block; line-height: 1.1; transition: transform 160ms ease; }
+.pl-org-card .num.pl-org-warn { color: var(--gold); }
+.pl-org-card .num.pl-org-risk { color: var(--tag-red); }
+.pl-org-card .num.pl-org-good { color: var(--neon); }
+.pl-org-card .label { font-size: 10.5px; color: var(--paper-dim); text-transform: uppercase; letter-spacing: 0.01em; margin-top: 2px; }
+.pl-org-card .hint { font-size: 11px; color: var(--paper-dim); margin-top: 4px; line-height: 1.4; }
+.pl-org-card.pl-org-number-pop .num { animation: pl-org-pop 360ms cubic-bezier(.34,1.56,.64,1); }
+@keyframes pl-org-pop { 0% { transform: scale(1); } 45% { transform: scale(1.16); } 100% { transform: scale(1); } }
+
+.pl-org-section { margin-bottom: 22px; }
+.pl-org-section-title { font-family: var(--font-display); text-transform: uppercase; font-size: 14px; color: var(--paper); margin: 0 0 10px; letter-spacing: 0.01em; }
+
+.pl-org-pelada-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.3); border-radius: var(--radius-md);
+  padding: 12px 14px; margin-bottom: 8px; text-decoration: none; color: inherit;
+  transition: border-color 160ms ease;
+}
+.pl-org-pelada-row:hover { border-color: rgba(166,255,0,0.4); }
+.pl-org-pelada-row .info { min-width: 0; }
+.pl-org-pelada-row .info b { display: block; font-size: 14px; color: var(--paper); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-org-pelada-row .info span { font-size: 12px; color: var(--paper-dim); }
+.pl-org-pelada-row .metrics { display: flex; gap: 10px; flex-shrink: 0; align-items: center; }
+.pl-org-pelada-row .metric { text-align: center; font-size: 11px; color: var(--paper-dim); }
+.pl-org-pelada-row .metric b { display: block; font-size: 15px; color: var(--paper); font-family: var(--font-display); }
+
+.pl-org-badge { display: inline-block; font-size: 10px; text-transform: uppercase; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-pill); letter-spacing: 0.02em; }
+.pl-org-badge.agendada { background: rgba(166,255,0,0.14); color: var(--neon); }
+.pl-org-badge.aguardando_encerramento { background: rgba(255,197,61,0.16); color: var(--gold); }
+.pl-org-badge.encerrada { background: rgba(110,113,120,0.2); color: var(--paper-dim); }
+
+.pl-org-insight-item { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(110,113,120,0.2); font-size: 13px; }
+.pl-org-insight-item:last-child { border-bottom: none; }
+.pl-org-insight-item span:first-child { color: var(--paper-dim); }
+.pl-org-insight-item span:last-child { color: var(--paper); font-weight: 700; text-align: right; }
+
+.pl-org-fin-filters { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.pl-org-fin-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid rgba(110,113,120,0.2); font-size: 13px;
+}
+.pl-org-fin-row .who { min-width: 0; }
+.pl-org-fin-row .who b { display: block; color: var(--paper); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-org-fin-row .who span { font-size: 11.5px; color: var(--paper-dim); }
+.pl-org-fin-row .valor { font-family: var(--font-display); font-size: 14px; flex-shrink: 0; }
+.pl-org-fin-row .valor.pendente { color: var(--gold); }
+.pl-org-fin-row .valor.pago { color: var(--neon); }
+.pl-org-fin-totais { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+.pl-org-fin-totais div { font-size: 12px; color: var(--paper-dim); }
+.pl-org-fin-totais b { display: block; font-family: var(--font-display); font-size: 17px; color: var(--paper); }
+
+/* Reorganização do painel por pelada (/organizar/[id]): cabeçalho
+   compacto + resumo de uma linha (em vez do grid de 4 cards que repetia
+   número que também aparece nas abas), barra de ações com "Cancelar"
+   sempre separado à direita, abas reaproveitando .pl-tabs/.pl-tab (mesmo
+   visual das abas do painel geral), grupos recolhíveis (<details> nativo,
+   sem lib nova) e contato só visível sob pedido. */
+.pl-org-resumo-linha { color: var(--paper-dim); font-size: 12.5px; margin: -10px 0 16px; }
+.pl-org-checkin-tag { color: var(--neon); font-weight: 700; }
+
+.pl-org-actionbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.pl-org-action-danger { margin-left: auto; }
+.pl-org-action-overflow { display: none; position: relative; }
+.pl-org-action-overflow summary { list-style: none; }
+.pl-org-action-overflow summary::-webkit-details-marker { display: none; }
+.pl-org-action-overflow-panel {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 5;
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.4); border-radius: var(--radius-md);
+  padding: 6px; display: flex; flex-direction: column; gap: 4px; min-width: 170px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.pl-org-action-overflow-panel button { width: 100%; }
+@media (max-width: 480px) {
+  .pl-org-action-wide-only { display: none; }
+  .pl-org-action-overflow { display: inline-block; }
+}
+
+.pl-org-pendencia {
+  border: 1px solid rgba(255,197,61,0.4); background: rgba(255,197,61,0.06);
+  border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;
+}
+.pl-org-pendencia .pl-org-section-title { color: var(--gold); margin-bottom: 8px; }
+
+.pl-org-checkin-banner {
+  background: linear-gradient(160deg, rgba(166,255,0,0.1), var(--card-bg) 60%);
+  border: 1px solid rgba(166,255,0,0.3); border-radius: var(--radius-md);
+  padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: var(--neon); font-weight: 700;
+}
+
+.pl-org-group { margin-bottom: 12px; border: 1px solid rgba(110,113,120,0.3); border-radius: var(--radius-md); background: var(--card-bg); overflow: hidden; }
+.pl-org-group summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 14px; cursor: pointer; list-style: none;
+  font-family: var(--font-display); text-transform: uppercase; font-size: 13px; color: var(--paper);
+}
+.pl-org-group summary::-webkit-details-marker { display: none; }
+.pl-org-group summary::after { content: '▾'; color: var(--paper-dim); font-size: 11px; transition: transform 150ms ease; }
+.pl-org-group[open] summary::after { transform: rotate(180deg); }
+.pl-org-group-body { padding: 2px 14px 10px; }
+.pl-org-group-empty { color: var(--paper-dim); font-size: 12.5px; padding: 0 0 10px; }
+
+.pl-org-confirm-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(110,113,120,0.2); font-size: 13px; }
+.pl-org-confirm-row:last-child { border-bottom: none; }
+.pl-org-confirm-actions { display: flex; gap: 6px; }
+.pl-org-btn-mini {
+  border: 1px solid rgba(110,113,120,0.45); background: transparent; color: var(--paper);
+  font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: var(--radius-sm); cursor: pointer;
+}
+.pl-org-btn-mini.aprovar { border-color: var(--neon); color: var(--neon); }
+.pl-org-btn-mini.recusar { border-color: var(--tag-red); color: var(--tag-red); }
+.pl-org-btn-mini:disabled { opacity: 0.5; cursor: default; }
+.pl-org-btn-mini.pago { border-color: var(--neon); color: var(--neon); }
+.pl-org-btn-mini.whatsapp { border-color: #25D366; color: #25D366; }
+.pl-org-confirm-aviso { font-size: 11px; color: var(--paper-dim); line-height: 1.4; margin: 10px 0 0; }
+
+/* Check-in de jogo: mesma casca de pill do .pl-org-badge, cores semânticas
+   já estabelecidas no painel (neon=ok, gold=atenção, tag-red=falta). */
+.pl-checkin-pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: var(--radius-pill); letter-spacing: 0.02em; white-space: nowrap; }
+.pl-checkin-pill.pontual { background: rgba(166,255,0,0.14); color: var(--neon); }
+.pl-checkin-pill.atrasado { background: rgba(255,197,61,0.16); color: var(--gold); }
+.pl-checkin-pill.sem-checkin { background: rgba(110,113,120,0.2); color: var(--paper-dim); }
+.pl-checkin-pill.falta { background: rgba(232,54,43,0.14); color: var(--tag-red); }
+
+@keyframes pl-org-rise {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.pl-org-grid .pl-org-card:nth-child(1) { animation-delay: 0ms; }
+.pl-org-grid .pl-org-card:nth-child(2) { animation-delay: 40ms; }
+.pl-org-grid .pl-org-card:nth-child(3) { animation-delay: 80ms; }
+.pl-org-grid .pl-org-card:nth-child(4) { animation-delay: 120ms; }
+.pl-org-grid .pl-org-card:nth-child(5) { animation-delay: 160ms; }
+.pl-org-grid .pl-org-card:nth-child(6) { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-org-hero, .pl-org-card { animation: none; opacity: 1; transform: none; }
+  .pl-org-card.pl-org-number-pop .num { animation: none; }
+}
+

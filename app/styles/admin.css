@@ -1,0 +1,33 @@
+/* app/styles/admin.css — fatia de app/globals.css (dividido por área, mesmo conteúdo).
+   Área de Administração. */
+
+/* ===== Administração — área operacional separada do resto do app, sem o
+   estilo "ticket"/neon do público geral: mais sóbria, focada em fila de
+   ação e busca, cards em vez de tabela no mobile. ===== */
+.pl-admin { min-height: 100vh; padding-bottom: 40px; }
+.pl-admin-header { border-bottom: 3px solid var(--concrete); }
+.pl-admin-title { font-family: var(--font-display); text-transform: uppercase; color: var(--paper); font-size: 22px; margin: 2px 20px 12px; }
+.pl-admin-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 14px; scrollbar-width: none; }
+.pl-admin-tabs::-webkit-scrollbar { display: none; }
+.pl-admin-tabs .pl-tab { white-space: nowrap; text-decoration: none; }
+.pl-admin-content { max-width: 760px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.pl-admin-cards { display: flex; flex-direction: column; gap: 12px; }
+.pl-admin-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pl-admin-toolbar input, .pl-admin-toolbar select { flex: 1; min-width: 140px; }
+
+.pl-admin-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.pl-admin-stat { background: var(--card-bg); border: 1px solid rgba(110,113,120,0.35); border-radius: var(--radius-md); padding: 14px; text-align: center; }
+.pl-admin-stat .num { font-family: var(--font-display); font-size: 26px; color: var(--paper); font-variant-numeric: tabular-nums; }
+.pl-admin-stat .label { font-size: 11px; color: var(--paper-dim); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 2px; }
+.pl-admin-stat.alerta .num { color: var(--tag-red); }
+
+.pl-admin-badge {
+  display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.02em; padding: 2px 9px; border-radius: var(--radius-pill);
+  background: rgba(110,113,120,0.25); color: var(--paper-dim);
+}
+.pl-admin-badge.positivo { background: rgba(166,255,0,0.16); color: var(--neon); }
+.pl-admin-badge.negativo { background: rgba(232,54,43,0.16); color: var(--tag-red); }
+
+.pl-admin-row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pl-admin-row-actions .pl-btn-secondary { flex: none; padding: 7px 12px; font-size: 12px; }

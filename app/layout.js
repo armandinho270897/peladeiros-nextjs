@@ -1,4 +1,16 @@
-import './globals.css';
+// CSS global dividido por área (ver app/styles/) em vez de um globals.css
+// só — a ordem de import replica exatamente a ordem original das regras,
+// então nenhum empate de especificidade muda de resultado.
+import './styles/base.css';
+import './styles/login.css';
+import './styles/pelada-e-avisos.css';
+import './styles/home-e-times.css';
+import './styles/nav.css';
+import './styles/mapa.css';
+import './styles/onboarding.css';
+import './styles/chat.css';
+import './styles/organizar.css';
+import './styles/admin.css';
 import SplashScreen from './components/SplashScreen';
 import OnboardingOverlay from './components/OnboardingOverlay';
 import InAppBrowserBanner from './components/InAppBrowserBanner';

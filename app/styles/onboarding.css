@@ -1,0 +1,138 @@
+/* app/styles/onboarding.css — fatia de app/globals.css (dividido por área, mesmo conteúdo).
+   Overlay de onboarding (primeira visita). */
+
+/* Onboarding — tela cheia, primeira visita só. Usa top/right/bottom/left
+   explícitos em vez do atalho "inset" (alguns WebViews mobile não
+   suportam e descartam a declaração inteira — mesma causa raiz do
+   hotfix da borda neon). Cenário "quadra à noite" (mesmo NightPitchBackground
+   do login) no lugar do preto chapado de antes — o preto liso não passava
+   nenhuma atmosfera atrás dos ícones de linha. Conteúdo em primeiro plano
+   precisa de position+z-index explícitos (mesmo motivo do .pl-authcard):
+   sem isso, blocos não-posicionados pintam ATRÁS de elementos posicionados
+   com z-index, mesmo vindo depois no DOM. */
+.pl-onboarding-overlay {
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 9998;
+  background: var(--ink); overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 32px 24px; text-align: center; gap: 22px;
+}
+.pl-onboarding-skip {
+  position: absolute; top: 18px; right: 18px; z-index: 2;
+  background: none; border: none; color: var(--paper-dim); font-size: 13px;
+  cursor: pointer; padding: 6px 10px;
+}
+.pl-onboarding-skip:hover { color: var(--paper); }
+.pl-onboarding-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 320px; }
+.pl-onboarding-content h2 { font-family: var(--font-display); text-transform: uppercase; color: var(--paper); font-size: 22px; margin: 0; }
+.pl-onboarding-content p {
+  color: var(--paper-dim); font-size: 14px; line-height: 1.5; margin: 0;
+  animation: pl-onb-rise 340ms ease backwards; animation-delay: 260ms;
+}
+.pl-onboarding-dots { position: relative; z-index: 2; display: flex; gap: 6px; }
+.pl-onboarding-dots span {
+  width: 7px; height: 7px; border-radius: 999px; background: var(--concrete); display: inline-block;
+  transition: width 320ms ease, background 320ms ease;
+}
+.pl-onboarding-dots span.active { width: 20px; background: var(--neon); }
+.pl-onboarding-actions { position: relative; z-index: 2; width: 100%; max-width: 280px; }
+
+/* Ambiente extra sobre o cenário de quadra: glow verde discreto atrás
+   do ícone (dá "peso" de produto acabado) + uma camada de grão/ruído
+   (SVG feTurbulence, sem lib) que evita o gradiente do céu parecer
+   banded/liso demais em telas grandes.
+   V2 — pedido explícito: nada de animação contínua/pulso infinito, e
+   toda a entrada (ícone, título, texto, ticket, selo) precisa caber
+   em menos de ~700ms, uma vez só. Isso substitui o glow pulsando pra
+   sempre e os loops de radar/twinkle/shimmer da versão anterior — cada
+   um agora toca uma vez ao montar e para, com timings comprimidos. */
+.pl-onb-glow {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(circle at 50% 38%, rgba(166,255,0,0.12) 0%, rgba(166,255,0,0) 58%);
+  filter: blur(28px);
+  opacity: 0; animation: pl-onb-glow-in 600ms ease forwards;
+}
+@keyframes pl-onb-glow-in { to { opacity: 1; } }
+.pl-onb-grain {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  opacity: 0.05; mix-blend-mode: overlay;
+  background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27/%3E%3C/svg%3E');
+}
+
+.pl-onb-icon-wrap {
+  position: relative; opacity: 0; transform: scale(0.85);
+  animation: pl-onb-icon-in 320ms cubic-bezier(.2,.7,.3,1) forwards;
+}
+@keyframes pl-onb-icon-in { to { opacity: 1; transform: scale(1); } }
+
+/* Título em palavras, cada uma sobe e some-entra com um pequeno atraso
+   escalonado — a string real (pl-sr-only) continua íntegra pra leitor
+   de tela, o span com aria-hidden carrega só o efeito visual. */
+.pl-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+.pl-onb-title span { display: inline-block; animation: pl-onb-rise 340ms ease backwards; }
+@keyframes pl-onb-rise {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Ping do radar (pino do passo 1) — uma vez só, não em loop. */
+.pl-onb-radar-ring { transform-origin: 80px 96px; opacity: 0; animation: pl-radar-ping 700ms ease-out forwards; animation-delay: 260ms; }
+.pl-onb-radar-ring-2 { animation-delay: 400ms; }
+@keyframes pl-radar-ping {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Traço do ícone se desenhando ao montar — usa pathLength="1" no SVG
+   (fica independente do comprimento real do path) então o dasharray/
+   dashoffset é sempre 0→1, não importa o desenho. */
+.pl-onb-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: pl-onb-draw 340ms ease forwards; }
+@keyframes pl-onb-draw { to { stroke-dashoffset: 0; } }
+.pl-onb-fill { opacity: 0; animation: pl-onb-fill-in 220ms ease forwards; animation-delay: 280ms; }
+@keyframes pl-onb-fill-in { to { opacity: 1; } }
+
+/* Picote central do ticket "rasga" ao vivo em vez de só aparecer —
+   scaleY a partir do centro (não dá pra usar stroke-dasharray/pathLength
+   aqui: a propriedade CSS de dasharray venceria o atributo "3 4" da
+   linha e ela perderia o tracejado, virando sólida). Dispara logo
+   depois do contorno do ticket terminar de desenhar. */
+.pl-onb-tear { transform: scaleY(0); transform-origin: center; animation: pl-onb-tear-in 200ms ease-out forwards; animation-delay: 320ms; }
+@keyframes pl-onb-tear-in { to { transform: scaleY(1); } }
+
+/* Selo de "confirmado" — aparece por último com um pop de mola e solta
+   umas faíscas neon (confete bem discreto, 6 pontinhos saindo do centro). */
+.pl-onb-badge { opacity: 0; transform-origin: 100px 54px; animation: pl-onb-badge-in 260ms cubic-bezier(.34,1.56,.64,1) forwards; animation-delay: 420ms; }
+@keyframes pl-onb-badge-in {
+  0% { opacity: 0; transform: scale(0.35); }
+  65% { opacity: 1; transform: scale(1.14); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.pl-onb-spark { opacity: 0; animation: pl-onb-spark-burst 260ms ease-out forwards; animation-delay: 600ms; transform-origin: 100px 54px; }
+@keyframes pl-onb-spark-burst {
+  0% { opacity: 1; transform: scale(0.3) translate(0, 0); }
+  100% { opacity: 0; transform: scale(1) translate(var(--sx), var(--sy)); }
+}
+/* Sparkles da estrela (passo 3) — cada um pisca uma vez ao entrar e
+   se acomoda, sem loop. */
+.pl-onb-twinkle { opacity: 0; animation: pl-onb-twinkle-in 450ms ease forwards; }
+@keyframes pl-onb-twinkle-in {
+  0% { opacity: 0; transform: scale(0.4); }
+  55% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 0.85; transform: scale(1); }
+}
+
+/* Sweep de luz único no CTA do onboarding, só ao montar (não em loop)
+   — o resto do app mantém o ticket "adesivo" já validado, sem isso. */
+.pl-onb-cta .pl-ticket-label { position: relative; overflow: hidden; }
+.pl-onb-cta .pl-ticket-label::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
+  background: linear-gradient(115deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%);
+  animation: pl-onb-shimmer 600ms ease-in-out forwards; animation-delay: 650ms;
+}
+@keyframes pl-onb-shimmer {
+  0% { left: -60%; }
+  100% { left: 120%; }
+}
+

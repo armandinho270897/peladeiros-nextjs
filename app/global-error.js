@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/nextjs';
 import TicketButton from './components/TicketButton';
-import './globals.css';
+import './styles/base.css';
 
 // Último recurso — só entra em cena se o erro acontecer no próprio
 // layout.js (raro). Substitui a página inteira, por isso precisa do próprio
