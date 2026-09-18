@@ -9,6 +9,7 @@ O projeto não usava número de versão até este documento existir. A retrospec
 ### Adicionado
 - Painel de Administração (`/admin`): visão geral, aprovação de arenas, denúncias, moderação de usuário, pausa/cancelamento de pelada, avisos gerais, auditoria e configurações globais.
 - Lembrete automático pro organizador que ainda não encerrou uma partida já realizada.
+- Distância até a pelada, exibida também na página de detalhe (antes só aparecia na lista).
 
 ### Corrigido
 - Mensagem de "esqueci minha senha" agora avisa sobre o bloqueio de segurança do Supabase (pedido repetido rápido demais) em vez de sugerir tentar de novo na hora.
