@@ -1,7 +1,7 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { inicioDoJogo } from '@/lib/gameUtils';
-import { notificarPartidasProximas } from '@/lib/lembretesPartida';
+import { notificarUmaVezPorTipo } from '@/lib/lembretesPartida';
 
 // O cron roda 1x/dia (plano Hobby), então "chega dentro de 24h" não é o
 // mesmo que "faltam exatamente 24h" — pode pegar uma pelada faltando só
@@ -12,6 +12,13 @@ function horasRestantes(game) {
   const diffMs = inicioDoJogo(game).getTime() - Date.now();
   return Math.max(1, Math.round(diffMs / (60 * 60 * 1000)));
 }
+
+// Janela do lembrete de encerrar: menos de 1 dia depois do jogo, dá um
+// respiro pro organizador fazer isso no dia seguinte sem ser cobrado na
+// hora; mais de 7 dias, para de insistir — pelada abandonada não vira
+// notificação eterna.
+const DIAS_MIN_ENCERRAR_PENDENTE = 1;
+const DIAS_MAX_ENCERRAR_PENDENTE = 7;
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -63,18 +70,50 @@ export async function GET(request) {
     .filter((g) => g.data && g.horario && (() => { const diff = inicioDoJogo(g).getTime() - agora; return diff >= 0 && diff < JANELA_MS; })())
     .map((g) => g.id);
 
-  if (gameIdsProximos.length === 0) return NextResponse.json({ ok: true, criadas: 0 });
+  let criadasProximas = 0;
+  if (gameIdsProximos.length > 0) {
+    const { data: confirmacoes } = await supabase
+      .from('confirmacoes')
+      .select('user_id, game_id, games(local, data, horario)')
+      .in('game_id', gameIdsProximos)
+      .eq('status', 'aprovado');
 
-  const { data: confirmacoes } = await supabase
-    .from('confirmacoes')
-    .select('user_id, game_id, games(local, data, horario)')
-    .in('game_id', gameIdsProximos)
-    .eq('status', 'aprovado');
+    criadasProximas = await notificarUmaVezPorTipo(
+      confirmacoes || [],
+      'partida_proxima_24h',
+      (c) => `Sua pelada em ${c.games.local} é em ${horasRestantes(c.games)}h — já dá pra se organizar!`,
+    );
+  }
 
-  const criadas = await notificarPartidasProximas(
-    confirmacoes || [],
-    'partida_proxima_24h',
-    (c) => `Sua pelada em ${c.games.local} é em ${horasRestantes(c.games)}h — já dá pra se organizar!`,
+  const criadasEncerrar = await notificarEncerrarPendente();
+
+  return NextResponse.json({ ok: true, criadas: criadasProximas + criadasEncerrar });
+}
+
+// Organizador que joga e nunca volta pra encerrar a partida trava
+// avaliação, presença e moral de todo mundo que jogou nela (ver
+// app/api/games/[id]/encerrar/route.js) — sem esse lembrete, só descobre
+// isso quem entra no Painel do Organizador por conta própria.
+async function notificarEncerrarPendente() {
+  const desde = dataLocalISO(-DIAS_MAX_ENCERRAR_PENDENTE);
+  const ate = dataLocalISO(-DIAS_MIN_ENCERRAR_PENDENTE);
+
+  const { data: pendentes } = await supabase
+    .from('games')
+    .select('id, local, data, horario, owner_id')
+    .gte('data', desde)
+    .lte('data', ate)
+    .is('encerrada_em', null)
+    .not('owner_id', 'is', null);
+
+  const agora = Date.now();
+  const candidatos = (pendentes || [])
+    .filter((g) => g.data && g.horario && inicioDoJogo(g).getTime() < agora)
+    .map((g) => ({ user_id: g.owner_id, game_id: g.id, games: g }));
+
+  return notificarUmaVezPorTipo(
+    candidatos,
+    'encerrar_partida_pendente',
+    (c) => `A pelada em ${c.games.local} já rolou e ainda não foi encerrada — encerra pra liberar avaliação e presença.`,
   );
-  return NextResponse.json({ ok: true, criadas });
 }

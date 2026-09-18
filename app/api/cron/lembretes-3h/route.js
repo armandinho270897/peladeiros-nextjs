@@ -1,7 +1,7 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { inicioDoJogo, checkinJanelaAberta, CHECKIN_TOLERANCIA_MS } from '@/lib/gameUtils';
-import { notificarPartidasProximas } from '@/lib/lembretesPartida';
+import { notificarUmaVezPorTipo } from '@/lib/lembretesPartida';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -63,12 +63,12 @@ export async function GET(request) {
   const gameIdsProximosSet = new Set(gameIdsProximos);
   const gameIdsCheckinSet = new Set(gameIdsCheckin);
 
-  const criadas = await notificarPartidasProximas(
+  const criadas = await notificarUmaVezPorTipo(
     (confirmacoes || []).filter((c) => gameIdsProximosSet.has(c.game_id)),
     'partida_proxima_3h',
     (c) => `Sua pelada em ${c.games.local} começa em breve!`,
   );
-  const criadasCheckin = await notificarPartidasProximas(
+  const criadasCheckin = await notificarUmaVezPorTipo(
     (confirmacoes || []).filter((c) => gameIdsCheckinSet.has(c.game_id) && !c.checkin_at),
     'checkin_lembrete',
     (c) => `Já chegou em ${c.games.local}? Faz o check-in pra registrar sua presença.`,

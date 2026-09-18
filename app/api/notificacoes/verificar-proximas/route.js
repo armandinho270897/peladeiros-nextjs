@@ -3,7 +3,7 @@ import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { inicioDoJogo, checkinJanelaAberta, CHECKIN_TOLERANCIA_MS } from '@/lib/gameUtils';
-import { notificarPartidasProximas } from '@/lib/lembretesPartida';
+import { notificarUmaVezPorTipo } from '@/lib/lembretesPartida';
 
 const JANELA_MS = 3 * 60 * 60 * 1000; // "em breve" = começa dentro de 3h
 
@@ -36,7 +36,7 @@ export async function POST() {
     return diff >= 0 && diff < JANELA_MS;
   });
 
-  const criadas = await notificarPartidasProximas(
+  const criadas = await notificarUmaVezPorTipo(
     candidatos.map((c) => ({ ...c, user_id: user.id })),
     'partida_proxima_3h',
     (c) => `Sua pelada em ${c.games.local} começa em breve!`,
@@ -50,7 +50,7 @@ export async function POST() {
     if (!checkinJanelaAberta(c.games)) return false;
     return agora <= inicioDoJogo(c.games).getTime() + CHECKIN_TOLERANCIA_MS;
   });
-  const criadasCheckin = await notificarPartidasProximas(
+  const criadasCheckin = await notificarUmaVezPorTipo(
     candidatosCheckin.map((c) => ({ ...c, user_id: user.id })),
     'checkin_lembrete',
     (c) => `Já chegou em ${c.games.local}? Faz o check-in pra registrar sua presença.`,
