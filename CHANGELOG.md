@@ -10,9 +10,11 @@ O projeto não usava número de versão até este documento existir. A retrospec
 - Painel de Administração (`/admin`): visão geral, aprovação de arenas, denúncias, moderação de usuário, pausa/cancelamento de pelada, avisos gerais, auditoria e configurações globais.
 - Lembrete automático pro organizador que ainda não encerrou uma partida já realizada.
 - Distância até a pelada, exibida também na página de detalhe (antes só aparecia na lista).
+- Entrar num time por link, sem precisar já ter conta — cadastro novo volta automaticamente pro time e já manda o pedido.
 
 ### Corrigido
 - Mensagem de "esqueci minha senha" agora avisa sobre o bloqueio de segurança do Supabase (pedido repetido rápido demais) em vez de sugerir tentar de novo na hora.
+- Cadastro novo com destino numa rota pública (ex: um link de convite) agora sempre passa por completar o perfil antes de chegar lá.
 
 ## Retrospectiva (entregas já em produção)
 

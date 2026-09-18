@@ -77,6 +77,5 @@ Em produção, com uso ativo. Já cobre: descoberta e confirmação de pelada, p
 
 ## Próximos passos
 
-- Convite público de time por link (hoje só quem já tem conta consegue pedir entrada)
 - Preferências explícitas de recomendação (nível e horário preferido do jogador)
 - Componentes de UI (fora os ícones) ainda soltos numa pasta só, sem subdivisão por área
