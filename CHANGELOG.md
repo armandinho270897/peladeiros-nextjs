@@ -11,6 +11,7 @@ O projeto não usava número de versão até este documento existir. A retrospec
 - Lembrete automático pro organizador que ainda não encerrou uma partida já realizada.
 - Distância até a pelada, exibida também na página de detalhe (antes só aparecia na lista).
 - Entrar num time por link, sem precisar já ter conta — cadastro novo volta automaticamente pro time e já manda o pedido.
+- Modo Desafiado: sorteio de times pra jogo na hora, com fila giratória, cronômetro por partida e desempate por prorrogação, pênaltis ou cara-ou-coroa.
 
 ### Corrigido
 - Mensagem de "esqueci minha senha" agora avisa sobre o bloqueio de segurança do Supabase (pedido repetido rápido demais) em vez de sugerir tentar de novo na hora.

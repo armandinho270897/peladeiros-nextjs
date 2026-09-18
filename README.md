@@ -18,6 +18,9 @@ Histórico de partidas, nota média recebida, percentuais de presença/pontualid
 **Organização de partidas e financeiro**
 Painel do organizador por pelada, montagem de times, encerramento de partida com placar, cobrança de mensalidade ou valor por partida, times permanentes com elenco e desafios entre times.
 
+**Desafiado — rachão na hora**
+Botão separado na Início pra jogo acontecendo AGORA: o capitão adiciona quem já tá na quadra, o app sorteia os times (tamanho sugerido pelo tipo de jogo) e cronometra cada partida. Time vencedor fica, perdedor vai pro final de uma fila giratória; empate se resolve por prorrogação, pênaltis ou cara-ou-coroa. Placar ao vivo, sem contar pra moral/presença — a sessão é passageira e some sozinha depois de 3 dias.
+
 **Administração e segurança**
 Painel administrativo separado do painel de organização, com papel de administrador validado no servidor: aprovação de arenas, denúncias de jogador/pelada/arena, moderação de usuário (advertência, suspensão, bloqueio), avisos gerais in-app, auditoria de toda ação administrativa e configurações globais.
 
