@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import EyeIcon from './EyeIcon';
-import EyeOffIcon from './EyeOffIcon';
+import EyeIcon from './icons/EyeIcon';
+import EyeOffIcon from './icons/EyeOffIcon';
 
 // `floating`: usado só nas telas de autenticação (login, redefinir senha) —
 // label sobe e borda acende em degradê no foco, estilo inline (não depende

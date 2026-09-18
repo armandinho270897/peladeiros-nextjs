@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useInstallPrompt } from '@/lib/installBanner';
 import TicketButton from './TicketButton';
-import IosShareIcon from './IosShareIcon';
+import IosShareIcon from './icons/IosShareIcon';
 
 // Botão fixo de instalar, independente do banner (que é dispensável e some
 // pra sempre). Mesma detecção de plataforma do banner (useInstallPrompt),

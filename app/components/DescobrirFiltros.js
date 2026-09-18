@@ -1,5 +1,5 @@
 'use client';
-import TipoJogoIcon, { TIPOS_JOGO } from './TipoJogoIcon';
+import TipoJogoIcon, { TIPOS_JOGO } from './icons/TipoJogoIcon';
 import { NIVEL_OPCOES } from '@/lib/gameUtils';
 
 const PRECO_OPCOES = [

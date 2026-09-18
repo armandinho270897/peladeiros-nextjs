@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '../../components/ToastProvider';
-import EmptyFieldIcon from '../../components/EmptyFieldIcon';
+import EmptyFieldIcon from '../../components/icons/EmptyFieldIcon';
 
 const PUBLICOS = [
   { id: 'todos', label: 'Todos' },

@@ -1,6 +1,6 @@
-import ConquistaAvaliacaoCincoIcon from './ConquistaAvaliacaoCincoIcon';
-import ConquistaBraboQueComandaIcon from './ConquistaBraboQueComandaIcon';
-import ConquistaPresencaDeFerroIcon from './ConquistaPresencaDeFerroIcon';
+import ConquistaAvaliacaoCincoIcon from './icons/ConquistaAvaliacaoCincoIcon';
+import ConquistaBraboQueComandaIcon from './icons/ConquistaBraboQueComandaIcon';
+import ConquistaPresencaDeFerroIcon from './icons/ConquistaPresencaDeFerroIcon';
 
 const ICONE = {
   avaliacao_cinco: ConquistaAvaliacaoCincoIcon,

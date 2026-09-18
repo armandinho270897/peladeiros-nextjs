@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
-import BellIcon from './BellIcon';
+import BellIcon from './icons/BellIcon';
 import NavIcon from './icons/NavIcon';
 import BottomNavBall from './BottomNavBall';
 import { tapFlash, flashClass } from '@/lib/tapFlash';

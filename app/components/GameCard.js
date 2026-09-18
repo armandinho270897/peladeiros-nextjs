@@ -4,13 +4,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas, souCapitaoDe, checkinJanelaAberta, checkinAbreEm, formatHoraSP, CHECKIN_UNDO_MS } from '@/lib/gameUtils';
 import Avatar from './Avatar';
-import CaptainIcon from './CaptainIcon';
+import CaptainIcon from './icons/CaptainIcon';
 import TicketButton from './TicketButton';
 import Confetti from './Confetti';
-import TipoJogoIcon from './TipoJogoIcon';
+import TipoJogoIcon from './icons/TipoJogoIcon';
 import GameArtBanner from './GameArtBanner';
-import EditIcon from './EditIcon';
-import ShareLinkIcon from './ShareLinkIcon';
+import EditIcon from './icons/EditIcon';
+import ShareLinkIcon from './icons/ShareLinkIcon';
 
 function ConfirmadoAvatar({ nome, moral, bench, fotoUrl, userId }) {
   // Convidado sem conta (userId null) não tem perfil pra ver — fica só o
@@ -174,7 +174,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
 
   // Stagger só nos primeiros cards — mais que isso e a lista inteira demora
   // visivelmente pra "assentar" numa lista longa; pl-reveal-4 é o teto que
-  // já existe em globals.css, sem inventar um degrau novo.
+  // já existe em app/styles/home-e-times.css, sem inventar um degrau novo.
   const revealClass = revealIndex != null ? `pl-reveal pl-reveal-${Math.min(revealIndex + 1, 4)}` : '';
 
   return (

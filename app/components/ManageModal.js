@@ -6,7 +6,7 @@ import { useArenas } from '@/lib/useArenas';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
 import PlayerSearch from './PlayerSearch';
-import TipoJogoIcon, { TIPOS_JOGO } from './TipoJogoIcon';
+import TipoJogoIcon, { TIPOS_JOGO } from './icons/TipoJogoIcon';
 
 export default function ManageModal({ game, onClose, onSaved }) {
   const semOwner = !game.owner_id;

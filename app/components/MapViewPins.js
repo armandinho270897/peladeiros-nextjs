@@ -10,7 +10,7 @@ import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import { fmtDate, ocupandoVagaDe, googleMapsDirectionsUrl, statusVagas, comecaEmBreve, inicioDoJogo } from '@/lib/gameUtils';
 import { imagemDoTipo } from '@/lib/tipoJogoImagem';
 import TicketButton from './TicketButton';
-import EmptyFieldIcon from './EmptyFieldIcon';
+import EmptyFieldIcon from './icons/EmptyFieldIcon';
 
 const DEFAULT_CENTER = [-14.235, -51.9253];
 const DEFAULT_ZOOM = 4;

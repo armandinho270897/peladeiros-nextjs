@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react';
 import { isOnboardingSeen, markOnboardingSeen } from '@/lib/onboarding';
 import NightPitchBackground from './NightPitchBackground';
 import Brand from './Brand';
-import OnboardingDescobrirIcon from './OnboardingDescobrirIcon';
-import OnboardingConfirmarIcon from './OnboardingConfirmarIcon';
-import OnboardingAvaliarIcon from './OnboardingAvaliarIcon';
+import OnboardingDescobrirIcon from './icons/OnboardingDescobrirIcon';
+import OnboardingConfirmarIcon from './icons/OnboardingConfirmarIcon';
+import OnboardingAvaliarIcon from './icons/OnboardingAvaliarIcon';
 import TicketButton from './TicketButton';
 
 const PASSOS = [

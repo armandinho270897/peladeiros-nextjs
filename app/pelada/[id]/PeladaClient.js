@@ -14,7 +14,7 @@ import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
 import MontarTimesModal from '../../components/MontarTimesModal';
 import PeladaAbas from '../../components/PeladaAbas';
 import GameArtBanner from '../../components/GameArtBanner';
-import EmptyFieldIcon from '../../components/EmptyFieldIcon';
+import EmptyFieldIcon from '../../components/icons/EmptyFieldIcon';
 import BackLink from '../../components/BackLink';
 import Brand from '../../components/Brand';
 import DenunciarModal from '../../components/DenunciarModal';

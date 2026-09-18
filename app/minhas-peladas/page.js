@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import BackLink from '../components/BackLink';
 import Brand from '../components/Brand';
-import EmptyFieldIcon from '../components/EmptyFieldIcon';
+import EmptyFieldIcon from '../components/icons/EmptyFieldIcon';
 import MinhaPeladaCard from '../components/MinhaPeladaCard';
 import CancelPresencaModal from '../components/CancelPresencaModal';
 import { useToast } from '../components/ToastProvider';

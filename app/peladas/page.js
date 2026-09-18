@@ -17,7 +17,7 @@ import NewArenaModal from '../components/NewArenaModal';
 import ConfirmModal from '../components/ConfirmModal';
 import ManageModal from '../components/ManageModal';
 import CancelPresencaModal from '../components/CancelPresencaModal';
-import EmptyFieldIcon from '../components/EmptyFieldIcon';
+import EmptyFieldIcon from '../components/icons/EmptyFieldIcon';
 
 const MapViewPins = dynamic(() => import('../components/MapViewPins'), { ssr: false });
 

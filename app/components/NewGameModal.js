@@ -6,7 +6,7 @@ import { useAuth } from './AuthProvider';
 import TicketButton from './TicketButton';
 import PlayerSearch from './PlayerSearch';
 import GameCard from './GameCard';
-import TipoJogoIcon, { TIPOS_JOGO } from './TipoJogoIcon';
+import TipoJogoIcon, { TIPOS_JOGO } from './icons/TipoJogoIcon';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 

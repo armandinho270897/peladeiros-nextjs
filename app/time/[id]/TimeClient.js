@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Avatar from '../../components/Avatar';
-import CaptainIcon from '../../components/CaptainIcon';
+import CaptainIcon from '../../components/icons/CaptainIcon';
 import PlayerSearch from '../../components/PlayerSearch';
 import BackLink from '../../components/BackLink';
 import EditTimeModal from '../../components/EditTimeModal';

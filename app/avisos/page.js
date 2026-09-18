@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
 import NotificationCard from '../components/NotificationCard';
-import BolaParadaIcon from '../components/BolaParadaIcon';
+import BolaParadaIcon from '../components/icons/BolaParadaIcon';
 import { categoriaDe } from '@/lib/notifCategorias';
 import { todayISO } from '@/lib/gameUtils';
 import { fetchNotificacoesComAtores } from '@/lib/notificacoes';

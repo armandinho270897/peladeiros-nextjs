@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import TrophyIcon from './TrophyIcon';
+import TrophyIcon from './icons/TrophyIcon';
 
 const CHAVE_PATENTE_VISTA = 'pl-patente-vista';
 

@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '../../components/ToastProvider';
 import { fmtDate } from '@/lib/gameUtils';
-import EmptyFieldIcon from '../../components/EmptyFieldIcon';
+import EmptyFieldIcon from '../../components/icons/EmptyFieldIcon';
 import MotivoModal from '../MotivoModal';
 
 export default function AdminPeladasPage() {

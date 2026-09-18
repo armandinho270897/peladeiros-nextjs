@@ -4,7 +4,7 @@ import Avatar from './Avatar';
 import StarRating from './StarRating';
 import TicketButton from './TicketButton';
 import LoadingBall from './LoadingBall';
-import BolaParadaIcon from './BolaParadaIcon';
+import BolaParadaIcon from './icons/BolaParadaIcon';
 import { useAuth } from './AuthProvider';
 
 export default function AvaliarModal({ game, onClose, onSaved }) {

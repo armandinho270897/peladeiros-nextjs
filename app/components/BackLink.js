@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import BackArrowIcon from './BackArrowIcon';
+import BackArrowIcon from './icons/BackArrowIcon';
 
 // Voltar padronizado — mesma borda em degradê + levitação dos outros
 // botões secundários (.pl-btn-secondary etc), em vez do link cru que cada

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import EmptyFieldIcon from '../../components/EmptyFieldIcon';
+import EmptyFieldIcon from '../../components/icons/EmptyFieldIcon';
 
 const PERIODOS = [{ id: '', label: 'Tudo' }, { id: 'hoje', label: 'Hoje' }, { id: '7d', label: '7 dias' }, { id: '30d', label: '30 dias' }];
 

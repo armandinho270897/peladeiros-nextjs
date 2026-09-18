@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
 import { useToast } from '../components/ToastProvider';
 import Avatar from '../components/Avatar';
-import EmptyFieldIcon from '../components/EmptyFieldIcon';
+import EmptyFieldIcon from '../components/icons/EmptyFieldIcon';
 import TicketButton from '../components/TicketButton';
 import NewTimeModal from '../components/NewTimeModal';
 import BackLink from '../components/BackLink';

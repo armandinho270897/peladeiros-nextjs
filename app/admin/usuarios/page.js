@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useToast } from '../../components/ToastProvider';
 import { useAuth } from '../../components/AuthProvider';
 import { ADMIN_USER_ID } from '@/lib/adminConfig';
-import EmptyFieldIcon from '../../components/EmptyFieldIcon';
+import EmptyFieldIcon from '../../components/icons/EmptyFieldIcon';
 import MotivoModal from '../MotivoModal';
 
 const STATUS_BADGE = { ativo: 'positivo', advertido: '', suspenso: 'negativo', bloqueado: 'negativo' };
