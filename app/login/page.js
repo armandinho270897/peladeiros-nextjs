@@ -78,7 +78,13 @@ function LoginForm() {
         setError('Conta criada, mas ainda precisa confirmar por e-mail antes de entrar.');
         return;
       }
-      irParaHomeComFlash();
+      // Conta nova nunca tem profile ainda — vai direto pra completar-perfil
+      // em vez de deixar o middleware decidir. Isso importa quando `next`
+      // aponta pra uma rota pública (ex: /time/[id] ou /pelada/[id], usadas
+      // em link de convite): o middleware não intercepta rota pública pra
+      // checar profile, então sem isso a pessoa cairia direto lá sem nome
+      // cadastrado nenhum.
+      window.location.href = `/completar-perfil?next=${encodeURIComponent(next)}`;
       return;
     }
 

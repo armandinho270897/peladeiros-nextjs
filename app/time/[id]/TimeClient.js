@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Avatar from '../../components/Avatar';
@@ -37,6 +37,8 @@ export default function TimeClient({ id }) {
   const [showDesafiar, setShowDesafiar] = useState(false);
   const [editandoMembro, setEditandoMembro] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [autoEntrar, setAutoEntrar] = useState(false);
+  const tentouAutoEntrarRef = useRef(false);
 
   async function load() {
     setLoading(true);
@@ -47,6 +49,26 @@ export default function TimeClient({ id }) {
   }
 
   useEffect(() => { load(); }, [id]);
+
+  // Link público de convite: é a própria URL do time (a página já é pública,
+  // ver isPublicPath em middleware.js) com ?entrar=1. Quem não tem conta cai
+  // no login (next= essa mesma URL com o parâmetro) e volta pra cá já
+  // logado; quem já tem conta e só ainda não tinha visto o time confirma o
+  // pedido sozinho, sem precisar achar o botão de novo.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('entrar') === '1') {
+      setAutoEntrar(true);
+      window.history.replaceState(null, '', `/time/${id}`);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (!autoEntrar || tentouAutoEntrarRef.current || !data || !user) return;
+    tentouAutoEntrarRef.current = true;
+    pedirEntrada();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoEntrar, data, user]);
 
   async function convidar(jogador) {
     if (!jogador.id) { showToast('Esse jogador precisa ter conta pra ser convidado.', 'error'); return; }
@@ -101,6 +123,13 @@ export default function TimeClient({ id }) {
     if (!res.ok) { showToast(json.error || 'Não consegui recusar o desafio.', 'error'); return; }
     showToast('Desafio recusado.');
     load();
+  }
+
+  // A própria página do time já é pública (isPublicPath em middleware.js) —
+  // "compartilhar" é só mandar esse link mesmo, sem token nem rota nova.
+  function compartilharTime() {
+    const msg = `Bora jogar no ${data.time.nome}? Entra no time: ${window.location.origin}/time/${id}`;
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
   }
 
   async function pedirEntrada() {
@@ -200,6 +229,11 @@ export default function TimeClient({ id }) {
   const outrosMembrosAprovados = membros.filter((m) => m.user_id !== user?.id && m.profiles).map((m) => m.profiles);
   const recrutamento = RECRUTAMENTO_INFO[time.recrutamento];
   const podePedirEntrada = !!user && !minhaMembresia && time.recrutamento !== 'fechado' && minhaRelacao !== 'solicitado' && minhaRelacao !== 'pendente';
+  // Quem não tem conta não some sem opção nenhuma: a própria URL do time já
+  // é pública, então o link de login carrega o caminho de volta pra cá com
+  // ?entrar=1 — volta autenticado e o pedido sai sozinho (ver useEffect
+  // acima). "Fechado" continua sem nenhum CTA, igual já era pra quem loga.
+  const podeConvidarSemConta = !user && time.recrutamento !== 'fechado';
 
   // Agrupa o elenco por zona (Goleiro/Defesa/Meio-campo/Ataque) — prioriza
   // a posição atribuída pelo capitão NESSE time (time_membros.posicao,
@@ -248,7 +282,10 @@ export default function TimeClient({ id }) {
         <div className="pl-header-row">
           <BackLink href="/times" />
           {souCapitao && (
-            <button type="button" className="pl-share-btn" style={{ marginTop: 0 }} onClick={() => setShowEdit(true)} disabled={busy}>Editar time</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" className="pl-share-btn" style={{ marginTop: 0 }} onClick={() => setShowEdit(true)} disabled={busy}>Editar time</button>
+              <button type="button" className="pl-share-btn" style={{ marginTop: 0 }} onClick={compartilharTime}>Compartilhar</button>
+            </div>
           )}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {user && !minhaMembresia && time.aceita_desafios && (
@@ -256,6 +293,16 @@ export default function TimeClient({ id }) {
             )}
             {podePedirEntrada && (
               <TicketButton compact style={{ marginTop: 0 }} onClick={pedirEntrada} disabled={busy}>Pedir pra entrar</TicketButton>
+            )}
+            {podeConvidarSemConta && (
+              <Link
+                href={`/login?next=${encodeURIComponent(`/time/${id}?entrar=1`)}`}
+                className="pl-ticket"
+                style={{ textDecoration: 'none', marginTop: 0 }}
+              >
+                <span className="pl-ticket-label">Quero jogar nesse time</span>
+                <span className="pl-ticket-stub" aria-hidden="true">⚽</span>
+              </Link>
             )}
             {minhaRelacao === 'solicitado' && (
               <span className="pl-time-card-recrutamento aberto">Pedido enviado</span>
