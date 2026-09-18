@@ -118,8 +118,18 @@ function LoginForm() {
     });
     setLoading(false);
     if (error) {
+      // O Supabase Auth trava pedidos repetidos rápido demais (segurança
+      // contra spam de link) — comum quando a pessoa digita o e-mail
+      // errado, não recebe nada, e tenta de novo em seguida já corrigido.
+      // Mensagem genérica de "tenta de novo" faria ela tentar de novo na
+      // hora e cair no mesmo bloqueio, achando que o sistema nunca envia.
+      const bloqueadoPorFrequencia = (error.message || '').toLowerCase().includes('security purposes');
       Sentry.captureException(new Error(`resetPasswordForEmail falhou: ${error.message}`));
-      setError('Não conseguimos enviar agora. Tenta de novo em alguns minutos.');
+      setError(
+        bloqueadoPorFrequencia
+          ? 'Espera meio minuto antes de pedir de novo — e confere se o e-mail está digitado certinho.'
+          : 'Não conseguimos enviar agora. Tenta de novo em alguns minutos.'
+      );
       return;
     }
     setPedidoEnviado(true);
