@@ -325,7 +325,12 @@ export default function LocationPickerMap({ lat, lng, onPick, onAddressResolved,
   return (
     <div className="pl-location-picker">
       <div className="pl-location-map-wrap">
-        <MapContainer center={center} zoom={zoom} zoomControl={false} style={{ height: '100%', width: '100%' }}>
+        <MapContainer
+          center={center}
+          zoom={zoom}
+          zoomControl={false}
+          style={{ height: '100%', width: '100%', position: 'relative', zIndex: 0 }}
+        >
           <TileLayer attribution={DARK_TILE_ATTRIBUTION} url={DARK_TILE_URL} maxZoom={DARK_TILE_MAX_ZOOM} />
           <MoveTracker onMoveEnd={handleMoveEnd} />
           <FlyTo target={flyTarget} />

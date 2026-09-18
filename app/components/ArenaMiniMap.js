@@ -14,7 +14,7 @@ export default function ArenaMiniMap({ lat, lng }) {
     <MapContainer
       center={[lat, lng]}
       zoom={15}
-      style={{ height: 140, width: '100%', borderRadius: 'var(--radius-md)' }}
+      style={{ height: 140, width: '100%', borderRadius: 'var(--radius-md)', position: 'relative', zIndex: 0 }}
       dragging={false}
       scrollWheelZoom={false}
       zoomControl={false}
