@@ -11,6 +11,7 @@ import './styles/onboarding.css';
 import './styles/chat.css';
 import './styles/organizar.css';
 import './styles/admin.css';
+import './styles/desafiado.css';
 import SplashScreen from './components/SplashScreen';
 import OnboardingOverlay from './components/OnboardingOverlay';
 import InAppBrowserBanner from './components/InAppBrowserBanner';

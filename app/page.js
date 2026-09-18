@@ -11,6 +11,8 @@ import MeusTimesDestaque from './components/MeusTimesDestaque';
 import HomeFooterCta from './components/HomeFooterCta';
 import NewGameModal from './components/NewGameModal';
 import AvisoBanner from './components/AvisoBanner';
+import DesafiadoWizardModal from './components/DesafiadoWizardModal';
+import DesafiadoCta from './components/DesafiadoCta';
 
 // Frase de status do topo — reaproveita a "moral" (lib/moral.js, já
 // calculada por /api/perfil), não inventa métrica nova.
@@ -28,7 +30,7 @@ function fraseDeStatus(moral, totalPeladasPassadas) {
 export default function Home() {
   const { user, profile } = useAuth();
   const { showToast } = useToast();
-  const [modal, setModal] = useState(null); // 'new' | null
+  const [modal, setModal] = useState(null); // 'new' | 'desafiado' | null
   const [perfil, setPerfil] = useState(null);
 
   useEffect(() => {
@@ -41,19 +43,26 @@ export default function Home() {
   }
 
   // Bottom nav manda pra cá com ?criar=1 pra abrir o modal de criação, que
-  // só existe nesta tela (sem inventar rota nova).
+  // só existe nesta tela (sem inventar rota nova). ?desafiado=1 segue o
+  // mesmo par URL+evento, pro mesmo caso (FAB já montado na página, um
+  // router.push não remonta o efeito).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('criar') === '1') {
       setModal('new');
       window.history.replaceState(null, '', '/');
+    } else if (params.get('desafiado') === '1') {
+      setModal('desafiado');
+      window.history.replaceState(null, '', '/');
     }
-    // O FAB (layout.js) já está montado nesta mesma página, então um
-    // router.push('/?criar=1') não dispara este efeito de novo (não há
-    // remontagem) — ele avisa por evento em vez de depender da URL.
     function onCriarPelada() { setModal('new'); }
+    function onIniciarDesafiado() { setModal('desafiado'); }
     window.addEventListener('pl:criar-pelada', onCriarPelada);
-    return () => window.removeEventListener('pl:criar-pelada', onCriarPelada);
+    window.addEventListener('pl:iniciar-desafiado', onIniciarDesafiado);
+    return () => {
+      window.removeEventListener('pl:criar-pelada', onCriarPelada);
+      window.removeEventListener('pl:iniciar-desafiado', onIniciarDesafiado);
+    };
   }, []);
 
   function handleCreated() {
@@ -81,12 +90,20 @@ export default function Home() {
 
       <MeusTimesDestaque times={perfil?.times} />
 
+      <div className="pl-reveal pl-reveal-3" style={{ padding: '0 16px', margin: '18px 0' }}>
+        <DesafiadoCta onClick={() => setModal('desafiado')} />
+      </div>
+
       <div className="pl-reveal pl-reveal-4">
         <HomeFooterCta game={proximaConfirmada} loading={perfil === null} />
       </div>
 
       {modal === 'new' && (
         <NewGameModal onCancel={() => setModal(null)} onCreated={handleCreated} />
+      )}
+
+      {modal === 'desafiado' && (
+        <DesafiadoWizardModal onCancel={() => setModal(null)} onQuerAgendar={() => setModal('new')} />
       )}
     </div>
   );

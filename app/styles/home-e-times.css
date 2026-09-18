@@ -335,3 +335,27 @@
   text-decoration: none; box-shadow: 0 0 20px rgba(166,255,0,0.3);
 }
 
+/* -- Desafiado: CTA de entrada na Início. Borda em degradê (neon→lilás,
+   mesmo par já usado no header) é o que diferencia visualmente sem
+   precisar de uma cor fora do sistema — o preenchimento continua neon,
+   que já é a cor reservada pra ação primária. -- */
+.pl-desafiado-cta {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+  max-width: 640px; margin: 0 auto; padding: 16px 18px;
+  border-radius: var(--radius-lg); border: 1.5px solid transparent;
+  background-image: linear-gradient(var(--card-bg), var(--card-bg)), linear-gradient(90deg, var(--neon), var(--lilas));
+  background-origin: border-box; background-clip: padding-box, border-box;
+  cursor: pointer; text-align: left; font: inherit;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.pl-desafiado-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(166,255,0,0.18); }
+.pl-desafiado-cta:active { transform: scale(0.98); }
+.pl-desafiado-cta-icon {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: var(--radius-circle);
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(166,255,0,0.14); color: var(--neon);
+}
+.pl-desafiado-cta-text { flex: 1; min-width: 0; }
+.pl-desafiado-cta-text strong { display: block; font-family: var(--font-display); text-transform: uppercase; font-size: 16px; color: var(--paper); letter-spacing: 0.01em; }
+.pl-desafiado-cta-text span { display: block; font-size: 12px; color: var(--paper-dim); margin-top: 2px; line-height: 1.4; }
+

@@ -1,0 +1,18 @@
+/* Tela ao vivo do Desafiado (app/desafiado/[id]/DesafiadoClient.js). */
+
+.pl-desafiado-topo { max-width: 640px; margin: 8px auto 0; padding: 0 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.pl-desafiado-placar-card {
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.35); border-radius: var(--radius-lg);
+  padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.pl-desafiado-cronometro {
+  font-family: var(--font-display); font-size: 34px; color: var(--neon); letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(166,255,0,0.25);
+}
+.pl-desafiado-cronometro.esgotado { color: var(--tag-red); font-size: 20px; text-transform: uppercase; text-shadow: none; }
+.pl-desafiado-placar-row { display: flex; align-items: center; gap: 18px; width: 100%; justify-content: center; }
+.pl-desafiado-time-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+.pl-desafiado-time-nome { font-size: 13px; color: var(--paper-dim); text-transform: uppercase; letter-spacing: 0.02em; }
+.pl-desafiado-gols { font-family: var(--font-display); font-size: 44px; color: var(--paper); line-height: 1; font-variant-numeric: tabular-nums; }
+.pl-desafiado-x { font-family: var(--font-display); font-size: 20px; color: var(--paper-dim); }
