@@ -5,6 +5,7 @@ import { authorizeTimeCaptain } from '@/lib/timeAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
+import { inicioDoJogo } from '@/lib/gameUtils';
 
 // Aceitar um desafio cria a pelada na hora, com os membros aprovados dos
 // dois times já confirmados (não pendentes) — reaproveita 100% da
@@ -22,6 +23,23 @@ export async function POST(request, { params }) {
 
   const auth = await authorizeTimeCaptain(desafio.time_desafiado_id);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  if (desafio.data && desafio.horario && inicioDoJogo(desafio).getTime() < Date.now()) {
+    return NextResponse.json({ error: 'A data desse desafio já passou. Peça pro outro time propor uma nova.' }, { status: 409 });
+  }
+
+  // Só uma requisição consegue virar o desafio de pendente pra aceito — sem
+  // isso, dois cliques (ou dois capitães) criavam duas peladas.
+  const { data: reivindicado } = await supabase
+    .from('desafios')
+    .update({ status: 'aceito', respondido_em: new Date().toISOString() })
+    .eq('id', id)
+    .eq('status', 'pendente')
+    .select('id')
+    .maybeSingle();
+  if (!reivindicado) return NextResponse.json({ error: 'Esse desafio já foi respondido.' }, { status: 409 });
+
+  const desfazer = () => supabase.from('desafios').update({ status: 'pendente', respondido_em: null, game_id: null }).eq('id', id);
 
   const [{ data: profile }, { data: timeDesafiante }, { data: timeDesafiado }] = await Promise.all([
     supabase.from('profiles').select('nome').eq('id', auth.user.id).maybeSingle(),
@@ -62,18 +80,25 @@ export async function POST(request, { params }) {
     .select()
     .single();
 
-  if (gameError) return errJson(gameError.message, 500);
+  if (gameError) {
+    await desfazer();
+    return errJson(gameError.message, 500);
+  }
 
   const confirmacoesRows = idsMembros
     .map((uid) => perfilPorId[uid])
     .filter(Boolean)
     .map((p) => ({ game_id: game.id, user_id: p.id, nome: p.nome, whatsapp: p.whatsapp, bairro: p.bairro, status: 'aprovado' }));
-  if (confirmacoesRows.length > 0) await supabase.from('confirmacoes').insert(confirmacoesRows);
+  if (confirmacoesRows.length > 0) {
+    const { error: confError } = await supabase.from('confirmacoes').insert(confirmacoesRows);
+    if (confError) {
+      await supabase.from('games').delete().eq('id', game.id);
+      await desfazer();
+      return errJson(confError.message, 500);
+    }
+  }
 
-  const { error: updateError } = await supabase
-    .from('desafios')
-    .update({ status: 'aceito', game_id: game.id, respondido_em: new Date().toISOString() })
-    .eq('id', id);
+  const { error: updateError } = await supabase.from('desafios').update({ game_id: game.id }).eq('id', id);
   if (updateError) Sentry.captureException(new Error(`desafios/aceitar update falhou: ${updateError.message}`));
 
   const { data: capitaesDesafiante } = await supabase

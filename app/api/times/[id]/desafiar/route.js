@@ -4,6 +4,7 @@ import { authorizeTimeCaptain } from '@/lib/timeAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
+import { inicioDoJogo } from '@/lib/gameUtils';
 
 // `id` (params) é o time DESAFIADO — quem chama propõe com um dos times
 // que capitaneia (timeDesafianteId no corpo), já com data/local prontos.
@@ -17,6 +18,12 @@ export async function POST(request, { params }) {
 
   if (!timeDesafianteId) return NextResponse.json({ error: 'Selecione com qual time você vai desafiar.' }, { status: 400 });
   if (!local || !bairro || !data || !horario) return NextResponse.json({ error: 'Preenche local, data e horário do desafio.' }, { status: 400 });
+  if (!/^d{4}-d{2}-d{2}$/.test(data) || !/^d{2}:d{2}(:d{2})?$/.test(horario) || Number.isNaN(inicioDoJogo({ data, horario }).getTime())) {
+    return NextResponse.json({ error: 'Data ou horário inválido.' }, { status: 400 });
+  }
+  if (inicioDoJogo({ data, horario }).getTime() < Date.now()) {
+    return NextResponse.json({ error: 'Escolhe uma data e horário que ainda não passaram.' }, { status: 400 });
+  }
   if (timeDesafianteId === timeDesafiadoId) return NextResponse.json({ error: 'Um time não pode desafiar ele mesmo.' }, { status: 400 });
 
   const auth = await authorizeTimeCaptain(timeDesafianteId);
@@ -50,7 +57,7 @@ export async function POST(request, { params }) {
       arena_id: arenaId || null,
       data,
       horario,
-      mensagem: mensagem?.trim() || null,
+      mensagem: typeof mensagem === 'string' ? mensagem.trim().slice(0, 300) || null : null,
     })
     .select()
     .single();
