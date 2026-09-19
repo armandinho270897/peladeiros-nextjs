@@ -41,10 +41,16 @@ export default function DesafiadoClient({ id }) {
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
-    const res = await fetch(`/api/desafiado/${id}`);
-    if (res.status === 404) { setNotFound(true); setLoading(false); return; }
-    setDados(await res.json());
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/desafiado/${id}`);
+      if (res.status === 404) { setNotFound(true); return; }
+      if (!res.ok) return;
+      setDados(await res.json());
+    } catch {
+      // sem sinal: mantém o que já está na tela e tenta de novo no próximo poll
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
@@ -59,23 +65,30 @@ export default function DesafiadoClient({ id }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Nunca lança: falha de rede vira resposta com erro, então o busy sempre volta.
+  async function chamar(caminho, corpo) {
+    try {
+      const res = await fetch(`/api/desafiado/${id}${caminho}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo ?? {}),
+      });
+      const result = await res.json().catch(() => ({}));
+      return { res, result };
+    } catch {
+      return { res: { ok: false, status: 0 }, result: { error: 'Sem conexão. Confere a internet e tenta de novo.' } };
+    }
+  }
+
   async function marcarGol(timeId) {
     setBusy(true);
-    const res = await fetch(`/api/desafiado/${id}/gol`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ timeId }),
-    });
+    const { res, result } = await chamar('/gol', { timeId });
     setBusy(false);
-    if (!res.ok) { const r = await res.json(); showToast(r.error || 'Não consegui marcar o gol.'); return; }
+    if (!res.ok) { showToast(result.error || 'Não consegui marcar o gol.'); return; }
     load(true);
   }
 
   async function encerrarPartida(criterioDesempate, vencedorPenaltisTimeId) {
     setBusy(true);
-    const res = await fetch(`/api/desafiado/${id}/encerrar-partida`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ criterioDesempate, vencedorPenaltisTimeId }),
-    });
-    const result = await res.json();
+    const { res, result } = await chamar('/encerrar-partida', { criterioDesempate, vencedorPenaltisTimeId });
     setBusy(false);
     if (res.status === 409 && result.empatado) {
       if (result.criterioDesempate === 'penaltis') { setModalPenaltis(true); return; }
@@ -95,10 +108,7 @@ export default function DesafiadoClient({ id }) {
 
   async function adicionarJogador(p) {
     setBusy(true);
-    const res = await fetch(`/api/desafiado/${id}/jogadores`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: p.id, nome: p.nome }),
-    });
-    const result = await res.json();
+    const { res, result } = await chamar('/jogadores', { id: p.id, nome: p.nome });
     setBusy(false);
     if (!res.ok) { showToast(result.error || 'Não consegui adicionar.'); return; }
     showToast(result.timeFormado ? `${p.nome} entrou — Time ${result.timeFormado.numero} formado e foi pro final da fila!` : `${p.nome} entrou na lista de espera.`);
@@ -108,9 +118,9 @@ export default function DesafiadoClient({ id }) {
   async function encerrarSessao() {
     if (!confirm('Encerrar o Desafiado? Ninguém mais vai poder marcar gol ou entrar depois disso.')) return;
     setBusy(true);
-    const res = await fetch(`/api/desafiado/${id}/encerrar-sessao`, { method: 'POST' });
+    const { res, result } = await chamar('/encerrar-sessao');
     setBusy(false);
-    if (!res.ok) { const r = await res.json(); showToast(r.error || 'Não consegui encerrar.'); return; }
+    if (!res.ok) { showToast(result.error || 'Não consegui encerrar.'); return; }
     showToast('Desafiado encerrado.');
     load(true);
   }
@@ -128,7 +138,9 @@ export default function DesafiadoClient({ id }) {
     return (
       <div>
         <div className="pl-header"><BackLink href="/">Início</BackLink></div>
-        <div className="pl-empty"><p>Esse Desafiado não existe (ou já expirou).</p></div>
+        <div className="pl-empty">
+          <p>{notFound ? 'Esse Desafiado não existe (ou já expirou).' : 'Não consegui carregar agora. Tentando de novo...'}</p>
+        </div>
       </div>
     );
   }

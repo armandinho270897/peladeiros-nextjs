@@ -114,11 +114,12 @@ export async function POST(request, { params }) {
   let proximaPartida = null;
   if (oponente) {
     const { data: sessao } = await supabase.from('desafiado_sessoes').select('duracao_partida_min').eq('id', id).single();
-    const { data: nova } = await supabase
+    const { data: nova, error: novaError } = await supabase
       .from('desafiado_partidas')
       .insert({ sessao_id: id, time_a_id: vencedorTimeId, time_b_id: oponente.id, duracao_min: sessao.duracao_partida_min })
       .select()
       .single();
+    if (novaError) return errJson(novaError.message, 500);
     proximaPartida = nova;
   }
 
