@@ -36,7 +36,7 @@ export async function GET(request) {
   const { data: jogos } = await supabase
     .from('games')
     .select('id, local, data, horario, encerrada_em')
-    .in('data', [dataLocalISO(0), dataLocalISO(1)]);
+    .in('data', [dataLocalISO(-1), dataLocalISO(0), dataLocalISO(1)]);
 
   const agora = Date.now();
   const gameIdsProximos = (jogos || [])

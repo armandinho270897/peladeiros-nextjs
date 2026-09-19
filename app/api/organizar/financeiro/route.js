@@ -1,15 +1,10 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { getSessionUser, timesQueCapitaneia } from '@/lib/organizerAuth';
-import { ocupandoVagaDe } from '@/lib/gameUtils';
+import { ocupandoVagaDe, mesAtualISO } from '@/lib/gameUtils';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
-
-function mesAtualISO() {
-  const hoje = new Date();
-  return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
-}
 
 // Lista financeira unificada — linhas de "pelada avulsa" (games.valor +
 // confirmacoes.pago) e linhas de "mensalidade" (times.mensalidade_valor +

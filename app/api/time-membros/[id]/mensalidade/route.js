@@ -4,14 +4,15 @@ import { authorizeTimeCaptain } from '@/lib/timeAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
+import { mesAtualISO } from '@/lib/gameUtils';
 
 // Mês de referência sempre normalizado pro dia 1 — junto com a unique
 // constraint (time_membro_id, mes_referencia) da migration 034, garante
 // no máximo 1 registro de pagamento por mensalista por mês, não importa
 // que dia do mês o capitão clicou.
 function primeiroDiaDoMes(mesReferencia) {
-  const base = mesReferencia ? new Date(mesReferencia) : new Date();
-  return `${base.getFullYear()}-${String(base.getMonth() + 1).padStart(2, '0')}-01`;
+  const m = typeof mesReferencia === 'string' && mesReferencia.match(/^(d{4}-d{2})/);
+  return m ? `${m[1]}-01` : mesAtualISO();
 }
 
 async function carregarMembro(id) {

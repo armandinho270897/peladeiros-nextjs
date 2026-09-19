@@ -1,7 +1,7 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { getSessionUser, timesQueCapitaneia } from '@/lib/organizerAuth';
-import { aprovadosDe, ocupandoVagaDe, esperaDe, pendentesDe, jaAconteceu, fmtDate, periodoDe, PERIODO_LABEL } from '@/lib/gameUtils';
+import { aprovadosDe, ocupandoVagaDe, esperaDe, pendentesDe, jaAconteceu, fmtDate, periodoDe, PERIODO_LABEL, mesAtualISO } from '@/lib/gameUtils';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -9,11 +9,6 @@ export const fetchCache = 'force-no-store';
 // Mínimo de peladas passadas pra um insight virar "padrão" em vez de
 // coincidência — evita tratar poucos dados como tendência.
 const MIN_HISTORICO_INSIGHTS = 3;
-
-function mesAtualISO() {
-  const hoje = new Date();
-  return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
-}
 
 function moda(valores) {
   const contagem = {};

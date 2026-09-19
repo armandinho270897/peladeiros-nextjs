@@ -7,6 +7,7 @@ import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
 import { notaMediaPonderada } from '@/lib/moral';
+import { mesAtualISO } from '@/lib/gameUtils';
 
 // Mesmo bug de cache já corrigido em /api/games e /api/games/mapa: o Data
 // Cache do Next pra chamadas fetch (usadas pelo supabase-js por baixo) pode
@@ -99,8 +100,7 @@ export async function GET(request, { params }) {
   // e um resumo agregado só quando souCapitao.
   let resumoFinanceiro = null;
   if (souCapitao) {
-    const hoje = new Date();
-    const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
+    const mesAtual = mesAtualISO();
     const mensalistasIds = membros.filter((m) => m.mensalista).map((m) => m.id);
     const { data: pagamentosDoMes } = mensalistasIds.length > 0
       ? await supabase.from('mensalidades').select('time_membro_id').eq('mes_referencia', mesAtual).in('time_membro_id', mensalistasIds)
