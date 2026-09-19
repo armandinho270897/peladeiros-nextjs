@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { authorizeTimeCaptain } from '@/lib/timeAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
+import { mesAtualISO } from '@/lib/gameUtils';
 
 // Manda o lembrete (in-app + e-mail, categoria "urgente" já cuida disso —
 // ver lib/notify.js) pro mensalista que ainda tá pendente no mês. Não
@@ -14,12 +15,18 @@ export async function POST(request, { params }) {
   }
 
   const { id } = params;
-  const { data: membro } = await supabase.from('time_membros').select('id, time_id, user_id').eq('id', id).single();
+  const { data: membro } = await supabase.from('time_membros').select('id, time_id, user_id, mensalista, status').eq('id', id).single();
   if (!membro) return NextResponse.json({ error: 'Membro não encontrado.' }, { status: 404 });
   if (!membro.user_id) return NextResponse.json({ error: 'Esse jogador não tem conta pra receber aviso.' }, { status: 400 });
 
   const auth = await authorizeTimeCaptain(membro.time_id);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  if (membro.status !== 'aprovado' || !membro.mensalista) {
+    return NextResponse.json({ error: 'Esse jogador não é mensalista do time.' }, { status: 400 });
+  }
+  const { data: jaPagou } = await supabase.from('mensalidades').select('id').eq('time_membro_id', id).eq('mes_referencia', mesAtualISO()).maybeSingle();
+  if (jaPagou) return NextResponse.json({ error: 'Esse jogador já pagou a mensalidade deste mês.' }, { status: 409 });
 
   const { data: time } = await supabase.from('times').select('nome, mensalidade_valor').eq('id', membro.time_id).single();
   if (!time?.mensalidade_valor) {

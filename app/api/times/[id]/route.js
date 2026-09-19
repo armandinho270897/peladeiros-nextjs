@@ -7,6 +7,7 @@ import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
 import { notaMediaPonderada } from '@/lib/moral';
+import { validarEscudo } from '@/lib/escudoUpload';
 import { mesAtualISO } from '@/lib/gameUtils';
 
 // Mesmo bug de cache já corrigido em /api/games e /api/games/mapa: o Data
@@ -149,7 +150,7 @@ export async function PATCH(request, { params }) {
   const arenaId = form.get('arenaId')?.toString().trim() || null;
   const diaJogo = form.get('diaJogo')?.toString().trim() || null;
   const horarioJogo = form.get('horarioJogo')?.toString().trim() || null;
-  const maxJogadores = Number(form.get('maxJogadores')) || 15;
+  const maxJogadores = Math.min(100, Math.max(2, Math.trunc(Number(form.get('maxJogadores'))) || 15));
   const recrutamento = form.get('recrutamento')?.toString().trim() || 'fechado';
   const anoFundacao = Number(form.get('anoFundacao')) || null;
   const corPrimaria = form.get('corPrimaria')?.toString().trim() || null;
@@ -184,13 +185,15 @@ export async function PATCH(request, { params }) {
     mensalidade_valor: mensalidadeValor,
   };
 
-  if (escudo && typeof escudo === 'object' && escudo.size > 0) {
-    const ext = escudo.name?.split('.').pop() || 'jpg';
-    const path = `${id}/escudo.${ext}`;
+  const escudoValido = escudo && typeof escudo === 'object' && escudo.size > 0 ? validarEscudo(escudo) : null;
+  if (escudoValido && !escudoValido.ok) return NextResponse.json({ error: escudoValido.error }, { status: 400 });
+
+  if (escudoValido) {
+    const path = `${id}/escudo.${escudoValido.ext}`;
     const buffer = Buffer.from(await escudo.arrayBuffer());
     const { error: uploadError } = await supabase.storage.from('times-escudos').upload(path, buffer, {
       upsert: true,
-      contentType: escudo.type || 'image/jpeg',
+      contentType: escudoValido.contentType,
     });
     if (uploadError) {
       Sentry.captureException(new Error(uploadError.message));

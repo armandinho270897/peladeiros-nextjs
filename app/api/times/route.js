@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { errJson } from '@/lib/apiError';
+import { validarEscudo } from '@/lib/escudoUpload';
 
 // Mesmo bug de cache já corrigido em /api/games, /api/games/mapa e
 // /api/times/[id] — ver comentário lá pro histórico completo.
@@ -52,7 +53,7 @@ export async function POST(request) {
   const arenaId = form.get('arenaId')?.toString().trim() || null;
   const diaJogo = form.get('diaJogo')?.toString().trim() || null;
   const horarioJogo = form.get('horarioJogo')?.toString().trim() || null;
-  const maxJogadores = Number(form.get('maxJogadores')) || 15;
+  const maxJogadores = Math.min(100, Math.max(2, Math.trunc(Number(form.get('maxJogadores'))) || 15));
   const recrutamento = form.get('recrutamento')?.toString().trim() || 'fechado';
   const anoFundacao = Number(form.get('anoFundacao')) || null;
   const corPrimaria = form.get('corPrimaria')?.toString().trim() || null;
@@ -64,6 +65,10 @@ export async function POST(request) {
   const escudo = form.get('escudo');
 
   if (!nome) return NextResponse.json({ error: 'Dá um nome pro time.' }, { status: 400 });
+
+  const temEscudo = escudo && typeof escudo === 'object' && escudo.size > 0;
+  const escudoValido = temEscudo ? validarEscudo(escudo) : null;
+  if (escudoValido && !escudoValido.ok) return NextResponse.json({ error: escudoValido.error }, { status: 400 });
 
   const { data: time, error } = await supabase
     .from('times')
@@ -96,15 +101,17 @@ export async function POST(request) {
     .from('time_membros')
     .insert({ time_id: time.id, user_id: user.id, papel: 'capitao', status: 'aprovado' });
 
-  if (membroError) return errJson(membroError.message, 500);
+  if (membroError) {
+    await supabase.from('times').delete().eq('id', time.id);
+    return errJson(membroError.message, 500);
+  }
 
-  if (escudo && typeof escudo === 'object' && escudo.size > 0) {
-    const ext = escudo.name?.split('.').pop() || 'jpg';
-    const path = `${time.id}/escudo.${ext}`;
+  if (escudoValido) {
+    const path = `${time.id}/escudo.${escudoValido.ext}`;
     const buffer = Buffer.from(await escudo.arrayBuffer());
     const { error: uploadError } = await supabase.storage.from('times-escudos').upload(path, buffer, {
       upsert: true,
-      contentType: escudo.type || 'image/jpeg',
+      contentType: escudoValido.contentType,
     });
     if (uploadError) {
       Sentry.captureException(new Error(uploadError.message));
