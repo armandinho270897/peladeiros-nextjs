@@ -1,7 +1,7 @@
 import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
-import { todayISO, LIMITE_EM_CIMA_DA_HORA_MS, checkinPontual } from '@/lib/gameUtils';
+import { todayISO, LIMITE_EM_CIMA_DA_HORA_MS, checkinPontual, inicioDoJogo } from '@/lib/gameUtils';
 import { notaMediaPonderada, calcularMoral } from '@/lib/moral';
 import { patenteDe } from '@/lib/patentes';
 
@@ -32,7 +32,7 @@ async function peladasBoasComoCapitao(userId, today) {
   for (const c of cancelamentos || []) {
     const game = peladas.find((g) => g.id === c.game_id);
     if (!game) continue;
-    const diff = new Date(`${game.data}T${game.horario}`).getTime() - new Date(c.cancelado_em).getTime();
+    const diff = inicioDoJogo(game).getTime() - new Date(c.cancelado_em).getTime();
     if (diff >= 0 && diff < LIMITE_EM_CIMA_DA_HORA_MS) comProblema.add(game.id);
   }
   return peladas.filter((g) => !comProblema.has(g.id)).length;
@@ -58,7 +58,7 @@ async function faltasDoUsuario(userId, historico) {
   let faltas = historico.filter((g) => g.presente === false).length;
   for (const c of cancelamentos || []) {
     if (!c.games?.data || !c.games?.horario) continue;
-    const diff = new Date(`${c.games.data}T${c.games.horario}`).getTime() - new Date(c.cancelado_em).getTime();
+    const diff = inicioDoJogo(c.games).getTime() - new Date(c.cancelado_em).getTime();
     if (diff >= 0 && diff < LIMITE_EM_CIMA_DA_HORA_MS) faltas += 1;
   }
   return faltas;

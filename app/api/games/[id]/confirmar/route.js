@@ -28,12 +28,14 @@ export async function POST(request, { params }) {
 
   const { data: game, error: gameError } = await supabase
     .from('games')
-    .select('id, local, owner_id, pausada_em')
+    .select('id, local, owner_id, pausada_em, encerrada_em')
     .eq('id', id)
     .single();
 
   if (gameError || !game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
   if (game.pausada_em) return NextResponse.json({ error: 'Essa pelada foi pausada pela administração e não aceita novas confirmações agora.' }, { status: 403 });
+
+  if (game.encerrada_em) return NextResponse.json({ error: 'Essa pelada já foi encerrada.' }, { status: 409 });
 
   const { data: existente } = await supabase
     .from('confirmacoes')

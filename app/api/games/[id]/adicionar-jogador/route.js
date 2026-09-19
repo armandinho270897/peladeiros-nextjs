@@ -45,10 +45,14 @@ export async function POST(request, { params }) {
   const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro').eq('id', userId).maybeSingle();
   if (!profile) return NextResponse.json({ error: 'Jogador não encontrado.' }, { status: 404 });
 
-  const { data: existente } = await supabase.from('confirmacoes').select('id').eq('game_id', id).eq('user_id', userId).maybeSingle();
+  const { data: existente } = await supabase.from('confirmacoes').select('id, status').eq('game_id', id).eq('user_id', userId).maybeSingle();
+
+  if (existente && ['aprovado', 'aguardando_confirmacao'].includes(existente.status)) {
+    return NextResponse.json({ error: 'Esse jogador já está na pelada.' }, { status: 409 });
+  }
 
   if (existente) {
-    ({ data: resultado, error } = await supabase.from('confirmacoes').update({ status: novoStatus }).eq('id', existente.id).select().single());
+    ({ data: resultado, error } = await supabase.from('confirmacoes').update({ status: novoStatus, cancelado_em: null }).eq('id', existente.id).select().single());
   } else {
     ({ data: resultado, error } = await supabase
       .from('confirmacoes')

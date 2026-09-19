@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { authorizeGameOwner } from '@/lib/gameAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { errJson } from '@/lib/apiError';
+import { inicioDoJogo } from '@/lib/gameUtils';
 
 // Encerramento formal: o capitão marca quem não compareceu entre os
 // aprovados (todo mundo começa presente por padrão — só desmarca a
@@ -23,7 +24,7 @@ export async function POST(request, { params }) {
   if (!game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
   if (game.encerrada_em) return NextResponse.json({ error: 'Essa pelada já foi encerrada.' }, { status: 409 });
 
-  const inicio = new Date(`${game.data}T${game.horario}`);
+  const inicio = inicioDoJogo(game);
   if (inicio.getTime() > Date.now()) {
     return NextResponse.json({ error: 'Só dá pra encerrar depois que o horário da pelada já passou.' }, { status: 400 });
   }
@@ -47,6 +48,9 @@ export async function POST(request, { params }) {
   // times (A/B) antes do jogo. Number(undefined) === NaN, então checa
   // explicitamente pra não gravar 0x0 quando ninguém preencheu nada.
   const temPlacar = placarTimeA !== undefined && placarTimeA !== null && placarTimeB !== undefined && placarTimeB !== null;
+  if (temPlacar && ![placarTimeA, placarTimeB].every((n) => Number.isInteger(Number(n)) && Number(n) >= 0 && Number(n) <= 99)) {
+    return NextResponse.json({ error: 'Placar inválido — use números inteiros de 0 a 99.' }, { status: 400 });
+  }
 
   const { error } = await supabase.from('games').update({
     encerrada_em: new Date().toISOString(),
