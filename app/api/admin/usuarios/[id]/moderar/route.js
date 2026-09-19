@@ -4,6 +4,7 @@ import { errJson } from '@/lib/apiError';
 import { authorizeAdmin } from '@/lib/adminAuth';
 import { registrarAuditoria } from '@/lib/auditLog';
 import { createNotification } from '@/lib/notify';
+import { ADMIN_USER_ID } from '@/lib/adminConfig';
 
 const ACOES = {
   advertir: { status: 'advertido', tipo: 'conta_advertida' },
@@ -23,12 +24,19 @@ export async function POST(request, { params }) {
   const config = ACOES[acao];
   if (!config) return NextResponse.json({ error: 'Ação inválida.' }, { status: 400 });
   if (!motivo?.trim()) return NextResponse.json({ error: 'Informe o motivo.' }, { status: 400 });
+  if (params.id === auth.user.id || params.id === ADMIN_USER_ID) {
+    return NextResponse.json({ error: 'Essa conta não pode ser moderada por aqui.' }, { status: 403 });
+  }
+  const dias = diasSuspensao ? Number(diasSuspensao) : null;
+  if (acao === 'suspender' && dias !== null && (!Number.isInteger(dias) || dias < 1 || dias > 3650)) {
+    return NextResponse.json({ error: 'Dias de suspensão inválido — use um número inteiro de 1 a 3650.' }, { status: 400 });
+  }
 
   const { data: antes } = await supabase.from('profiles').select('status, suspenso_ate, moderacao_motivo').eq('id', params.id).maybeSingle();
   if (!antes) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
 
-  const suspensoAte = acao === 'suspender' && diasSuspensao
-    ? new Date(Date.now() + Number(diasSuspensao) * 24 * 3600 * 1000).toISOString()
+  const suspensoAte = acao === 'suspender' && dias
+    ? new Date(Date.now() + dias * 24 * 3600 * 1000).toISOString()
     : null;
 
   const depois = {

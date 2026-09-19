@@ -5,6 +5,7 @@ import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { errJson } from '@/lib/apiError';
 
 const ALVOS_VALIDOS = ['jogador', 'pelada', 'arena'];
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MOTIVOS_VALIDOS = ['comportamento_abusivo', 'no_show_recorrente', 'informacao_falsa', 'conteudo_inadequado', 'problema_seguranca', 'outro'];
 
 // Qualquer usuário logado denuncia jogador/pelada/arena. Pública (não é
@@ -18,12 +19,23 @@ export async function POST(request) {
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login pra denunciar.' }, { status: 401 });
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const { alvoTipo, alvoId, motivo, descricao } = body;
 
-  if (!ALVOS_VALIDOS.includes(alvoTipo) || !alvoId || !MOTIVOS_VALIDOS.includes(motivo)) {
+  if (!ALVOS_VALIDOS.includes(alvoTipo) || typeof alvoId !== 'string' || !UUID_RE.test(alvoId) || !MOTIVOS_VALIDOS.includes(motivo)) {
     return NextResponse.json({ error: 'Dados inválidos. Confere o tipo de alvo e o motivo.' }, { status: 400 });
   }
+
+  // Mesma pessoa não reabre denúncia sobre o mesmo alvo enquanto a anterior
+  // ainda está na fila — evita encher a fila do admin com repetição.
+  const { data: jaAberta } = await supabase
+    .from('denuncias')
+    .select('id')
+    .eq('autor_id', user.id).eq('alvo_tipo', alvoTipo).eq('alvo_id', alvoId)
+    .in('status', ['aberta', 'em_analise'])
+    .limit(1)
+    .maybeSingle();
+  if (jaAberta) return NextResponse.json({ error: 'Você já denunciou isso e a denúncia está em análise.' }, { status: 409 });
 
   const { data: denuncia, error } = await supabase
     .from('denuncias')

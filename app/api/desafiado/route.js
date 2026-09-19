@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { errJson } from '@/lib/apiError';
 import { formarTimesCompletos } from '@/lib/desafiadoSorteio';
+import { assertUsuarioAtivo } from '@/lib/moderacao';
 
 // Cria a sessão inteira de uma vez: local, tipo de jogo, tamanho de time,
 // duração de partida e a lista de jogadores presentes — já sorteia os
@@ -18,6 +19,10 @@ export async function POST(request) {
   const authClient = createServerClient();
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login pra criar um Desafiado.' }, { status: 401 });
+
+  const { data: perfil } = await supabase.from('profiles').select('status, suspenso_ate').eq('id', user.id).maybeSingle();
+  const bloqueio = assertUsuarioAtivo(perfil);
+  if (bloqueio) return NextResponse.json({ error: bloqueio }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
   const { local, bairro, latitude, longitude, arenaId, tipoJogo, tamanhoTime, duracaoMin, jogadores } = body;
