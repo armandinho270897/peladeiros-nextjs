@@ -30,13 +30,16 @@ export async function POST(request, { params }) {
     }
 
     if (criterioDesempate === 'prorrogacao') {
+      const { data: sessaoOriginal } = await supabase.from('desafiado_sessoes').select('duracao_partida_min').eq('id', id).single();
       const { data: atualizada, error } = await supabase
         .from('desafiado_partidas')
-        .update({ criterio_desempate: 'prorrogacao', duracao_min: Math.max(1, Math.round(partida.duracao_min / 2)), iniciada_em: new Date().toISOString() })
+        .update({ criterio_desempate: 'prorrogacao', duracao_min: Math.max(1, Math.round(sessaoOriginal.duracao_partida_min / 2)), iniciada_em: new Date().toISOString() })
         .eq('id', partida.id)
+        .eq('status', 'em_andamento')
         .select()
-        .single();
+        .maybeSingle();
       if (error) return errJson(error.message, 500);
+      if (!atualizada) return NextResponse.json({ error: 'Essa partida já foi encerrada.' }, { status: 409 });
       return NextResponse.json({ prorrogacao: true, partida: atualizada });
     }
 
@@ -65,11 +68,17 @@ export async function POST(request, { params }) {
   const golsVencedor = vencedorTimeId === partida.time_a_id ? partida.gols_time_a : partida.gols_time_b;
   const golsPerdedor = vencedorTimeId === partida.time_a_id ? partida.gols_time_b : partida.gols_time_a;
 
-  const { error: encerraError } = await supabase
+  // Só uma requisição consegue virar a partida de em_andamento pra
+  // encerrada; duplo clique ou retry cai aqui e não conta a vitória de novo.
+  const { data: encerrada, error: encerraError } = await supabase
     .from('desafiado_partidas')
     .update({ status: 'encerrada', vencedor_time_id: vencedorTimeId, encerrada_em: new Date().toISOString(), criterio_desempate: empatado ? criterioDesempate : null })
-    .eq('id', partida.id);
+    .eq('id', partida.id)
+    .eq('status', 'em_andamento')
+    .select('id')
+    .maybeSingle();
   if (encerraError) return errJson(encerraError.message, 500);
+  if (!encerrada) return NextResponse.json({ error: 'Essa partida já foi encerrada.' }, { status: 409 });
 
   const { data: timeVencedor } = await supabase.from('desafiado_times').select('*').eq('id', vencedorTimeId).single();
   const { data: timePerdedor } = await supabase.from('desafiado_times').select('*').eq('id', perdedorTimeId).single();

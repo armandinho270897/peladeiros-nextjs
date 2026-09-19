@@ -19,13 +19,18 @@ export async function POST(request, { params }) {
   else if (timeId === partida.time_b_id) campo = 'gols_time_b';
   else return NextResponse.json({ error: 'Esse time não está jogando essa partida.' }, { status: 400 });
 
+  // Só soma se o placar ainda for o que lemos — dois toques rápidos não
+  // perdem gol nem duplicam; quem perde a corrida recebe 409 e tenta de novo.
   const { data: atualizada, error } = await supabase
     .from('desafiado_partidas')
     .update({ [campo]: partida[campo] + 1 })
     .eq('id', partida.id)
+    .eq('status', 'em_andamento')
+    .eq(campo, partida[campo])
     .select()
-    .single();
+    .maybeSingle();
   if (error) return errJson(error.message, 500);
+  if (!atualizada) return NextResponse.json({ error: 'O placar mudou agora há pouco. Tenta de novo.' }, { status: 409 });
 
   return NextResponse.json(atualizada);
 }
