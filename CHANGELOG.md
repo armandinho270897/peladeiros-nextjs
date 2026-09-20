@@ -11,9 +11,12 @@ O projeto não usava número de versão até este documento existir. A retrospec
 - Lembrete automático pro organizador que ainda não encerrou uma partida já realizada.
 - Distância até a pelada, exibida também na página de detalhe (antes só aparecia na lista).
 - Entrar num time por link, sem precisar já ter conta — cadastro novo volta automaticamente pro time e já manda o pedido.
+- Desfazer gol no Desafiado (botão −1), pra corrigir toque errado no placar ao vivo.
 - Modo Desafiado: sorteio de times pra jogo na hora, com fila giratória, cronômetro por partida e desempate por prorrogação, pênaltis ou cara-ou-coroa.
 
 ### Corrigido
+- Faltas por cancelamento tardio, mês da mensalidade e "hoje" no servidor agora seguem o horário de Brasília (antes a virada acontecia 3h cedo).
+- Modo Desafiado e desafios entre times: duplo clique não conta vitória, gol ou aceite em dobro.
 - Mensagem de "esqueci minha senha" agora avisa sobre o bloqueio de segurança do Supabase (pedido repetido rápido demais) em vez de sugerir tentar de novo na hora.
 - Cadastro novo com destino numa rota pública (ex: um link de convite) agora sempre passa por completar o perfil antes de chegar lá.
 

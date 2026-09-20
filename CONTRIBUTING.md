@@ -25,6 +25,14 @@ wip debug temporário
 ajustes conforme conversamos
 ```
 
+## Testes
+
+```bash
+npm test
+```
+
+Usa o executor nativo do Node, sem dependência extra. Os testes ficam em `tests/` e cobrem regras que já deram problema: horário de Brasília (dia, mês da mensalidade, falta por cancelamento tardio), sorteio dos times do Desafiado e bloqueio de conta suspensa. Regra nova que mexe em data, dinheiro ou reputação deve ganhar um teste.
+
 ## Pull Requests
 
 Para mudanças maiores (mais de um arquivo com lógica nova, mudança de schema, qualquer coisa que mexe em fluxo de autenticação/pagamento/permissão), abra um Pull Request em vez de commitar direto na branch principal. Descreva:
