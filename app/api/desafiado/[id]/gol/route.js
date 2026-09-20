@@ -8,7 +8,7 @@ export async function POST(request, { params }) {
   const auth = await authorizeDesafiadoCriador(id);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { timeId } = await request.json().catch(() => ({}));
+  const { timeId, desfazer } = await request.json().catch(() => ({}));
   if (!timeId) return NextResponse.json({ error: 'Informe o time.' }, { status: 400 });
 
   const { data: partida } = await supabase.from('desafiado_partidas').select('*').eq('sessao_id', id).eq('status', 'em_andamento').maybeSingle();
@@ -19,11 +19,14 @@ export async function POST(request, { params }) {
   else if (timeId === partida.time_b_id) campo = 'gols_time_b';
   else return NextResponse.json({ error: 'Esse time não está jogando essa partida.' }, { status: 400 });
 
-  // Só soma se o placar ainda for o que lemos — dois toques rápidos não
+  const delta = desfazer ? -1 : 1;
+  if (partida[campo] + delta < 0) return NextResponse.json({ error: 'Esse time já está com 0 gols.' }, { status: 400 });
+
+  // Só altera se o placar ainda for o que lemos — dois toques rápidos não
   // perdem gol nem duplicam; quem perde a corrida recebe 409 e tenta de novo.
   const { data: atualizada, error } = await supabase
     .from('desafiado_partidas')
-    .update({ [campo]: partida[campo] + 1 })
+    .update({ [campo]: partida[campo] + delta })
     .eq('id', partida.id)
     .eq('status', 'em_andamento')
     .eq(campo, partida[campo])

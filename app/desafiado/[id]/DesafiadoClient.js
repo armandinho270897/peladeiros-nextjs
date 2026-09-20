@@ -78,11 +78,11 @@ export default function DesafiadoClient({ id }) {
     }
   }
 
-  async function marcarGol(timeId) {
+  async function marcarGol(timeId, desfazer = false) {
     setBusy(true);
-    const { res, result } = await chamar('/gol', { timeId });
+    const { res, result } = await chamar('/gol', { timeId, desfazer });
     setBusy(false);
-    if (!res.ok) { showToast(result.error || 'Não consegui marcar o gol.'); return; }
+    if (!res.ok) { showToast(result.error || (desfazer ? 'Não consegui desfazer o gol.' : 'Não consegui marcar o gol.')); return; }
     load(true);
   }
 
@@ -177,13 +177,23 @@ export default function DesafiadoClient({ id }) {
               <div className="pl-desafiado-time-col">
                 <span className="pl-desafiado-time-nome">{nomeTime(timeA)}</span>
                 <span className="pl-desafiado-gols">{partidaAtual.gols_time_a}</span>
-                {souCriador && <button type="button" className="pl-btn-secondary" disabled={busy} onClick={() => marcarGol(timeA.id)}>+1 gol</button>}
+                {souCriador && (
+                  <div className="pl-desafiado-gol-btns">
+                    <button type="button" className="pl-btn-secondary" disabled={busy} onClick={() => marcarGol(timeA.id)}>+1 gol</button>
+                    <button type="button" className="pl-btn-secondary" aria-label={`Desfazer um gol do ${nomeTime(timeA)}`} disabled={busy || partidaAtual.gols_time_a === 0} onClick={() => marcarGol(timeA.id, true)}>−1</button>
+                  </div>
+                )}
               </div>
               <span className="pl-desafiado-x">x</span>
               <div className="pl-desafiado-time-col">
                 <span className="pl-desafiado-time-nome">{nomeTime(timeB)}</span>
                 <span className="pl-desafiado-gols">{partidaAtual.gols_time_b}</span>
-                {souCriador && <button type="button" className="pl-btn-secondary" disabled={busy} onClick={() => marcarGol(timeB.id)}>+1 gol</button>}
+                {souCriador && (
+                  <div className="pl-desafiado-gol-btns">
+                    <button type="button" className="pl-btn-secondary" disabled={busy} onClick={() => marcarGol(timeB.id)}>+1 gol</button>
+                    <button type="button" className="pl-btn-secondary" aria-label={`Desfazer um gol do ${nomeTime(timeB)}`} disabled={busy || partidaAtual.gols_time_b === 0} onClick={() => marcarGol(timeB.id, true)}>−1</button>
+                  </div>
+                )}
               </div>
             </div>
             {souCriador && (
