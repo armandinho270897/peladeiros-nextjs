@@ -11,6 +11,7 @@ O projeto não usava número de versão até este documento existir. A retrospec
 - Lembrete automático pro organizador que ainda não encerrou uma partida já realizada.
 - Distância até a pelada, exibida também na página de detalhe (antes só aparecia na lista).
 - Entrar num time por link, sem precisar já ter conta — cadastro novo volta automaticamente pro time e já manda o pedido.
+- Tela de abertura própria no iPhone quando o app está instalado (antes só o Android tinha).
 - Desfazer gol no Desafiado (botão −1), pra corrigir toque errado no placar ao vivo.
 - Modo Desafiado: sorteio de times pra jogo na hora, com fila giratória, cronômetro por partida e desempate por prorrogação, pênaltis ou cara-ou-coroa.
 

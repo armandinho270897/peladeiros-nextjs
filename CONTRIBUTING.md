@@ -37,6 +37,10 @@ O script `test` lista os arquivos um por um (não usa `tests/*.test.mjs`) porque
 
 Todo push e Pull Request pro `main` roda `npm test` e `npm run build` automaticamente (`.github/workflows/ci.yml`) — não usa nenhuma chave de verdade, só valores fictícios (o build não busca dado nenhum do Supabase durante a compilação).
 
+## Tela de abertura do iPhone
+
+O Safari não gera a splash screen do app instalado sozinho a partir do manifest (diferente do Android) — exige uma imagem PNG por tamanho de tela + densidade de pixel. As imagens ficam versionadas em `public/icons/splash/`, geradas por `node scripts/gerar-splash-ios.mjs` (usa `sharp`, só dependência de desenvolvimento). Rode esse script de novo só se o ícone (`public/icons/icon-512.png`) ou a cor de fundo (`public/manifest.json`, campo `background_color`) mudarem — a lista de tamanhos de tela cobertos fica em `lib/splashIos.js`.
+
 ## Pull Requests
 
 Para mudanças maiores (mais de um arquivo com lógica nova, mudança de schema, qualquer coisa que mexe em fluxo de autenticação/pagamento/permissão), abra um Pull Request em vez de commitar direto na branch principal. Descreva:

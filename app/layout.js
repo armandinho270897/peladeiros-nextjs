@@ -17,6 +17,7 @@ import OnboardingOverlay from './components/OnboardingOverlay';
 import InAppBrowserBanner from './components/InAppBrowserBanner';
 import InstallBanner from './components/InstallBanner';
 import BottomNav from './components/BottomNav';
+import { SPLASH_IOS } from '@/lib/splashIos';
 import { AuthProvider } from './components/AuthProvider';
 import { ToastProvider } from './components/ToastProvider';
 
@@ -50,6 +51,18 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Work+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* Tela de abertura do app instalado no iPhone — o Safari não gera
+            isso sozinho a partir do manifest (diferente do Android), exige
+            um link por tamanho de tela + densidade. Imagens geradas por
+            scripts/gerar-splash-ios.mjs. */}
+        {SPLASH_IOS.map((s) => (
+          <link
+            key={s.nome}
+            rel="apple-touch-startup-image"
+            href={`/icons/splash/splash-${s.nome}.png`}
+            media={`(device-width: ${s.cssW}px) and (device-height: ${s.cssH}px) and (-webkit-device-pixel-ratio: ${s.dpr}) and (orientation: portrait)`}
+          />
+        ))}
       </head>
       <body>
         {/* Filtro de borda áspera/stencil, compartilhado por qualquer elemento
