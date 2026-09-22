@@ -1,26 +1,22 @@
-import { test, mock } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { todayISO, mesAtualISO, inicioDoJogo, LIMITE_EM_CIMA_DA_HORA_MS } from '../lib/gameUtils.js';
 
-// 23h de 30/09 em Brasília já é 01/10 em UTC (onde o servidor roda).
+// 23h de 30/09 em Brasília já é 01/10 em UTC (onde o servidor roda). Passa
+// a data direto pra função em vez de mockar o relógio global — mais
+// portável entre versões do Node do que node:test's mock.timers.
 const VIRADA_DE_MES_UTC = new Date('2026-10-01T02:00:00Z');
 
 test('todayISO usa o dia de Brasília, não o de UTC', () => {
-  mock.timers.enable({ apis: ['Date'], now: VIRADA_DE_MES_UTC });
-  assert.equal(todayISO(), '2026-09-30');
-  mock.timers.reset();
+  assert.equal(todayISO(VIRADA_DE_MES_UTC), '2026-09-30');
 });
 
 test('mesAtualISO não vira o mês antes da meia-noite de Brasília', () => {
-  mock.timers.enable({ apis: ['Date'], now: VIRADA_DE_MES_UTC });
-  assert.equal(mesAtualISO(), '2026-09-01');
-  mock.timers.reset();
+  assert.equal(mesAtualISO(VIRADA_DE_MES_UTC), '2026-09-01');
 });
 
 test('mesAtualISO vira o mês à meia-noite de Brasília', () => {
-  mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-01T03:00:00Z') });
-  assert.equal(mesAtualISO(), '2026-10-01');
-  mock.timers.reset();
+  assert.equal(mesAtualISO(new Date('2026-10-01T03:00:00Z')), '2026-10-01');
 });
 
 test('inicioDoJogo interpreta data e horário como horário de Brasília', () => {
