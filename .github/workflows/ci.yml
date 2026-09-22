@@ -1,0 +1,37 @@
+# Roda os testes e o build a cada push/PR — pega erro antes de chegar na
+# Vercel (que só builda depois de já estar no GitHub) ou, pior, em produção.
+# Não usa nenhuma chave de verdade: o build não busca dado nenhum do
+# Supabase durante a compilação, só precisa das env vars existirem com
+# algum valor (testado localmente com valores fictícios antes de existir
+# esse workflow).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  testar-e-buildar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: chave-fake-ci
+          SUPABASE_SERVICE_ROLE_KEY: chave-fake-ci
+          NEXT_PUBLIC_JAWG_ACCESS_TOKEN: token-fake-ci
+          GMAIL_USER: ci@example.com
+          GMAIL_APP_PASSWORD: fake
