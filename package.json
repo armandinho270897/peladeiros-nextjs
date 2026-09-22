@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --no-warnings --test \"tests/*.test.mjs\""
+    "test": "node --no-warnings --test tests/desafiado-sorteio.test.mjs tests/horario-brasilia.test.mjs tests/moderacao.test.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.70.0",

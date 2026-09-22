@@ -33,6 +33,8 @@ npm test
 
 Usa o executor nativo do Node, sem dependência extra. Os testes ficam em `tests/` e cobrem regras que já deram problema: horário de Brasília (dia, mês da mensalidade, falta por cancelamento tardio), sorteio dos times do Desafiado e bloqueio de conta suspensa. Regra nova que mexe em data, dinheiro ou reputação deve ganhar um teste.
 
+O script `test` lista os arquivos um por um (não usa `tests/*.test.mjs`) porque a busca por padrão de arquivo do `node --test` não é igual em toda versão do Node — arquivo de teste novo precisa ser adicionado à mão no `package.json`.
+
 Todo push e Pull Request pro `main` roda `npm test` e `npm run build` automaticamente (`.github/workflows/ci.yml`) — não usa nenhuma chave de verdade, só valores fictícios (o build não busca dado nenhum do Supabase durante a compilação).
 
 ## Pull Requests
