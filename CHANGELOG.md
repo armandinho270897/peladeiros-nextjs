@@ -19,6 +19,9 @@ O projeto não usava número de versão até este documento existir. A retrospec
 - Modo Desafiado: sorteio de times pra jogo na hora, com fila giratória, cronômetro por partida e desempate por prorrogação, pênaltis ou cara-ou-coroa.
 
 ### Corrigido
+- Aprovar duas solicitações ao mesmo tempo não lota mais a pelada além do limite de vagas — a contagem de vagas e a aprovação agora acontecem numa transação só no banco.
+- Encerrar partida do Desafiado e aceitar desafio entre times agora são tudo-ou-nada: se algo falhar no meio, nada fica pela metade.
+- Desafiar um time voltou a funcionar (uma validação de data quebrada rejeitava qualquer data).
 - Faltas por cancelamento tardio, mês da mensalidade e "hoje" no servidor agora seguem o horário de Brasília (antes a virada acontecia 3h cedo).
 - Modo Desafiado e desafios entre times: duplo clique não conta vitória, gol ou aceite em dobro.
 - Mensagem de "esqueci minha senha" agora avisa sobre o bloqueio de segurança do Supabase (pedido repetido rápido demais) em vez de sugerir tentar de novo na hora.

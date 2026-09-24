@@ -45,6 +45,12 @@ O Safari não gera a splash screen do app instalado sozinho a partir do manifest
 
 Escopo de propósito pequeno: cacheia só o build do Next (`_next/static/**`, com hash no nome, seguro pra sempre) e serve `/offline` no lugar do erro do navegador quando uma navegação falha por falta de internet. Nunca toca em `/api/` nem `/auth/` — pelada, chat, placar e confirmação continuam sempre ao vivo, sem risco de mostrar dado velho escondido em cache. Se `/sw.js` ou `/offline` precisarem passar pelo `middleware.js` (ex: nova rota pública), lembre de manter os dois fora da exigência de login — ver `isPublicPath` e o `matcher` no topo do arquivo.
 
+## Operações de várias etapas: função no banco, não sequência em JS
+
+Operação que grava em mais de uma tabela, ou que decide com base num valor lido antes de escrever (contar vagas e aprovar, fechar partida e atualizar os dois times), vai numa função do Postgres chamada por `supabase.rpc(...)` — não numa sequência de chamadas soltas em JS com "desfazer" manual. A função roda numa transação só: se qualquer passo falhar, o banco desfaz tudo sozinho, e `for update` trava a linha certa contra duas requisições simultâneas. Exemplos: `aprovar_confirmacao` (054), `desafiado_encerrar_partida` (055), `desafios_aceitar` (056).
+
+Fica em JS o que não é transação de dados: autorização (quem está pedindo), notificação e e-mail. Erro esperado sai da função como `raise exception` com a mensagem exata que a rota mapeia pro status HTTP, ou como linha com um campo `tipo` quando a rota precisa devolver formatos diferentes.
+
 ## Pull Requests
 
 Para mudanças maiores (mais de um arquivo com lógica nova, mudança de schema, qualquer coisa que mexe em fluxo de autenticação/pagamento/permissão), abra um Pull Request em vez de commitar direto na branch principal. Descreva:
