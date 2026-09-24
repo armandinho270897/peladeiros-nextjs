@@ -14,6 +14,7 @@ O projeto não usava número de versão até este documento existir. A retrospec
 - Tela de "sem conexão" própria no app instalado — troca o erro feio do navegador quando o sinal cai; os arquivos do app carregam do cache, agilizando reaberturas.
 - Aviso de "abre no navegador" também aparece pra quem entra pela webview do app do Google (antes só cobria Instagram, Facebook, TikTok etc).
 - Tela de abertura própria no iPhone quando o app está instalado (antes só o Android tinha).
+- Artilheiro no Desafiado: cada gol agora é atribuído a um jogador, com um painel mostrando quem mais fez gol na sessão.
 - Desfazer gol no Desafiado (botão −1), pra corrigir toque errado no placar ao vivo.
 - Modo Desafiado: sorteio de times pra jogo na hora, com fila giratória, cronômetro por partida e desempate por prorrogação, pênaltis ou cara-ou-coroa.
 

@@ -2,6 +2,7 @@ import { supabaseAdmin as supabase } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { errJson } from '@/lib/apiError';
 import { getSessionUser } from '@/lib/desafiadoAuth';
+import { calcularArtilheiros } from '@/lib/desafiadoArtilheiros';
 
 // Estado completo da sessão — a tela ao vivo faz poll nisso a cada poucos
 // segundos. Pública (mesmo padrão de /api/games/[id] e /api/times/[id]) —
@@ -19,11 +20,12 @@ export async function GET(request, { params }) {
   if (error) return errJson(error.message, 500);
   if (!sessao) return NextResponse.json({ error: 'Sessão não encontrada.' }, { status: 404 });
 
-  const [{ data: times }, { data: jogadores }, { data: partidaAtual }, { data: historico }] = await Promise.all([
+  const [{ data: times }, { data: jogadores }, { data: partidaAtual }, { data: historico }, { data: gols }] = await Promise.all([
     supabase.from('desafiado_times').select('*').eq('sessao_id', id).order('posicao_fila', { ascending: true }),
     supabase.from('desafiado_jogadores').select('*').eq('sessao_id', id),
     supabase.from('desafiado_partidas').select('*').eq('sessao_id', id).eq('status', 'em_andamento').maybeSingle(),
     supabase.from('desafiado_partidas').select('*').eq('sessao_id', id).eq('status', 'encerrada').order('encerrada_em', { ascending: false }),
+    supabase.from('desafiado_gols').select('jogador_id').eq('sessao_id', id),
   ]);
 
   const jogadoresPorTime = {};
@@ -40,6 +42,7 @@ export async function GET(request, { params }) {
     listaEspera,
     partidaAtual: partidaAtual || null,
     historico: historico || [],
+    artilheiros: calcularArtilheiros(gols, jogadores),
     souCriador: !!user && sessao.criado_por === user.id,
   });
 }
