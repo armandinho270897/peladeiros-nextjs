@@ -18,7 +18,7 @@ export async function POST(request, { params }) {
 
   if (!timeDesafianteId) return NextResponse.json({ error: 'Selecione com qual time você vai desafiar.' }, { status: 400 });
   if (!local || !bairro || !data || !horario) return NextResponse.json({ error: 'Preenche local, data e horário do desafio.' }, { status: 400 });
-  if (!/^d{4}-d{2}-d{2}$/.test(data) || !/^d{2}:d{2}(:d{2})?$/.test(horario) || Number.isNaN(inicioDoJogo({ data, horario }).getTime())) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data) || !/^\d{2}:\d{2}(:\d{2})?$/.test(horario) || Number.isNaN(inicioDoJogo({ data, horario }).getTime())) {
     return NextResponse.json({ error: 'Data ou horário inválido.' }, { status: 400 });
   }
   if (inicioDoJogo({ data, horario }).getTime() < Date.now()) {
