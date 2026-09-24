@@ -33,7 +33,7 @@ Painel administrativo separado do painel de organização, com papel de administ
 - E-mail transacional via SMTP do Gmail (nodemailer)
 - Monitoramento de erros com Sentry
 - Lembrete de 24h via cron nativo da Vercel; lembrete de 3h via GitHub Actions (o plano gratuito da Vercel só libera cron 1x/dia)
-- PWA instalável (funciona como app no celular), com tela de abertura própria no iPhone
+- PWA instalável (funciona como app no celular), com tela de abertura própria no iPhone e tela de "sem conexão" quando o sinal cai
 
 ## Rodando localmente
 

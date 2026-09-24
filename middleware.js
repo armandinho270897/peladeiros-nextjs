@@ -7,6 +7,7 @@ function isPublicPath(pathname) {
   if (pathname.startsWith('/pelada/')) return true;
   if (pathname.startsWith('/time/')) return true;
   if (pathname.startsWith('/desafiado/')) return true;
+  if (pathname === '/offline') return true;
   return false;
 }
 
@@ -65,5 +66,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest.json|splash.png|icons/|leaflet/|imagens_jogos/|api/).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|splash.png|icons/|leaflet/|imagens_jogos/|api/).*)'],
 };

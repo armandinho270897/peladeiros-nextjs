@@ -41,6 +41,10 @@ Todo push e Pull Request pro `main` roda `npm test` e `npm run build` automatica
 
 O Safari não gera a splash screen do app instalado sozinho a partir do manifest (diferente do Android) — exige uma imagem PNG por tamanho de tela + densidade de pixel. As imagens ficam versionadas em `public/icons/splash/`, geradas por `node scripts/gerar-splash-ios.mjs` (usa `sharp`, só dependência de desenvolvimento). Rode esse script de novo só se o ícone (`public/icons/icon-512.png`) ou a cor de fundo (`public/manifest.json`, campo `background_color`) mudarem — a lista de tamanhos de tela cobertos fica em `lib/splashIos.js`.
 
+## Service worker (`public/sw.js`)
+
+Escopo de propósito pequeno: cacheia só o build do Next (`_next/static/**`, com hash no nome, seguro pra sempre) e serve `/offline` no lugar do erro do navegador quando uma navegação falha por falta de internet. Nunca toca em `/api/` nem `/auth/` — pelada, chat, placar e confirmação continuam sempre ao vivo, sem risco de mostrar dado velho escondido em cache. Se `/sw.js` ou `/offline` precisarem passar pelo `middleware.js` (ex: nova rota pública), lembre de manter os dois fora da exigência de login — ver `isPublicPath` e o `matcher` no topo do arquivo.
+
 ## Pull Requests
 
 Para mudanças maiores (mais de um arquivo com lógica nova, mudança de schema, qualquer coisa que mexe em fluxo de autenticação/pagamento/permissão), abra um Pull Request em vez de commitar direto na branch principal. Descreva:
