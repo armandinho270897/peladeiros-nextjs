@@ -32,10 +32,11 @@ export default function EmptyPeladas({ variante = 'geral', onLimparFiltros, onVe
         <rect className="pl-vazio-giz d3" pathLength="1" x="12" y="60" width="14" height="30" />
         <rect className="pl-vazio-giz d3" pathLength="1" x="274" y="60" width="14" height="30" />
         <g transform="translate(0,-25)">
-          <ellipse className="pl-vazio-sombra" cx="150" cy="112" rx="11" ry="3" fill="rgba(0,0,0,.55)" />
+          <ellipse className="pl-vazio-sombra" cx="150" cy="113" rx="13" ry="3.2" fill="rgba(0,0,0,.55)" />
           <g className="pl-vazio-bola">
-            <circle cx="150" cy="100" r="10" fill="#F3F3EE" stroke="#161412" strokeWidth="1.2" />
-            <polygon points="150,94.5 155,98.2 153.1,104 146.9,104 145,98.2" fill="#161412" />
+            <circle className="pl-vazio-bola-corpo" cx="150" cy="100" r="12.5" strokeWidth="1.3" />
+            <path className="pl-vazio-bola-brilho" d="M141.5 94.5a10.5 10.5 0 0 1 8.5-5" fill="none" strokeWidth="1.6" strokeLinecap="round" />
+            <text className="pl-vazio-bola-p" x="150" y="105.6" textAnchor="middle">P</text>
           </g>
         </g>
       </svg>

@@ -228,8 +228,12 @@
 .pl-vazio-giz.d2 { animation-delay: 0.25s; }
 .pl-vazio-giz.d3 { animation-delay: 0.5s; }
 @keyframes pl-vazio-risca { to { stroke-dashoffset: 0; } }
+/* Bola neon com o "P" de Peladeiros */
+.pl-vazio-bola-corpo { fill: var(--neon); stroke: var(--ink); }
+.pl-vazio-bola-brilho { stroke: rgba(255,255,255,0.7); }
+.pl-vazio-bola-p { font-family: var(--font-display); font-size: 17px; fill: var(--ink); }
 .pl-vazio-bola { animation: pl-vazio-quica 2.6s ease-in-out 1.4s infinite; }
-.pl-vazio-sombra { transform-origin: 150px 112px; animation: pl-vazio-sombra 2.6s ease-in-out 1.4s infinite; }
+.pl-vazio-sombra { transform-origin: 150px 113px; animation: pl-vazio-sombra 2.6s ease-in-out 1.4s infinite; }
 @keyframes pl-vazio-quica { 0%, 100% { transform: translateY(0); } 45%, 55% { transform: translateY(-14px); } }
 @keyframes pl-vazio-sombra { 0%, 100% { transform: scaleX(1); opacity: 0.55; } 50% { transform: scaleX(0.6); opacity: 0.25; } }
 .pl-vazio-marca {
