@@ -17,7 +17,7 @@ import NewArenaModal from '../components/NewArenaModal';
 import ConfirmModal from '../components/ConfirmModal';
 import ManageModal from '../components/ManageModal';
 import CancelPresencaModal from '../components/CancelPresencaModal';
-import EmptyFieldIcon from '../components/icons/EmptyFieldIcon';
+import EmptyPeladas from '../components/EmptyPeladas';
 
 const MapViewPins = dynamic(() => import('../components/MapViewPins'), { ssr: false });
 
@@ -308,30 +308,15 @@ export default function PeladasPage() {
       ) : viewMode === 'mapa' ? (
         <MapViewPins games={filtradas} arenas={arenas} onConfirm={(game) => setModal({ type: 'confirm', game })} />
       ) : filtradas.length === 0 ? (
-        <div className="pl-empty">
-          <EmptyFieldIcon />
-          <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--paper)' }}>
-            {tab === 'minhas' ? 'Você ainda não tá em nenhuma pelada' : temFiltroAtivo ? 'Nada por aqui com esses filtros' : 'Tá quieto por aqui...'}
-          </h3>
-          <p>
-            {tab === 'minhas'
-              ? 'Dá uma olhada nas peladas rolando e confirma presença.'
-              : temFiltroAtivo
-                ? 'Tenta ajustar os filtros, ver outra data ou criar a pelada que tá faltando.'
-                : 'Que tal criar a primeira pelada da semana?'}
-          </p>
-          <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {tab === 'todas' && temFiltroAtivo && (
-              <button type="button" className="pl-share-btn" onClick={limparTudo}>Limpar filtros</button>
-            )}
-            {tab !== 'minhas' && (
-              <Link href="/?criar=1" className="pl-ticket" style={{ display: 'inline-flex', textDecoration: 'none' }}>
-                <span className="pl-ticket-label">Criar pelada</span>
-                <span className="pl-ticket-stub" aria-hidden="true">⚽</span>
-              </Link>
-            )}
-          </div>
-        </div>
+        <EmptyPeladas
+          variante={tab === 'minhas' ? 'minhas' : temFiltroAtivo ? 'filtro' : 'geral'}
+          onLimparFiltros={limparTudo}
+          onVerMapa={() => setViewMode('mapa')}
+          onVerPeladas={() => setTab('todas')}
+          onPerto={toggleRaio}
+          onFimDeSemana={() => setFiltros((f) => ({ ...f, data: 'fimDeSemana' }))}
+          onSociety={() => setFiltros((f) => ({ ...f, tipo: 'Society' }))}
+        />
       ) : (
         <>
           {hoje.length > 0 && <>
