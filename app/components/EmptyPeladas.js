@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 const TEXTOS = {
-  geral: { marca: 'Bola parada.', titulo: 'Tá quieto por aqui', sub: 'Cria a pelada aí, paizão!' },
+  geral: { marca: 'Fut tá parado.', titulo: 'Tá quieto por aqui', sub: 'Cria a pelada aí, paizão!' },
   filtro: { marca: 'Quase lá.', titulo: 'Nada com esses filtros', sub: 'Tenta outra data, um raio maior ou cria a pelada que tá faltando.' },
   minhas: { marca: 'No banco por ora.', titulo: 'Você ainda não tá em nenhuma', sub: 'Dá uma olhada nas peladas rolando e confirma presença.' },
 };
