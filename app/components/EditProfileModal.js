@@ -5,6 +5,7 @@ import { useAuth } from './AuthProvider';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
 import { MODALIDADES, POSICOES_POR_MODALIDADE, POSICAO_LABEL } from '@/lib/gameUtils';
+import { validarImagem } from '@/lib/validarImagem';
 
 export default function EditProfileModal({ onClose, onSaved }) {
   const { user, profile, refreshProfile } = useAuth();
@@ -18,6 +19,11 @@ export default function EditProfileModal({ onClose, onSaved }) {
   function handleFotoChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Valida aqui (tipo + tamanho) pra avisar na hora — o bucket recusa o
+    // mesmo jeito no upload, mas só com um erro genérico de storage.
+    const validado = validarImagem(file, { label: 'A foto de perfil' });
+    if (!validado.ok) { setError(validado.error); e.target.value = ''; return; }
+    setError('');
     setFotoFile(file);
     setFotoPreview(URL.createObjectURL(file));
   }

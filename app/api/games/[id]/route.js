@@ -4,8 +4,9 @@ import { attachNotaMedia } from '@/lib/ratings';
 import { authorizeGameOwner } from '@/lib/gameAuth';
 import { sweepExpiredConfirmacoes, promoverEsperaComConfirmacao } from '@/lib/confirmacoesExpiry';
 import { createNotification } from '@/lib/notify';
-import { fmtDate } from '@/lib/gameUtils';
+import { fmtDate, validarDadosGame } from '@/lib/gameUtils';
 import { errJson } from '@/lib/apiError';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 // Quem tem "pele no jogo" quando a pelada muda ou é cancelada — pendente
 // fica de fora (o capitão ainda nem aprovou, não tem compromisso firmado).
@@ -42,9 +43,19 @@ export async function GET(request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
+  // Peladas antigas sem owner_id ainda autorizam por código de 4 dígitos
+  // (ver lib/gameAuth.js) — sem limite aqui, dava pra tentar as 10.000
+  // combinações sem travar em nada.
+  if (!checkRateLimit(`games-editar:${getClientIp(request)}`)) {
+    return NextResponse.json({ error: 'Muitas tentativas em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
+  }
+
   const { id } = params;
   const body = await request.json();
   const { codigo, local, bairro, data, horario, vagasTotais, arenaId, tipo, nivel, valor, regras } = body;
+
+  const erroValidacao = validarDadosGame({ local, bairro, regras, vagasTotais, valor });
+  if (erroValidacao) return NextResponse.json({ error: erroValidacao }, { status: 400 });
 
   const auth = await authorizeGameOwner(id, codigo);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
@@ -59,10 +70,10 @@ export async function PATCH(request, { params }) {
       data,
       horario,
       vagas_totais: vagasTotais,
-      arena_id: arenaId || null,
+      arena_id: arenaId ?? null,
       tipo: tipo || null,
       nivel: nivel || null,
-      valor: valor || null,
+      valor: valor ?? null,
       regras: regras || null,
     })
     .eq('id', id);
@@ -100,6 +111,12 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+  // Mesmo motivo do PATCH acima: código de 4 dígitos sem limite de tentativas
+  // dava pra força bruta.
+  if (!checkRateLimit(`games-cancelar:${getClientIp(request)}`)) {
+    return NextResponse.json({ error: 'Muitas tentativas em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
+  }
+
   const { id } = params;
   const { codigo } = await request.json();
 

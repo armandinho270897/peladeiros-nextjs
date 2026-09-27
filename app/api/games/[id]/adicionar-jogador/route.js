@@ -4,8 +4,20 @@ import { authorizeGameOwner } from '@/lib/gameAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { errJson } from '@/lib/apiError';
 
+// Erro esperado (jogo sumiu / jogador não encontrado / já está na pelada)
+// vem como exceção da função com essa mensagem exata; mapeia pro status certo.
+const STATUS_POR_MENSAGEM = {
+  'Pelada não encontrada.': 404,
+  'Jogador não encontrado.': 404,
+  'Esse jogador já está na pelada.': 409,
+};
+
 // Mesmo caminho de "adicionar jogador" usado na criação da pelada, só que
-// aqui o capitão adiciona depois, na tela de gerenciar.
+// aqui o capitão adiciona depois, na tela de gerenciar. A decisão de vaga
+// (aprovado x espera) acontece toda dentro de adicionar_jogador_direto
+// (supabase/migrations/058) — ela resolve a corrida de duas chamadas
+// simultâneas contando a mesma vaga livre, igual aprovar_confirmacao já
+// faz pro fluxo de solicitação.
 export async function POST(request, { params }) {
   if (!checkRateLimit(`adicionar-jogador:${getClientIp(request)}`)) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
@@ -18,49 +30,15 @@ export async function POST(request, { params }) {
   const auth = await authorizeGameOwner(id, codigo);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { data: game } = await supabase.from('games').select('vagas_totais').eq('id', id).single();
-  if (!game) return NextResponse.json({ error: 'Pelada não encontrada.' }, { status: 404 });
+  const { data: resultado, error } = await supabase
+    .rpc('adicionar_jogador_direto', { p_game_id: id, p_user_id: userId || null, p_nome_convidado: nomeConvidado?.trim() || null })
+    .single();
 
-  const { count } = await supabase
-    .from('confirmacoes')
-    .select('id', { count: 'exact', head: true })
-    .eq('game_id', id)
-    .in('status', ['aprovado', 'aguardando_confirmacao']);
-
-  const novoStatus = count >= game.vagas_totais ? 'espera' : 'aprovado';
-
-  let resultado, error;
-
-  // convidado sem conta: sempre uma linha nova (sem user_id pra vincular a um cadastro)
-  if (!userId) {
-    ({ data: resultado, error } = await supabase
-      .from('confirmacoes')
-      .insert({ game_id: id, user_id: null, nome: nomeConvidado.trim(), whatsapp: '', bairro: null, status: novoStatus })
-      .select()
-      .single());
-    if (error) return errJson(error.message, 500);
-    return NextResponse.json(resultado, { status: 201 });
+  if (error) {
+    const status = STATUS_POR_MENSAGEM[error.message];
+    if (status) return NextResponse.json({ error: error.message }, { status });
+    return errJson(error.message, 500);
   }
 
-  const { data: profile } = await supabase.from('profiles').select('nome, whatsapp, bairro').eq('id', userId).maybeSingle();
-  if (!profile) return NextResponse.json({ error: 'Jogador não encontrado.' }, { status: 404 });
-
-  const { data: existente } = await supabase.from('confirmacoes').select('id, status').eq('game_id', id).eq('user_id', userId).maybeSingle();
-
-  if (existente && ['aprovado', 'aguardando_confirmacao'].includes(existente.status)) {
-    return NextResponse.json({ error: 'Esse jogador já está na pelada.' }, { status: 409 });
-  }
-
-  if (existente) {
-    ({ data: resultado, error } = await supabase.from('confirmacoes').update({ status: novoStatus, cancelado_em: null }).eq('id', existente.id).select().single());
-  } else {
-    ({ data: resultado, error } = await supabase
-      .from('confirmacoes')
-      .insert({ game_id: id, user_id: userId, nome: profile.nome, whatsapp: profile.whatsapp, bairro: profile.bairro, status: novoStatus })
-      .select()
-      .single());
-  }
-
-  if (error) return errJson(error.message, 500);
   return NextResponse.json(resultado, { status: 201 });
 }

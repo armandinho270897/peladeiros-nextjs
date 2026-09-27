@@ -3,6 +3,7 @@ import { createClient as createServerClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 import { promoverEsperaComConfirmacao } from '@/lib/confirmacoesExpiry';
 import { errJson } from '@/lib/apiError';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 // Duas formas de cancelar uma confirmação:
 // - o próprio jogador, autenticado, cancelando a própria presença (sem PIN nenhum)
@@ -17,6 +18,13 @@ async function authorizeCancel(confirmacao, codigo) {
 }
 
 export async function DELETE(request, { params }) {
+  // authorizeCancel abaixo aceita o mesmo código de 4 dígitos como
+  // alternativa pra pelada sem owner_id — sem limite, dava pra tentar as
+  // 10.000 combinações sem travar em nada.
+  if (!checkRateLimit(`confirmacoes-cancelar:${getClientIp(request)}`)) {
+    return NextResponse.json({ error: 'Muitas tentativas em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
+  }
+
   const { id } = params;
   const { codigo } = await request.json().catch(() => ({}));
 

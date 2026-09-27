@@ -8,7 +8,7 @@ import { createNotification } from '@/lib/notify';
 import { sweepExpiredConfirmacoes } from '@/lib/confirmacoesExpiry';
 import { errJson } from '@/lib/apiError';
 import { assertUsuarioAtivo } from '@/lib/moderacao';
-import { todayISO, addDiasISO, fimDeSemanaRange, periodoDe, ocupandoVagaDe, haversineKm, MODALIDADE_LABEL } from '@/lib/gameUtils';
+import { todayISO, addDiasISO, fimDeSemanaRange, periodoDe, ocupandoVagaDe, haversineKm, MODALIDADE_LABEL, validarDadosGame } from '@/lib/gameUtils';
 
 // Esse GET usa supabaseAdmin sem leitura de cookie — o Data Cache do Next
 // pra chamadas fetch (usadas pelo supabase-js por baixo) pode servir uma
@@ -229,6 +229,8 @@ export async function POST(request) {
   if (!local || !bairro || !data || !horario || !vagasTotais) {
     return NextResponse.json({ error: 'Dados inválidos. Confere se preencheu tudo.' }, { status: 400 });
   }
+  const erroValidacao = validarDadosGame({ local, bairro, regras, vagasTotais, valor });
+  if (erroValidacao) return NextResponse.json({ error: erroValidacao }, { status: 400 });
 
   const { data: game, error } = await supabase
     .from('games')

@@ -15,7 +15,9 @@ export async function POST(request) {
   const ip = getClientIp(request);
   const { email, next } = await request.json().catch(() => ({}));
 
-  if (!email || typeof email !== 'string' || !email.includes('@')) {
+  // 254 é o tamanho máximo de e-mail pelo RFC 5321 — sem isso, uma string
+  // gigante virava chave do rate-limiter em memória e ia direto pro Supabase.
+  if (!email || typeof email !== 'string' || email.length > 254 || !email.includes('@')) {
     return NextResponse.json({ error: 'Digita um e-mail válido.' }, { status: 400 });
   }
   const emailNormalizado = email.trim().toLowerCase();

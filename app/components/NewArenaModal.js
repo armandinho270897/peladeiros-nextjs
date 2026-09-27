@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from './AuthProvider';
 import TicketButton from './TicketButton';
 import { ADMIN_USER_ID } from '@/lib/adminConfig';
+import { validarImagem } from '@/lib/validarImagem';
 
 const LocationPickerMap = dynamic(() => import('./LocationPickerMap'), { ssr: false });
 
@@ -21,6 +22,11 @@ export default function NewArenaModal({ onCancel, onCreated }) {
   function handleFotoChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Valida aqui (tipo + tamanho) pra avisar na hora — o bucket recusa o
+    // mesmo jeito no upload, mas só com um erro genérico de storage.
+    const validado = validarImagem(file, { label: 'A foto da arena' });
+    if (!validado.ok) { setError(validado.error); e.target.value = ''; return; }
+    setError('');
     setFotoFile(file);
     setFotoPreview(URL.createObjectURL(file));
   }
