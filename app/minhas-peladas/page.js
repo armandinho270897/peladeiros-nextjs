@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import BackLink from '../components/BackLink';
 import Brand from '../components/Brand';
-import EmptyFieldIcon from '../components/icons/EmptyFieldIcon';
+import EmptyState, { EmptyAcao } from '../components/EmptyState';
 import MinhaPeladaCard from '../components/MinhaPeladaCard';
 import CancelPresencaModal from '../components/CancelPresencaModal';
 import { useToast } from '../components/ToastProvider';
@@ -72,10 +72,9 @@ export default function MinhasPeladasPage() {
           {[1, 2, 3].map((i) => <div key={i} className="pl-skeleton" style={{ height: 96 }} />)}
         </div>
       ) : totalItens === 0 ? (
-        <div className="pl-empty">
-          <EmptyFieldIcon />
-          <p>Você ainda não tem nenhuma pelada nos próximos dias. Vai em "Peladas" e confirma presença numa pra ela aparecer aqui.</p>
-        </div>
+        <EmptyState cena="banco" marca="Banco de reservas." titulo="Nenhuma pelada marcada" sub="Confirma presença numa pelada e ela aparece aqui.">
+          <EmptyAcao href="/peladas">Ver peladas</EmptyAcao>
+        </EmptyState>
       ) : (
         SECOES.map((secao) => {
           const itens = dados[secao.chave];

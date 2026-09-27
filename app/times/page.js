@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
 import { useToast } from '../components/ToastProvider';
 import Avatar from '../components/Avatar';
-import EmptyFieldIcon from '../components/icons/EmptyFieldIcon';
+import EmptyState, { EmptyAcao, EmptyLink } from '../components/EmptyState';
 import TicketButton from '../components/TicketButton';
 import NewTimeModal from '../components/NewTimeModal';
 import BackLink from '../components/BackLink';
@@ -133,10 +133,11 @@ export default function TimesPage() {
               {[1, 2].map((i) => <div key={i} className="pl-skeleton" style={{ height: 72 }} />)}
             </div>
           ) : times.length === 0 ? (
-            <div className="pl-empty">
-              <EmptyFieldIcon />
-              <p>Tá sem time ainda. Cria o seu ou espera um convite.</p>
-            </div>
+            // "Criar time" já está fixo no cabeçalho desta lista (linha acima),
+            // então aqui a ação é a complementar: ir ver quem já tem time aberto.
+            <EmptyState cena="formacao" marca="Sem time, sem resenha." titulo="Você ainda não tem time" sub="Cria o seu ali em cima ou espera um convite.">
+              <EmptyLink onClick={() => abrirAba('descobrir')}>Ver times abertos</EmptyLink>
+            </EmptyState>
           ) : (
             <div className="pl-list" style={{ paddingBottom: 24, gap: 10 }}>
               {times.map((t, i) => <TimeCard key={t.id} time={t} index={i} />)}
@@ -187,10 +188,15 @@ export default function TimesPage() {
               {[1, 2].map((i) => <div key={i} className="pl-skeleton" style={{ height: 72 }} />)}
             </div>
           ) : descobrirFiltrados.length === 0 ? (
-            <div className="pl-empty">
-              <EmptyFieldIcon />
-              <p>{descobrirBusca ? 'Nenhum time encontrado.' : 'Nenhum time público disponível por enquanto.'}</p>
-            </div>
+            descobrirBusca ? (
+              <EmptyState cena="fora" marca="Fora da área." titulo="Nenhum time encontrado" sub="Confere o nome ou limpa a busca.">
+                <EmptyLink onClick={() => setDescobrirBusca('')}>Limpar busca</EmptyLink>
+              </EmptyState>
+            ) : (
+              <EmptyState cena="vestiario" marca="Vestiário vazio." titulo="Nenhum time aberto" sub="Ainda não tem time público por aqui. Que tal abrir o primeiro?">
+                <EmptyAcao onClick={() => setNovoTimeAberto(true)}>Criar time</EmptyAcao>
+              </EmptyState>
+            )
           ) : (
             <div className="pl-list" style={{ paddingBottom: 24, gap: 10 }}>
               {descobrirFiltrados.map((t, i) => <TimeCard key={t.id} time={t} index={i} />)}

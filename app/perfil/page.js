@@ -5,7 +5,7 @@ import Avatar from '../components/Avatar';
 import EditProfileModal from '../components/EditProfileModal';
 import AvaliarModal from '../components/AvaliarModal';
 import CaptainIcon from '../components/icons/CaptainIcon';
-import EmptyFieldIcon from '../components/icons/EmptyFieldIcon';
+import EmptyState, { EmptyAcao } from '../components/EmptyState';
 import ConquistasBadges from '../components/ConquistasBadges';
 import PatenteCard from '../components/PatenteCard';
 import PerfilSobre from '../components/PerfilSobre';
@@ -152,10 +152,9 @@ export default function PerfilPage() {
       <div className="pl-section-title" style={{ maxWidth: 640, margin: '18px auto 0', padding: '0 16px', fontSize: 11, textTransform: 'uppercase', color: 'var(--paper-dim)' }}>Histórico de peladas</div>
 
       {historico.length === 0 ? (
-        <div className="pl-empty">
-          <EmptyFieldIcon />
-          <p>Ainda sem histórico por aqui. Confirma presença numa pelada pra ela aparecer aqui depois.</p>
-        </div>
+        <EmptyState cena="placar" marca="Histórico zerado." titulo="Sem jogo por aqui" sub="Confirma presença numa pelada pra ela aparecer aqui depois.">
+          <EmptyAcao href="/peladas">Ver peladas</EmptyAcao>
+        </EmptyState>
       ) : (
         <div className="pl-list" style={{ paddingBottom: 24 }}>
           {historico.map((g) => {

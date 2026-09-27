@@ -311,11 +311,7 @@ export default function PeladasPage() {
         <EmptyPeladas
           variante={tab === 'minhas' ? 'minhas' : temFiltroAtivo ? 'filtro' : 'geral'}
           onLimparFiltros={limparTudo}
-          onVerMapa={() => setViewMode('mapa')}
           onVerPeladas={() => setTab('todas')}
-          onPerto={toggleRaio}
-          onFimDeSemana={() => setFiltros((f) => ({ ...f, data: 'fimDeSemana' }))}
-          onSociety={() => setFiltros((f) => ({ ...f, tipo: 'Society' }))}
         />
       ) : (
         <>
