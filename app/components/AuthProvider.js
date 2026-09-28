@@ -13,7 +13,11 @@ export function AuthProvider({ children }) {
 
   const loadProfile = useCallback(async (userId) => {
     if (!userId) { setProfile(null); return; }
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+    // profiles_publico (não a tabela) — mesmo shape de profiles, mas
+    // mascara whatsapp/role/status/etc pra linha de qualquer um que não
+    // seja o próprio usuário. Aqui é sempre o próprio (eq id = userId da
+    // própria sessão), então o valor real continua vindo normal.
+    const { data } = await supabase.from('profiles_publico').select('*').eq('id', userId).maybeSingle();
     setProfile(data || null);
   }, [supabase]);
 

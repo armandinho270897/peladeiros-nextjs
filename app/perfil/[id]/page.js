@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import PerfilPublicoClient from './PerfilPublicoClient';
 
 async function fetchProfile(id) {
-  const { data: profile } = await supabase.from('profiles').select('nome, foto_url').eq('id', id).maybeSingle();
+  const { data: profile } = await supabase.from('profiles_publico').select('nome, foto_url').eq('id', id).maybeSingle();
   return profile || null;
 }
 

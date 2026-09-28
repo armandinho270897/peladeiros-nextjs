@@ -16,7 +16,7 @@ export default function PlayerSearch({ onSelect, excludeIds = [], placeholder = 
     clearTimeout(debounceRef.current);
     if (q.trim().length < 2) { setResultados([]); return; }
     debounceRef.current = setTimeout(async () => {
-      const { data } = await supabase.from('profiles').select('id,nome,bairro').ilike('nome', `%${q.trim()}%`).limit(8);
+      const { data } = await supabase.from('profiles_publico').select('id,nome,bairro').ilike('nome', `%${q.trim()}%`).limit(8);
       setResultados((data || []).filter((p) => !excludeIds.includes(p.id)));
     }, 300);
   }

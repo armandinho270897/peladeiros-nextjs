@@ -33,7 +33,7 @@ export default function PeladaChat({ game }) {
   const carregarAutores = useCallback(async (ids) => {
     const faltando = ids.filter((id) => !autoresRef.current[id]);
     if (faltando.length === 0) return;
-    const { data } = await supabase.from('profiles').select('id, nome, foto_url').in('id', faltando);
+    const { data } = await supabase.from('profiles_publico').select('id, nome, foto_url').in('id', faltando);
     const novos = Object.fromEntries((data || []).map((p) => [p.id, p]));
     autoresRef.current = { ...autoresRef.current, ...novos };
     setAutores((prev) => ({ ...prev, ...novos }));
