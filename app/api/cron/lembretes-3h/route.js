@@ -25,12 +25,15 @@ function dataLocalISO(offsetDias = 0) {
 // verificar-proximas — mesmo dedup, então não importa se o jogador abriu
 // o app ou se foi essa varredura que chegou primeiro, nunca dobra o aviso
 // nem o e-mail.
+// Falha FECHADO — se CRON_SECRET não estiver configurado, recusa tudo em
+// vez de ficar aberta (antes fazia o contrário).
 export async function GET(request) {
-  if (process.env.CRON_SECRET) {
-    const auth = request.headers.get('authorization');
-    if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    }
+  if (!process.env.CRON_SECRET) {
+    return NextResponse.json({ error: 'CRON_SECRET não configurado' }, { status: 500 });
+  }
+  const auth = request.headers.get('authorization');
+  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
   const { data: jogos } = await supabase

@@ -47,15 +47,17 @@ function dataLocalISO(offsetDias = 0) {
 // ele abre o app (não alcança quem não abriu). Essa varre TODO MUNDO com
 // pelada aprovada dentro da janela, disparada pelo Vercel Cron (vercel.json)
 // em vez de por uma sessão de navegador. Protegida por CRON_SECRET: o
-// Vercel manda esse header sozinho em toda invocação de cron job — sem essa
-// env var configurada, a rota fica aberta (aceitável em dev, configure em
-// produção).
+// Vercel manda esse header sozinho em toda invocação de cron job. Falha
+// FECHADO — se a env var não estiver configurada, a rota recusa tudo em vez
+// de ficar aberta (antes fazia o contrário: sem CRON_SECRET configurado, não
+// checava nada).
 export async function GET(request) {
-  if (process.env.CRON_SECRET) {
-    const auth = request.headers.get('authorization');
-    if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    }
+  if (!process.env.CRON_SECRET) {
+    return NextResponse.json({ error: 'CRON_SECRET não configurado' }, { status: 500 });
+  }
+  const auth = request.headers.get('authorization');
+  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
   // Busca jogos de hoje/amanhã/depois de amanhã — cobre a janela de 24h
