@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@/lib/supabase-browser';
 import { useAuth } from '../components/AuthProvider';
@@ -32,11 +32,28 @@ export default function AvisosPage() {
   const [atores, setAtores] = useState({});
   const [loading, setLoading] = useState(true);
   const [aba, setAba] = useState('urgente');
+  const [anterioresAbertos, setAnterioresAbertos] = useState({ urgente: false, comunidade: false });
+
+  // "Novo" pra essa visita é definido na primeira vez que cada aviso
+  // aparece nesta sessão da página — não no campo `lida` ao vivo, que o
+  // efeito abaixo já sobrescreve pra true segundos depois de abrir. Sem
+  // esse instantâneo, a seção "Novos" ficaria vazia quase assim que a
+  // página termina de carregar, mesmo pro usuário que acabou de chegar.
+  // Um aviso que chegar de verdade enquanto a página está aberta (poll de
+  // 30s) entra como novo normalmente, por nunca ter sido visto antes.
+  const conhecidosRef = useRef(new Set());
+  const novosRef = useRef(new Set());
 
   const load = useCallback(async () => {
     if (!user) return;
     const { notificacoes: rows, atores: atoresMap, error } = await fetchNotificacoesComAtores(supabase, user.id, 60);
     if (error) { Sentry.captureException(error); setLoading(false); return; }
+    for (const n of rows) {
+      if (!conhecidosRef.current.has(n.id)) {
+        conhecidosRef.current.add(n.id);
+        if (!n.lida) novosRef.current.add(n.id);
+      }
+    }
     setNotificacoes(rows);
     setAtores(atoresMap);
     setLoading(false);
@@ -52,7 +69,9 @@ export default function AvisosPage() {
   }, [load]);
 
   // Abrir a página já marca como lido — mesmo comportamento de sempre
-  // (abrir o painel marcava tudo), só que agora é a página inteira.
+  // (abrir o painel marcava tudo), só que agora é a página inteira. Isso é
+  // só o campo `lida` no banco/estado; a classificação novo x já visto
+  // (novosRef, acima) não muda com isso.
   useEffect(() => {
     if (!user || notificacoes.length === 0) return;
     const naoLidasIds = notificacoes.filter((n) => !n.lida).map((n) => n.id);
@@ -79,8 +98,16 @@ export default function AvisosPage() {
   }
 
   const doTipo = notificacoes.filter((n) => categoriaDe(n.tipo) === aba);
-  const urgentesCount = notificacoes.filter((n) => categoriaDe(n.tipo) === 'urgente').length;
-  const comunidadeCount = notificacoes.filter((n) => categoriaDe(n.tipo) === 'comunidade').length;
+  const novos = doTipo.filter((n) => novosRef.current.has(n.id));
+  const anteriores = doTipo.filter((n) => !novosRef.current.has(n.id));
+
+  const contaNovos = (cat) => notificacoes.filter((n) => categoriaDe(n.tipo) === cat && novosRef.current.has(n.id)).length;
+  const urgentesCount = contaNovos('urgente');
+  const comunidadeCount = contaNovos('comunidade');
+
+  // Sem nada novo pra mostrar, não faz sentido esconder o único conteúdo
+  // que existe atrás de um toggle fechado.
+  const anterioresAberto = anterioresAbertos[aba] || novos.length === 0;
 
   let ultimoDia = null;
 
@@ -105,17 +132,56 @@ export default function AvisosPage() {
             <p>Nada por aqui ainda.</p>
           </div>
         ) : (
-          doTipo.map((n) => {
-            const dia = rotuloDia(n.created_at);
-            const mostraDia = dia !== ultimoDia;
-            ultimoDia = dia;
-            return (
-              <div key={n.id}>
-                {mostraDia && <div className="pl-avisos-day">{dia}</div>}
-                <NotificationCard n={n} ator={n.ator_user_id ? atores[n.ator_user_id] : null} />
+          <>
+            {novos.length === 0 ? (
+              <div className="pl-avisos-tudo-em-dia">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--neon)" strokeWidth="1.8" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M8 12.5l2.5 2.5L16 9" />
+                </svg>
+                <b>Tudo em dia</b>
+                <span>Nenhum aviso novo — o histórico continua logo abaixo.</span>
               </div>
-            );
-          })
+            ) : (
+              <>
+                <div className="pl-avisos-secao-label novos"><span className="linha" />Novos<span className="linha" /></div>
+                {novos.map((n) => (
+                  <NotificationCard key={n.id} n={n} ator={n.ator_user_id ? atores[n.ator_user_id] : null} />
+                ))}
+              </>
+            )}
+
+            {anteriores.length > 0 && (
+              <>
+                <button
+                  type="button"
+                  className={`pl-avisos-anteriores-toggle ${anterioresAberto ? 'aberto' : ''}`}
+                  onClick={() => setAnterioresAbertos((prev) => ({ ...prev, [aba]: !prev[aba] }))}
+                >
+                  <span className="linha">Já vistos</span>
+                  <span className="n">{anteriores.length}</span>
+                  <svg className="seta" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+                {anterioresAberto && (
+                  <div className="pl-avisos-anteriores">
+                    {anteriores.map((n) => {
+                      const dia = rotuloDia(n.created_at);
+                      const mostraDia = dia !== ultimoDia;
+                      ultimoDia = dia;
+                      return (
+                        <div key={n.id}>
+                          {mostraDia && <div className="pl-avisos-day">{dia}</div>}
+                          <NotificationCard n={n} ator={n.ator_user_id ? atores[n.ator_user_id] : null} compact />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+          </>
         )}
       </div>
     </div>
