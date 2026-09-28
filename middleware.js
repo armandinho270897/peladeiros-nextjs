@@ -52,7 +52,10 @@ export async function middleware(request) {
     return redirectTo('/login', request, response, { next: pathname });
   }
 
-  const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
+  // profiles_publico, não a tabela — a tabela base não tem mais select
+  // liberado pra anon/authenticated (ver migration 061); a view devolve id
+  // normal, só mascara whatsapp/campos de moderação pra quem não é o dono.
+  const { data: profile } = await supabase.from('profiles_publico').select('id').eq('id', user.id).maybeSingle();
 
   if (!profile && pathname !== '/completar-perfil') {
     return redirectTo('/completar-perfil', request, response);

@@ -43,7 +43,9 @@ export async function GET(request) {
   }
 
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle();
+  // profiles_publico, não a tabela — ver migration 061 (a tabela base não
+  // tem mais select liberado pra anon/authenticated).
+  const { data: profile } = await supabase.from('profiles_publico').select('id').eq('id', user.id).maybeSingle();
 
   if (!profile) {
     return NextResponse.redirect(`${origin}/completar-perfil?next=${encodeURIComponent(next)}`);
