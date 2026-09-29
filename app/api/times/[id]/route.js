@@ -204,7 +204,7 @@ export async function PATCH(request, { params }) {
   }
 
   const { data: time, error } = await supabase.from('times').update(updates).eq('id', id).select().single();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json(time);
 }
@@ -230,7 +230,7 @@ export async function DELETE(request, { params }) {
     .neq('user_id', auth.user.id);
 
   const { error } = await supabase.from('times').delete().eq('id', id);
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   for (const m of outrosMembros || []) {
     await createNotification({

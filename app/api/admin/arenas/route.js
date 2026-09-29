@@ -16,7 +16,7 @@ export async function GET(request) {
   if (status !== 'todas') query = query.eq('status', status);
 
   const { data: arenas, error } = await query;
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   const userIds = [...new Set(arenas.map((a) => a.proposto_por_user_id).filter(Boolean))];
   const { data: proponentes } = userIds.length

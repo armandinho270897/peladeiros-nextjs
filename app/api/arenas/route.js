@@ -40,7 +40,7 @@ export async function GET(request) {
 
   const { data: arenas, error } = await query;
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json(arenas);
 }
@@ -85,7 +85,7 @@ export async function POST(request) {
     .select()
     .single();
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json(arena, { status: 201 });
 }

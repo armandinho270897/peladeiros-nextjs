@@ -41,7 +41,7 @@ export async function POST(request, { params }) {
   if (error) {
     const status = STATUS_POR_MENSAGEM[error.message];
     if (status) return NextResponse.json({ error: error.message }, { status });
-    return errJson(error.message, 500);
+    return errJson(error, 500);
   }
 
   const { data: capitaesDesafiante } = await supabase

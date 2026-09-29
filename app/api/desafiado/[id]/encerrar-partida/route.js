@@ -23,7 +23,7 @@ export async function POST(request, { params }) {
     })
     .single();
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   switch (resultado.tipo) {
     case 'erro':

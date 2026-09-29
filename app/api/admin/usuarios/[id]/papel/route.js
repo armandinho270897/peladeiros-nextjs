@@ -23,7 +23,7 @@ export async function POST(request, { params }) {
   if (!antes) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
 
   const { data: profile, error } = await supabase.from('profiles').update({ role }).eq('id', params.id).select().single();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   await registrarAuditoria({
     adminUserId: auth.user.id, acao: 'usuario_papel_alterado', alvoTipo: 'usuario', alvoId: params.id,

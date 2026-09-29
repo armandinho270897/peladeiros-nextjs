@@ -11,7 +11,7 @@ export async function GET(request, { params }) {
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', params.id).maybeSingle();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
   if (!profile) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
 
   const { data: authUser } = await supabase.auth.admin.getUserById(params.id);

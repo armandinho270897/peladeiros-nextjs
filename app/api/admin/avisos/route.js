@@ -9,7 +9,7 @@ export async function GET() {
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const { data, error } = await supabase.from('avisos_admin').select('*').order('created_at', { ascending: false });
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
   return NextResponse.json(data);
 }
 
@@ -39,7 +39,7 @@ export async function POST(request) {
     .select()
     .single();
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   await registrarAuditoria({ adminUserId: auth.user.id, acao: 'aviso_criado', alvoTipo: 'aviso', alvoId: aviso.id, dadosDepois: aviso });
 

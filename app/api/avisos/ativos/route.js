@@ -21,7 +21,7 @@ export async function GET() {
     .or(`fim_em.is.null,fim_em.gte.${agora}`)
     .order('created_at', { ascending: false });
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
   if (!avisos || avisos.length === 0) return NextResponse.json([]);
 
   const gerais = avisos.filter((a) => a.publico_alvo === 'todos');

@@ -22,7 +22,7 @@ export async function GET(request) {
     .or(`nome.ilike.%${busca}%,whatsapp.ilike.%${busca}%`)
     .limit(30);
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   if (porNomeOuWhats.length > 0 || !busca.includes('@')) {
     return NextResponse.json(porNomeOuWhats);

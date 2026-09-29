@@ -39,7 +39,7 @@ export async function PATCH(request, { params }) {
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const { error } = await supabase.from('confirmacoes').update({ presente }).eq('id', id);
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json({ ok: true });
 }

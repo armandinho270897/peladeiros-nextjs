@@ -25,7 +25,7 @@ export async function GET(request) {
   if (arenaId) query = query.eq('arena_id', arenaId);
 
   const { data: peladas, error } = await query;
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   const gameIds = peladas.map((g) => g.id);
   const { data: confirmacoes } = gameIds.length

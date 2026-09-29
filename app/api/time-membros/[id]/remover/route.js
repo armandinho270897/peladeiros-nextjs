@@ -24,7 +24,7 @@ export async function POST(request, { params }) {
   const { data: time } = await supabase.from('times').select('nome').eq('id', membro.time_id).single();
 
   const { error } = await supabase.from('time_membros').delete().eq('id', id);
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   if (membro.status === 'aprovado') {
     await createNotification({

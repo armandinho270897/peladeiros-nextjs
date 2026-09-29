@@ -34,7 +34,7 @@ export async function GET() {
     .not('latitude', 'is', null)
     .not('longitude', 'is', null);
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   if (!arenas.length) return NextResponse.json(null);
 

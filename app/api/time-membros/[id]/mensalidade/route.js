@@ -45,7 +45,7 @@ export async function POST(request, { params }) {
     { time_membro_id: id, mes_referencia: mes, valor: time.mensalidade_valor, registrado_por: auth.user.id, pago_em: new Date().toISOString() },
     { onConflict: 'time_membro_id,mes_referencia' },
   );
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json({ ok: true });
 }
@@ -63,7 +63,7 @@ export async function DELETE(request, { params }) {
   const mes = primeiroDiaDoMes(mesReferencia);
 
   const { error } = await supabase.from('mensalidades').delete().eq('time_membro_id', id).eq('mes_referencia', mes);
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json({ ok: true });
 }

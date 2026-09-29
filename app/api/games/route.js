@@ -112,7 +112,7 @@ export async function GET(request) {
   query = query.order('data', { ascending: true }).order('horario', { ascending: true });
 
   const { data: games, error } = await query;
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   let comNotas = await attachNotaMedia(games);
 
@@ -249,7 +249,7 @@ export async function POST(request) {
     .select()
     .single();
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   const idsRegistrados = Array.isArray(jogadoresIniciais)
     ? [...new Set(jogadoresIniciais.map((j) => j.id).filter((id) => id && id !== user.id))]

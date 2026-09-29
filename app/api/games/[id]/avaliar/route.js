@@ -110,7 +110,7 @@ export async function POST(request, { params }) {
       .from('avaliacoes')
       .upsert(rowsComAlvo, { onConflict: 'game_id,avaliador_id,avaliado_id,tipo', ignoreDuplicates: true })
       .select();
-    if (error) return errJson(error.message, 500);
+    if (error) return errJson(error, 500);
     salvas += inserted.length;
   }
 
@@ -124,7 +124,7 @@ export async function POST(request, { params }) {
       .maybeSingle();
     if (!jaTemGeral) {
       const { error } = await supabase.from('avaliacoes').insert(rowGeral);
-      if (error) return errJson(error.message, 500);
+      if (error) return errJson(error, 500);
       salvas += 1;
     }
   }

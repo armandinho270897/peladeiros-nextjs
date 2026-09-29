@@ -21,7 +21,7 @@ export async function POST(request, { params }) {
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const { data: atualizado, error } = await supabase.from('time_membros').update({ status: 'aprovado' }).eq('id', id).select().single();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   const { data: time } = await supabase.from('times').select('nome').eq('id', solicitacao.time_id).single();
   await createNotification({

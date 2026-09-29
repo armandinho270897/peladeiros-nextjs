@@ -31,7 +31,7 @@ export async function PATCH(request, { params }) {
     .eq('id', id)
     .select()
     .single();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json(atualizado);
 }

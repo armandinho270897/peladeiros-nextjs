@@ -31,7 +31,7 @@ export async function PATCH(request, { params }) {
 
   for (const [confirmacaoId, time] of entradas) {
     const { error } = await supabase.from('confirmacoes').update({ time }).eq('id', confirmacaoId).eq('game_id', id);
-    if (error) return errJson(error.message, 500);
+    if (error) return errJson(error, 500);
   }
 
   return NextResponse.json({ ok: true });

@@ -40,7 +40,7 @@ export async function POST(request, { params }) {
     .select()
     .single();
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   const game = confirmacao.games;
   if (game) {

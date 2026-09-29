@@ -24,7 +24,7 @@ export async function POST(request, { params }) {
     .from('desafios')
     .update({ status: 'cancelado', respondido_em: new Date().toISOString() })
     .eq('id', id);
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json({ ok: true });
 }

@@ -26,7 +26,7 @@ export async function GET(request) {
   if (papel) query = query.eq('papel', papel);
 
   const { data, error } = await query;
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   const times = (data || []).map((m) => ({ ...m.times, papel: m.papel }));
   return NextResponse.json(times);
@@ -95,7 +95,7 @@ export async function POST(request) {
     .select()
     .single();
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   const { error: membroError } = await supabase
     .from('time_membros')
@@ -103,7 +103,7 @@ export async function POST(request) {
 
   if (membroError) {
     await supabase.from('times').delete().eq('id', time.id);
-    return errJson(membroError.message, 500);
+    return errJson(membroError, 500);
   }
 
   if (escudoValido) {

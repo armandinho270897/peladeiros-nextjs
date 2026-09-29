@@ -37,11 +37,11 @@ export async function POST(request, { params }) {
 
   if (presentesIds.length > 0) {
     const { error: presenteError } = await supabase.from('confirmacoes').update({ presente: true }).in('id', presentesIds);
-    if (presenteError) return errJson(presenteError.message, 500);
+    if (presenteError) return errJson(presenteError, 500);
   }
   if (idsAusentesReais.length > 0) {
     const { error: ausenteError } = await supabase.from('confirmacoes').update({ presente: false }).in('id', idsAusentesReais);
-    if (ausenteError) return errJson(ausenteError.message, 500);
+    if (ausenteError) return errJson(ausenteError, 500);
   }
 
   // Placar é opcional — só existe faz sentido quando o capitão montou os
@@ -56,7 +56,7 @@ export async function POST(request, { params }) {
     encerrada_em: new Date().toISOString(),
     ...(temPlacar && { placar_time_a: Number(placarTimeA), placar_time_b: Number(placarTimeB) }),
   }).eq('id', id);
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json({ ok: true, presentes: presentesIds.length, ausentes: idsAusentesReais.length });
 }

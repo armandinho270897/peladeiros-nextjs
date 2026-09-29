@@ -29,6 +29,6 @@ export async function GET() {
     .gte('data', todayISO())
     .order('data', { ascending: true });
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
   return NextResponse.json(games);
 }

@@ -45,7 +45,7 @@ export async function POST(request) {
   });
 
   if (error) {
-    return errJson(error.message || 'Não consegui gerar o link de login.', 500);
+    return errJson(error, 500);
   }
 
   const actionLink = data?.properties?.action_link;

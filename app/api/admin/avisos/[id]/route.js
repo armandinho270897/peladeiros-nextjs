@@ -23,7 +23,7 @@ export async function PATCH(request, { params }) {
   if (Object.keys(campos).length === 0) return NextResponse.json({ error: 'Nada pra atualizar.' }, { status: 400 });
 
   const { data: aviso, error } = await supabase.from('avisos_admin').update(campos).eq('id', params.id).select().single();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   await registrarAuditoria({
     adminUserId: auth.user.id, acao: 'aviso_atualizado', alvoTipo: 'aviso', alvoId: params.id,

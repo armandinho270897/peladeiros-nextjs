@@ -36,7 +36,7 @@ export async function POST(request, { params }) {
   const { data: time } = await supabase.from('times').select('nome').eq('id', id).single();
 
   const { error: erroNovo } = await supabase.from('time_membros').update({ papel: 'capitao' }).eq('id', novoCapitaoMembro.id);
-  if (erroNovo) return errJson(erroNovo.message, 500);
+  if (erroNovo) return errJson(erroNovo, 500);
 
   const { error: erroAntigo } = await supabase
     .from('time_membros')
@@ -48,7 +48,7 @@ export async function POST(request, { params }) {
     // tempo — isso trava authorizeTimeCaptain (.maybeSingle() erra com mais
     // de uma linha) e ninguém mais consegue gerenciar o time.
     await supabase.from('time_membros').update({ papel: 'membro' }).eq('id', novoCapitaoMembro.id);
-    return errJson(erroAntigo.message, 500);
+    return errJson(erroAntigo, 500);
   }
 
   await createNotification({

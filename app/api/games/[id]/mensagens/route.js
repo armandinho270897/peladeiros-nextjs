@@ -28,7 +28,7 @@ export async function POST(request, { params }) {
     .select()
     .single();
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   const [{ data: profile }, { data: participantes }] = await Promise.all([
     supabase.from('profiles').select('nome').eq('id', auth.user.id).maybeSingle(),

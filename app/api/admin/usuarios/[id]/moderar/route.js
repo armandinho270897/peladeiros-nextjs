@@ -47,7 +47,7 @@ export async function POST(request, { params }) {
   };
 
   const { data: profile, error } = await supabase.from('profiles').update(depois).eq('id', params.id).select().single();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   await registrarAuditoria({
     adminUserId: auth.user.id, acao: `usuario_${acao}`, alvoTipo: 'usuario', alvoId: params.id, motivo: motivo.trim(),

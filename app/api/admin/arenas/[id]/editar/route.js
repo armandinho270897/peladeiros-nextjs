@@ -19,7 +19,7 @@ export async function POST(request, { params }) {
   const { data: antes } = await supabase.from('arenas').select('nome, endereco, bairro, tipo').eq('id', params.id).maybeSingle();
 
   const { data: arena, error } = await supabase.from('arenas').update({ nome, endereco, bairro, tipo }).eq('id', params.id).select().single();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   await registrarAuditoria({
     adminUserId: auth.user.id, acao: 'arena_editada', alvoTipo: 'arena', alvoId: params.id,

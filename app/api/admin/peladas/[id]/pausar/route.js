@@ -22,7 +22,7 @@ export async function POST(request, { params }) {
     .from('games')
     .update({ pausada_em: novoValor, pausada_motivo: novoValor ? motivo.trim() : null })
     .eq('id', params.id);
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   await registrarAuditoria({
     adminUserId: auth.user.id, acao: novoValor ? 'pelada_pausada' : 'pelada_despausada', alvoTipo: 'pelada', alvoId: params.id,

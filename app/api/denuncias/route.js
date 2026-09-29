@@ -49,7 +49,7 @@ export async function POST(request) {
     .select('id')
     .single();
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json(denuncia, { status: 201 });
 }

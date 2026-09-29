@@ -24,7 +24,7 @@ export async function POST(request, { params }) {
   const { data: confirmacoes } = await supabase.from('confirmacoes').select('user_id, status').eq('game_id', params.id);
 
   const { error } = await supabase.from('games').delete().eq('id', params.id);
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   await registrarAuditoria({
     adminUserId: auth.user.id, acao: 'pelada_cancelada', alvoTipo: 'pelada', alvoId: params.id, motivo: motivo.trim(),

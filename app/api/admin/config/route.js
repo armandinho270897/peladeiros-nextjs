@@ -9,7 +9,7 @@ export async function GET() {
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const { data, error } = await supabase.from('app_config').select('*').order('chave');
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
   return NextResponse.json(data);
 }
 
@@ -30,7 +30,7 @@ export async function PATCH(request) {
     .select()
     .single();
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   await registrarAuditoria({
     adminUserId: auth.user.id, acao: 'config_atualizada', alvoTipo: 'config', alvoId: chave,

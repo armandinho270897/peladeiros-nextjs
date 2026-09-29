@@ -33,7 +33,7 @@ export async function POST(request, { params }) {
   });
   if (insertError) {
     if (insertError.code === '23505') return NextResponse.json({ error: 'Esse jogador já está nessa sessão.' }, { status: 409 });
-    return errJson(insertError.message, 500);
+    return errJson(insertError, 500);
   }
 
   const { data: espera } = await supabase
@@ -58,11 +58,11 @@ export async function POST(request, { params }) {
       .insert({ sessao_id: id, numero: (ultimoTime?.numero || 0) + 1, posicao_fila: (ultimoTime?.posicao_fila ?? -1) + 1 })
       .select()
       .single();
-    if (timeError) return errJson(timeError.message, 500);
+    if (timeError) return errJson(timeError, 500);
 
     const idsParaTime = espera.slice(0, sessao.tamanho_time).map((j) => j.id);
     const { error: updateError } = await supabase.from('desafiado_jogadores').update({ time_id: novoTime.id }).in('id', idsParaTime);
-    if (updateError) return errJson(updateError.message, 500);
+    if (updateError) return errJson(updateError, 500);
     timeFormado = novoTime;
   }
 

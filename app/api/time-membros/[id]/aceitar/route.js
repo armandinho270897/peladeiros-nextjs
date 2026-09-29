@@ -21,7 +21,7 @@ export async function POST(request, { params }) {
   if (convite.status !== 'pendente') return NextResponse.json({ error: 'Esse convite já foi respondido.' }, { status: 409 });
 
   const { data: atualizado, error } = await supabase.from('time_membros').update({ status: 'aprovado' }).eq('id', id).select().single();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   const { data: time } = await supabase.from('times').select('nome').eq('id', convite.time_id).single();
   const { data: profile } = await supabase.from('profiles').select('nome').eq('id', user.id).maybeSingle();

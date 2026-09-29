@@ -17,7 +17,7 @@ export async function GET(request, { params }) {
 
   const { id } = params;
   const { data: sessao, error } = await supabase.from('desafiado_sessoes').select('*').eq('id', id).maybeSingle();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
   if (!sessao) return NextResponse.json({ error: 'Sessão não encontrada.' }, { status: 404 });
 
   const [{ data: times }, { data: jogadores }, { data: partidaAtual }, { data: historico }, { data: gols }] = await Promise.all([

@@ -53,7 +53,7 @@ export async function POST(request, { params }) {
         .eq('id', existente.id)
         .select()
         .single();
-      if (reviveError) return errJson(reviveError.message, 500);
+      if (reviveError) return errJson(reviveError, 500);
       if (game.owner_id) {
         await createNotification({
           userId: game.owner_id,
@@ -79,7 +79,7 @@ export async function POST(request, { params }) {
     if (error.code === '23505') {
       return NextResponse.json({ error: 'Você já solicitou presença nessa pelada.' }, { status: 409 });
     }
-    return errJson(error.message, 500);
+    return errJson(error, 500);
   }
 
   if (game.owner_id) {

@@ -48,7 +48,7 @@ export async function GET(request) {
   if (alvoTipo) query = query.eq('alvo_tipo', alvoTipo);
 
   const { data, error } = await query;
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json(await comContexto(data || []));
 }

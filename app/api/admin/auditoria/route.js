@@ -22,7 +22,7 @@ export async function GET(request) {
   if (periodo && JANELAS_MS[periodo]) query = query.gte('created_at', new Date(Date.now() - JANELAS_MS[periodo]).toISOString());
 
   const { data: logs, error } = await query;
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   const adminIds = [...new Set((logs || []).map((l) => l.admin_user_id))];
   const { data: admins } = adminIds.length

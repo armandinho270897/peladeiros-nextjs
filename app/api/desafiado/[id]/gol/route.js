@@ -45,7 +45,7 @@ export async function POST(request, { params }) {
       .eq(campo, partida[campo])
       .select()
       .maybeSingle();
-    if (error) return errJson(error.message, 500);
+    if (error) return errJson(error, 500);
     if (!atualizada) return NextResponse.json({ error: 'O placar mudou agora há pouco. Tenta de novo.' }, { status: 409 });
 
     const { error: delError } = await supabase.from('desafiado_gols').delete().eq('id', ultimoGol.id);
@@ -53,7 +53,7 @@ export async function POST(request, { params }) {
       // Não conseguiu apagar o evento — desfaz o decremento pra não ficar
       // com o placar menor sem o gol correspondente ter sido removido.
       await supabase.from('desafiado_partidas').update({ [campo]: partida[campo] }).eq('id', partida.id);
-      return errJson(delError.message, 500);
+      return errJson(delError, 500);
     }
 
     return NextResponse.json(atualizada);
@@ -75,7 +75,7 @@ export async function POST(request, { params }) {
     .eq(campo, partida[campo])
     .select()
     .maybeSingle();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
   if (!atualizada) return NextResponse.json({ error: 'O placar mudou agora há pouco. Tenta de novo.' }, { status: 409 });
 
   const { error: golError } = await supabase.from('desafiado_gols').insert({
@@ -85,7 +85,7 @@ export async function POST(request, { params }) {
     // Contou o gol no placar mas não deu pra registrar quem marcou —
     // desfaz o incremento pra não ficar um gol "fantasma" sem artilheiro.
     await supabase.from('desafiado_partidas').update({ [campo]: partida[campo] }).eq('id', partida.id);
-    return errJson(golError.message, 500);
+    return errJson(golError, 500);
   }
 
   return NextResponse.json(atualizada);

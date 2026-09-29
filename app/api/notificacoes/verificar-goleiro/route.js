@@ -82,7 +82,7 @@ export async function POST() {
       game_id: g.id,
       mensagem: `Procura-se uma parede! Faltam ${Math.round((inicioDoJogo(g).getTime() - agora) / 3600000)}h pro jogo em ${g.local} e ainda ninguém confirmou no gol.`,
     });
-    if (error && error.code !== '23505') return errJson(error.message, 500);
+    if (error && error.code !== '23505') return errJson(error, 500);
     if (!error) criadas++;
   }
 

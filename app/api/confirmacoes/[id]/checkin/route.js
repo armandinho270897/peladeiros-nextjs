@@ -53,7 +53,7 @@ export async function POST(request, { params }) {
     .select('id, checkin_at')
     .maybeSingle();
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
   if (!atualizada) {
     return NextResponse.json({ error: 'Você já fez check-in nessa pelada.' }, { status: 409 });
   }
@@ -92,7 +92,7 @@ export async function DELETE(request, { params }) {
   }
 
   const { error } = await supabase.from('confirmacoes').update({ checkin_at: null, presente: null }).eq('id', id);
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   return NextResponse.json({ ok: true });
 }

@@ -78,7 +78,7 @@ export async function PATCH(request, { params }) {
     })
     .eq('id', id);
 
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   // se vagas aumentaram, promove quem estiver na fila de espera
   const { data: confirmacoes } = await supabase
@@ -127,7 +127,7 @@ export async function DELETE(request, { params }) {
   const { data: confirmacoes } = await supabase.from('confirmacoes').select('user_id, status').eq('game_id', id);
 
   const { error } = await supabase.from('games').delete().eq('id', id);
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   if (game) {
     const mensagem = `A pelada em ${game.local} foi cancelada pelo capitão.`;

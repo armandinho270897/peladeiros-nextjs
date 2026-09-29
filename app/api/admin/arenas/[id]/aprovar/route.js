@@ -11,7 +11,7 @@ export async function POST(request, { params }) {
   const { data: antes } = await supabase.from('arenas').select('status').eq('id', params.id).maybeSingle();
 
   const { data: arena, error } = await supabase.from('arenas').update({ status: 'aprovada' }).eq('id', params.id).select().single();
-  if (error) return errJson(error.message, 500);
+  if (error) return errJson(error, 500);
 
   await registrarAuditoria({
     adminUserId: auth.user.id, acao: 'arena_aprovada', alvoTipo: 'arena', alvoId: params.id,

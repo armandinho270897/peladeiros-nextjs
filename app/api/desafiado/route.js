@@ -59,12 +59,12 @@ export async function POST(request) {
     })
     .select()
     .single();
-  if (sessaoError) return errJson(sessaoError.message, 500);
+  if (sessaoError) return errJson(sessaoError, 500);
 
   // Sessão sem times/partida não serve pra nada; apaga tudo se algum passo falhar.
-  const falhar = async (mensagem) => {
+  const falhar = async (erro) => {
     await supabase.from('desafiado_sessoes').delete().eq('id', sessao.id);
-    return errJson(mensagem, 500);
+    return errJson(erro, 500);
   };
 
   const { times: gruposDeTimes, sobra } = formarTimesCompletos(listaJogadores, tamanho);
@@ -73,7 +73,7 @@ export async function POST(request) {
     .from('desafiado_times')
     .insert(gruposDeTimes.map((_, i) => ({ sessao_id: sessao.id, numero: i + 1, posicao_fila: i })))
     .select();
-  if (timesError) return falhar(timesError.message);
+  if (timesError) return falhar(timesError);
 
   const timesPorNumero = Object.fromEntries(timesCriados.map((t) => [t.numero, t]));
   const linhasJogadores = [];
@@ -83,14 +83,14 @@ export async function POST(request) {
   for (const j of sobra) linhasJogadores.push({ sessao_id: sessao.id, user_id: j.id ?? null, nome: j.nome.trim(), time_id: null });
 
   const { error: jogadoresError } = await supabase.from('desafiado_jogadores').insert(linhasJogadores);
-  if (jogadoresError) return falhar(jogadoresError.message);
+  if (jogadoresError) return falhar(jogadoresError);
 
   const timeA = timesCriados.find((t) => t.posicao_fila === 0);
   const timeB = timesCriados.find((t) => t.posicao_fila === 1);
   const { error: partidaError } = await supabase.from('desafiado_partidas').insert({
     sessao_id: sessao.id, time_a_id: timeA.id, time_b_id: timeB.id, duracao_min: duracao,
   });
-  if (partidaError) return falhar(partidaError.message);
+  if (partidaError) return falhar(partidaError);
 
   return NextResponse.json({ id: sessao.id }, { status: 201 });
 }
