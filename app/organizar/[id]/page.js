@@ -6,6 +6,7 @@ import {
   checkinJanelaAberta, jaAconteceu, aprovadosDe, shareUrl,
 } from '@/lib/gameUtils';
 import { useToast } from '../../components/ToastProvider';
+import { useConfirm } from '../../components/ConfirmProvider';
 import TicketButton from '../../components/TicketButton';
 import ManageModal from '../../components/ManageModal';
 import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
@@ -68,6 +69,7 @@ const TABS = [
 
 export default function GerenciarPeladaPage({ params }) {
   const { showToast } = useToast();
+  const confirmar = useConfirm();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
@@ -120,8 +122,9 @@ export default function GerenciarPeladaPage({ params }) {
   }
 
   async function togglePago(confirmacaoId, pagoAtual) {
-    if (pagoAtual && !window.confirm('Marcar como pendente de novo?')) return;
-    if (!pagoAtual && !window.confirm('Confirmar que essa pessoa pagou?')) return;
+    const mensagem = pagoAtual ? 'Marcar como pendente de novo?' : 'Confirmar que essa pessoa pagou?';
+    const confirmou = await confirmar({ mensagem, confirmLabel: pagoAtual ? 'Marcar pendente' : 'Confirmar' });
+    if (!confirmou) return;
     setProcessando(confirmacaoId);
     const ok = await acao(`/api/confirmacoes/${confirmacaoId}/pagamento`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pago: !pagoAtual }) });
     if (ok) await carregar(true);
@@ -142,7 +145,8 @@ export default function GerenciarPeladaPage({ params }) {
   }
 
   async function cancelarPelada(gameId) {
-    if (!window.confirm('Cancelar essa pelada? Isso avisa todo mundo confirmado e não pode ser desfeito.')) return;
+    const ok = await confirmar({ mensagem: 'Cancelar essa pelada? Isso avisa todo mundo confirmado e não pode ser desfeito.', confirmLabel: 'Cancelar pelada', perigo: true });
+    if (!ok) return;
     const res = await fetch(`/api/games/${gameId}`, { method: 'DELETE', body: JSON.stringify({ codigo: '' }) });
     const result = await res.json().catch(() => ({}));
     if (!res.ok) { showToast(result.error || 'Não consegui cancelar essa pelada.'); return; }

@@ -2,15 +2,22 @@
 import { useState } from 'react';
 import TicketButton from './TicketButton';
 import Avatar from './Avatar';
+import { useConfirm } from './ConfirmProvider';
 
 export default function TransferirCapitaniaModal({ time, membros, onClose, onTransferred }) {
+  const confirmar = useConfirm();
   const [selecionado, setSelecionado] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleConfirmar() {
     if (!selecionado) { setError('Escolhe um jogador pra ser o novo capitão.'); return; }
-    if (!confirm(`Tem certeza? ${selecionado.nome} vira o capitão do ${time.nome} e você vira membro comum. Isso não pode ser desfeito.`)) return;
+    const ok = await confirmar({
+      mensagem: `Tem certeza? ${selecionado.nome} vira o capitão do ${time.nome} e você vira membro comum. Isso não pode ser desfeito.`,
+      confirmLabel: 'Transferir',
+      perigo: true,
+    });
+    if (!ok) return;
 
     setLoading(true);
     setError('');

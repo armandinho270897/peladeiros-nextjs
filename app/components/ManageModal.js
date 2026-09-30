@@ -3,12 +3,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { getCaptainCode, saveCaptainCode } from '@/lib/captainCodes';
 import { pendentesDe, aguardandoConfirmacaoDe, aprovadosDe, POSICAO_LABEL, emCimaDaHora } from '@/lib/gameUtils';
 import { useArenas } from '@/lib/useArenas';
+import { useConfirm } from './ConfirmProvider';
 import Avatar from './Avatar';
 import TicketButton from './TicketButton';
 import PlayerSearch from './PlayerSearch';
 import TipoJogoIcon, { TIPOS_JOGO } from './icons/TipoJogoIcon';
 
 export default function ManageModal({ game, onClose, onSaved }) {
+  const confirmar = useConfirm();
   const semOwner = !game.owner_id;
   const savedCode = semOwner ? getCaptainCode(game.id) : null;
   const [unlocked, setUnlocked] = useState(!semOwner || !!savedCode);
@@ -16,6 +18,8 @@ export default function ManageModal({ game, onClose, onSaved }) {
   const [error, setError] = useState('');
   const [gameData, setGameData] = useState(game);
   const [actingId, setActingId] = useState(null);
+  const [salvando, setSalvando] = useState(false);
+  const [cancelando, setCancelando] = useState(false);
   const [respostas, setRespostas] = useState({});
   const { arenas } = useArenas();
 
@@ -73,6 +77,7 @@ export default function ManageModal({ game, onClose, onSaved }) {
 
   async function handleSave(e) {
     e.preventDefault();
+    if (salvando) return;
     const f = e.target;
     const body = {
       codigo,
@@ -87,16 +92,20 @@ export default function ManageModal({ game, onClose, onSaved }) {
       valor: valor ? parseFloat(valor) : null,
       regras: regras.trim() || null,
     };
+    setSalvando(true);
     const res = await fetch(`/api/games/${game.id}`, { method: 'PATCH', body: JSON.stringify(body) });
-    if (!res.ok) { const r = await res.json(); setError(r.error); return; }
+    if (!res.ok) { const r = await res.json(); setError(r.error); setSalvando(false); return; }
     if (semOwner) saveCaptainCode(game.id, codigo);
     onSaved();
   }
 
   async function handleCancelGame() {
-    if (!confirm('Tem certeza? Isso não pode ser desfeito.')) return;
+    if (cancelando) return;
+    const ok = await confirmar({ mensagem: 'Tem certeza? Isso não pode ser desfeito.', confirmLabel: 'Cancelar pelada', perigo: true });
+    if (!ok) return;
+    setCancelando(true);
     const res = await fetch(`/api/games/${game.id}`, { method: 'DELETE', body: JSON.stringify({ codigo }) });
-    if (!res.ok) { const r = await res.json(); setError(r.error); return; }
+    if (!res.ok) { const r = await res.json(); setError(r.error); setCancelando(false); return; }
     onSaved();
   }
 
@@ -314,8 +323,10 @@ export default function ManageModal({ game, onClose, onSaved }) {
           )}
           {error && <p className="pl-error">{error}</p>}
           <div className="pl-modal-actions">
-            <button type="button" className="pl-btn-secondary pl-btn-danger" onClick={handleCancelGame}>Cancelar pelada</button>
-            <TicketButton type="submit">Salvar</TicketButton>
+            <button type="button" className="pl-btn-secondary pl-btn-danger" disabled={salvando || cancelando} onClick={handleCancelGame}>
+              {cancelando ? 'Cancelando...' : 'Cancelar pelada'}
+            </button>
+            <TicketButton type="submit" disabled={salvando || cancelando}>{salvando ? 'Salvando...' : 'Salvar'}</TicketButton>
           </div>
         </form>
       </div>

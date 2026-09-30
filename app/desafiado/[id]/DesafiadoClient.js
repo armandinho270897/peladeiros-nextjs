@@ -4,6 +4,7 @@ import BackLink from '../../components/BackLink';
 import TicketButton from '../../components/TicketButton';
 import PlayerSearch from '../../components/PlayerSearch';
 import { useToast } from '../../components/ToastProvider';
+import { useConfirm } from '../../components/ConfirmProvider';
 
 const POLL_MS = 5000;
 
@@ -29,6 +30,7 @@ function formatarMMSS(ms) {
 
 export default function DesafiadoClient({ id }) {
   const { showToast } = useToast();
+  const confirmar = useConfirm();
   const [dados, setDados] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -124,7 +126,8 @@ export default function DesafiadoClient({ id }) {
   }
 
   async function encerrarSessao() {
-    if (!confirm('Encerrar o Desafiado? Ninguém mais vai poder marcar gol ou entrar depois disso.')) return;
+    const ok = await confirmar({ mensagem: 'Encerrar o Desafiado? Ninguém mais vai poder marcar gol ou entrar depois disso.', confirmLabel: 'Encerrar', perigo: true });
+    if (!ok) return;
     setBusy(true);
     const { res, result } = await chamar('/encerrar-sessao');
     setBusy(false);

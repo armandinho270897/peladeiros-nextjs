@@ -12,6 +12,7 @@ import DesafiarTimeModal from '../../components/DesafiarTimeModal';
 import EditarElencoModal from '../../components/EditarElencoModal';
 import TicketButton from '../../components/TicketButton';
 import { useToast } from '../../components/ToastProvider';
+import { useConfirm } from '../../components/ConfirmProvider';
 import { useAuth } from '../../components/AuthProvider';
 import UniformPreview from '../../components/UniformPreview';
 import { MODALIDADE_LABEL, POSICAO_LABEL, POSICAO_ZONA } from '@/lib/gameUtils';
@@ -30,6 +31,7 @@ export default function TimeClient({ id }) {
   const router = useRouter();
   const { user } = useAuth();
   const { showToast } = useToast();
+  const confirmar = useConfirm();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
@@ -91,7 +93,8 @@ export default function TimeClient({ id }) {
   }
 
   async function removerMembro(membroId, nome) {
-    if (!confirm(`Remover ${nome} do time? Essa ação não pode ser desfeita.`)) return;
+    const ok = await confirmar({ mensagem: `Remover ${nome} do time? Essa ação não pode ser desfeita.`, confirmLabel: 'Remover', perigo: true });
+    if (!ok) return;
     setBusy(true);
     const res = await fetch(`/api/time-membros/${membroId}/remover`, { method: 'POST' });
     const json = await res.json().catch(() => ({}));
@@ -102,7 +105,8 @@ export default function TimeClient({ id }) {
   }
 
   async function sairDoTime(membroId) {
-    if (!confirm('Tem certeza que quer sair do time? Isso não pode ser desfeito.')) return;
+    const ok = await confirmar({ mensagem: 'Tem certeza que quer sair do time? Isso não pode ser desfeito.', confirmLabel: 'Sair do time', perigo: true });
+    if (!ok) return;
     setBusy(true);
     const res = await fetch(`/api/time-membros/${membroId}/sair`, { method: 'POST' });
     const json = await res.json().catch(() => ({}));
@@ -170,7 +174,8 @@ export default function TimeClient({ id }) {
   }
 
   async function cancelarDesafio(desafioId) {
-    if (!confirm('Cancelar esse desafio?')) return;
+    const ok = await confirmar({ mensagem: 'Cancelar esse desafio?', confirmLabel: 'Cancelar desafio' });
+    if (!ok) return;
     setBusy(true);
     const res = await fetch(`/api/desafios/${desafioId}/cancelar`, { method: 'POST' });
     const json = await res.json().catch(() => ({}));
@@ -181,7 +186,8 @@ export default function TimeClient({ id }) {
   }
 
   async function excluirTime() {
-    if (!confirm(`Excluir o time ${data.time.nome} pra sempre? Todos os membros perdem acesso e isso não pode ser desfeito.`)) return;
+    const ok = await confirmar({ mensagem: `Excluir o time ${data.time.nome} pra sempre? Todos os membros perdem acesso e isso não pode ser desfeito.`, confirmLabel: 'Excluir time', perigo: true });
+    if (!ok) return;
     setBusy(true);
     const res = await fetch(`/api/times/${id}`, { method: 'DELETE' });
     const json = await res.json().catch(() => ({}));

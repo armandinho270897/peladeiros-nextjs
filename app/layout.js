@@ -22,6 +22,7 @@ import BottomNav from './components/BottomNav';
 import { SPLASH_IOS } from '@/lib/splashIos';
 import { AuthProvider } from './components/AuthProvider';
 import { ToastProvider } from './components/ToastProvider';
+import { ConfirmProvider } from './components/ConfirmProvider';
 
 export const metadata = {
   metadataBase: new URL('https://peladeiros-nextjs.vercel.app'),
@@ -84,10 +85,12 @@ export default function RootLayout({ children }) {
         <SplashScreen />
         <OnboardingOverlay />
         <ToastProvider>
-          <AuthProvider>
-            {children}
-            <BottomNav />
-          </AuthProvider>
+          <ConfirmProvider>
+            <AuthProvider>
+              {children}
+              <BottomNav />
+            </AuthProvider>
+          </ConfirmProvider>
         </ToastProvider>
       </body>
     </html>
