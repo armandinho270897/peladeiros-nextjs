@@ -11,7 +11,7 @@ import { mesAtualISO } from '@/lib/gameUtils';
 // no máximo 1 registro de pagamento por mensalista por mês, não importa
 // que dia do mês o capitão clicou.
 function primeiroDiaDoMes(mesReferencia) {
-  const m = typeof mesReferencia === 'string' && mesReferencia.match(/^(d{4}-d{2})/);
+  const m = typeof mesReferencia === 'string' && mesReferencia.match(/^(\d{4}-\d{2})/);
   return m ? `${m[1]}-01` : mesAtualISO();
 }
 
@@ -52,6 +52,10 @@ export async function POST(request, { params }) {
 
 // Desfaz — remove a linha do mês, volta a contar como pendente.
 export async function DELETE(request, { params }) {
+  if (!checkRateLimit(`mensalidade-delete:${getClientIp(request)}`)) {
+    return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
+  }
+
   const { id } = params;
   const { data: membro } = await carregarMembro(id);
   if (!membro) return NextResponse.json({ error: 'Membro não encontrado.' }, { status: 404 });

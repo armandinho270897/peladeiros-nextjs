@@ -16,13 +16,23 @@ export async function GET(request) {
   const busca = (searchParams.get('busca') || '').trim();
   if (!busca) return NextResponse.json([]);
 
-  const { data: porNomeOuWhats, error } = await supabase
-    .from('profiles')
-    .select('id, nome, whatsapp, bairro, role, status, created_at')
-    .or(`nome.ilike.%${busca}%,whatsapp.ilike.%${busca}%`)
-    .limit(30);
+  // Duas consultas separadas (em vez de montar um `.or()` só, interpolando
+  // `busca` na string do filtro) — `.ilike()` passa o valor como parâmetro
+  // de verdade, sem chance de vírgula/parêntese na busca escapar do valor
+  // e virar uma condição extra no filtro.
+  const colunas = 'id, nome, whatsapp, bairro, role, status, created_at';
+  const [porNome, porWhats] = await Promise.all([
+    supabase.from('profiles').select(colunas).ilike('nome', `%${busca}%`).limit(30),
+    supabase.from('profiles').select(colunas).ilike('whatsapp', `%${busca}%`).limit(30),
+  ]);
 
-  if (error) return errJson(error, 500);
+  if (porNome.error) return errJson(porNome.error, 500);
+  if (porWhats.error) return errJson(porWhats.error, 500);
+
+  const vistos = new Set();
+  const porNomeOuWhats = [...(porNome.data || []), ...(porWhats.data || [])]
+    .filter((p) => (vistos.has(p.id) ? false : (vistos.add(p.id), true)))
+    .slice(0, 30);
 
   if (porNomeOuWhats.length > 0 || !busca.includes('@')) {
     return NextResponse.json(porNomeOuWhats);
