@@ -16,6 +16,7 @@ import SplashScreen from './components/SplashScreen';
 import OnboardingOverlay from './components/OnboardingOverlay';
 import InAppBrowserBanner from './components/InAppBrowserBanner';
 import InstallBanner from './components/InstallBanner';
+import InstallButton from './components/InstallButton';
 import ServiceWorkerRegister from './components/ServiceWorkerRegister';
 import BottomNav from './components/BottomNav';
 import { SPLASH_IOS } from '@/lib/splashIos';
@@ -78,6 +79,7 @@ export default function RootLayout({ children }) {
         </svg>
         <InAppBrowserBanner />
         <InstallBanner />
+        <InstallButton variant="floating" />
         <ServiceWorkerRegister />
         <SplashScreen />
         <OnboardingOverlay />

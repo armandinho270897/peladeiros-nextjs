@@ -225,6 +225,36 @@
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* FAB de instalar — mesma receita visual do .pl-organizar-fab, espelhado
+   pro lado esquerdo (o direito já é do Organizar) e sempre visível, em
+   desktop e mobile: diferente da barra de abas, não tem por que sumir em
+   tela larga, já que "instalar" é uma ação de navegador, não de navegação
+   do app. Só o afastamento de baixo muda por breakpoint, pra desviar da
+   barra inferior quando ela está visível. */
+.pl-install-fab {
+  position: fixed;
+  left: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 31;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(20, 24, 18, 0.82);
+  backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(166,255,0,0.55);
+  box-shadow: 0 0 14px rgba(166,255,0,0.28), 0 6px 16px rgba(0,0,0,0.5);
+  color: var(--neon);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  animation: pl-organizar-fab-pop 420ms cubic-bezier(0.22, 1.35, 0.32, 1) both;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.pl-install-fab:hover { transform: translateY(-2px); box-shadow: 0 0 20px rgba(166,255,0,0.4), 0 8px 18px rgba(0,0,0,0.55); }
+.pl-install-fab:active { transform: scale(0.88); }
+.pl-install-fab:focus-visible { outline: 2px solid var(--neon); outline-offset: 3px; }
+@media (max-width: 700px) {
+  .pl-install-fab { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
+}
+
 @media (max-width: 700px) {
   body { padding-bottom: 88px; }
   .pl-toast-container { bottom: 98px; }

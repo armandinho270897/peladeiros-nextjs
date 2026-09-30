@@ -3,13 +3,20 @@ import { useState } from 'react';
 import { useInstallPrompt } from '@/lib/installBanner';
 import TicketButton from './TicketButton';
 import IosShareIcon from './icons/IosShareIcon';
+import DownloadIcon from './icons/DownloadIcon';
 
 // Botão fixo de instalar, independente do banner (que é dispensável e some
 // pra sempre). Mesma detecção de plataforma do banner (useInstallPrompt),
 // sem duplicar lógica — só a apresentação muda: aqui sempre confirma antes
 // de disparar o prompt nativo, e no iPhone abre um passo a passo visual em
 // vez de só uma linha de texto.
-export default function InstallButton() {
+//
+// variant="floating": mesmo componente, gatilho vira um FAB redondo fixo
+// (ver app/layout.js) em vez do botão inline usado em Configurações — só
+// aparece quando faz sentido oferecer instalar (nunca em navegador sem
+// suporte, nunca depois de já instalado), pra não virar um botão morto
+// grudado na tela pra sempre.
+export default function InstallButton({ variant = 'inline' }) {
   const { platform, canInstall, install } = useInstallPrompt();
   const [modo, setModo] = useState(null); // null | 'confirmar-android' | 'ios' | 'indisponivel'
   const [instalando, setInstalando] = useState(false);
@@ -27,15 +34,25 @@ export default function InstallButton() {
     setModo(null);
   }
 
-  if (platform === 'installed') {
+  if (variant === 'floating' && (platform === 'installed' || platform === null)) {
+    return null;
+  }
+
+  if (variant === 'inline' && platform === 'installed') {
     return <p className="pl-hint" style={{ margin: 0 }}>✓ Já instalado</p>;
   }
 
   return (
     <>
-      <button type="button" className="pl-btn-secondary" style={{ flex: 'none' }} onClick={handleClick}>
-        Instalar app
-      </button>
+      {variant === 'floating' ? (
+        <button type="button" className="pl-install-fab" onClick={handleClick} aria-label="Instalar o Peladeiros">
+          <DownloadIcon />
+        </button>
+      ) : (
+        <button type="button" className="pl-btn-secondary" style={{ flex: 'none' }} onClick={handleClick}>
+          Instalar app
+        </button>
+      )}
 
       {modo === 'confirmar-android' && (
         <div className="pl-overlay" onClick={(e) => e.target === e.currentTarget && setModo(null)}>
