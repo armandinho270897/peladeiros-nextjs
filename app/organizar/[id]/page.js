@@ -90,17 +90,32 @@ export default function GerenciarPeladaPage({ params }) {
 
   useEffect(() => { carregar(); }, [params.id]);
 
+  // Erro dessas ações (vaga já preenchida, sessão expirada, etc.) antes
+  // ficava mudo — a lista só recarregava do jeito que já estava, sem
+  // nenhum sinal de por que "não funcionou". Agora sempre confere res.ok
+  // e mostra o motivo, mesmo padrão que cancelarPelada já usava.
+  async function acao(url, options, mensagemSucesso) {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      showToast(body.error || 'Não consegui fazer isso agora.');
+      return false;
+    }
+    if (mensagemSucesso) showToast(mensagemSucesso);
+    return true;
+  }
+
   async function aprovar(confirmacaoId) {
     setProcessando(confirmacaoId);
-    await fetch(`/api/confirmacoes/${confirmacaoId}/aprovar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
-    await carregar(true);
+    const ok = await acao(`/api/confirmacoes/${confirmacaoId}/aprovar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+    if (ok) await carregar(true);
     setProcessando(null);
   }
 
   async function recusar(confirmacaoId) {
     setProcessando(confirmacaoId);
-    await fetch(`/api/confirmacoes/${confirmacaoId}/rejeitar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
-    await carregar(true);
+    const ok = await acao(`/api/confirmacoes/${confirmacaoId}/rejeitar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+    if (ok) await carregar(true);
     setProcessando(null);
   }
 
@@ -108,22 +123,21 @@ export default function GerenciarPeladaPage({ params }) {
     if (pagoAtual && !window.confirm('Marcar como pendente de novo?')) return;
     if (!pagoAtual && !window.confirm('Confirmar que essa pessoa pagou?')) return;
     setProcessando(confirmacaoId);
-    await fetch(`/api/confirmacoes/${confirmacaoId}/pagamento`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pago: !pagoAtual }) });
-    await carregar(true);
+    const ok = await acao(`/api/confirmacoes/${confirmacaoId}/pagamento`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pago: !pagoAtual }) });
+    if (ok) await carregar(true);
     setProcessando(null);
   }
 
   async function cobrar(confirmacaoId) {
     setProcessando(confirmacaoId);
-    await fetch(`/api/confirmacoes/${confirmacaoId}/cobrar-pagamento`, { method: 'POST' });
+    await acao(`/api/confirmacoes/${confirmacaoId}/cobrar-pagamento`, { method: 'POST' }, 'Cobrança enviada.');
     setProcessando(null);
-    showToast('Cobrança enviada.');
   }
 
   async function marcarPresenca(confirmacaoId, presente) {
     setProcessando(confirmacaoId);
-    await fetch(`/api/confirmacoes/${confirmacaoId}/presenca`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ presente }) });
-    await carregar(true);
+    const ok = await acao(`/api/confirmacoes/${confirmacaoId}/presenca`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ presente }) });
+    if (ok) await carregar(true);
     setProcessando(null);
   }
 

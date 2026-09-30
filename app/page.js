@@ -39,7 +39,12 @@ export default function Home() {
   }, [user?.id]);
 
   function carregarPerfil() {
-    fetch('/api/perfil').then((res) => res.json()).then((data) => { if (!data.error) setPerfil(data); });
+    fetch('/api/perfil')
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => { if (!data.error) setPerfil(data); })
+      // sem isso, uma queda de rede deixava a Início presa num estado vazio
+      // pra sempre, sem nenhum sinal — igual "você não tem nada" de verdade.
+      .catch(() => showToast('Não consegui carregar seus dados. Tenta de novo em instantes.'));
   }
 
   // Bottom nav manda pra cá com ?criar=1 pra abrir o modal de criação, que

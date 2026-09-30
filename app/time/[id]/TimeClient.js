@@ -42,10 +42,17 @@ export default function TimeClient({ id }) {
 
   async function load() {
     setLoading(true);
-    const res = await fetch(`/api/times/${id}`);
-    if (!res.ok) { setData(null); setLoading(false); return; }
-    setData(await res.json());
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/times/${id}`);
+      if (!res.ok) { setData(null); return; }
+      setData(await res.json());
+    } catch {
+      // queda de rede — mesmo tratamento de "não achei o time" (res.ok
+      // falso): sem isso o loading ficava preso pra sempre.
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { load(); }, [id]);

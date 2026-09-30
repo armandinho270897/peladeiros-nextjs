@@ -35,6 +35,7 @@ function StatCard({ num, label, hint, tone }) {
 export default function OrganizarPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState(false);
   const [tab, setTab] = useState('visao');
   const [financeiro, setFinanceiro] = useState(null);
   const [finFiltro, setFinFiltro] = useState('');
@@ -42,8 +43,12 @@ export default function OrganizarPage() {
 
   useEffect(() => {
     fetch('/api/organizar')
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setData)
+      // sem isso, uma falha de rede virava data=null igual "você não
+      // organiza nada" (EmptyOrganizar) — indistinguível de estar vazio de
+      // verdade.
+      .catch(() => setErro(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -52,8 +57,9 @@ export default function OrganizarPage() {
     setFinLoading(true);
     const qs = finFiltro ? `?status=${finFiltro}` : '';
     fetch(`/api/organizar/financeiro${qs}`)
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setFinanceiro)
+      .catch(() => setFinanceiro(null))
       .finally(() => setFinLoading(false));
   }, [tab, finFiltro]);
 
@@ -63,6 +69,18 @@ export default function OrganizarPage() {
         <div className="pl-org-header"><h1>Organizar</h1></div>
         <div className="pl-org-grid">
           {[1, 2, 3, 4].map((i) => <div key={i} className="pl-skeleton" style={{ height: 78, borderRadius: 6 }} />)}
+        </div>
+      </div>
+    );
+  }
+
+  if (erro) {
+    return (
+      <div className="pl-org-page">
+        <div className="pl-org-header"><h1>Organizar</h1></div>
+        <div className="pl-empty">
+          <p>Não consegui carregar isso agora.<br />Confere sua conexão e tenta de novo.</p>
+          <button type="button" className="pl-tab active" style={{ marginTop: 14 }} onClick={() => window.location.reload()}>Tentar de novo</button>
         </div>
       </div>
     );

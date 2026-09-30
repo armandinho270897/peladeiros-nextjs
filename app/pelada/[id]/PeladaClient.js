@@ -69,11 +69,17 @@ export default function PeladaClient({ id }) {
   // sem isso a tela inteira piscava pro skeleton de novo a cada 15s.
   const loadGame = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
-    const res = await fetch(`/api/games/${id}`);
-    if (res.status === 404) { setNotFound(true); setLoading(false); return; }
-    const data = await res.json();
-    setGame(data);
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/games/${id}`);
+      if (res.status === 404) { setNotFound(true); return; }
+      if (!res.ok) return;
+      setGame(await res.json());
+    } catch {
+      // queda de rede num refetch em segundo plano — mantém o que já está
+      // na tela e tenta de novo no próximo poll, em vez de travar/sumir.
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => {

@@ -112,8 +112,13 @@ export default function PeladasPage() {
     };
   }, [tab, filtros, raioAtivo, minhaLocalizacao, raioKm]);
 
-  const { games, total, loading, loadGames } = useGames(paramsDescoberta);
+  const { games, total, loading, erro: erroGames, loadGames } = useGames(paramsDescoberta);
   const justLotaram = useJustLotou(games, loading);
+
+  useEffect(() => {
+    if (erroGames) showToast('Não consegui atualizar a lista de peladas. Tenta de novo em instantes.');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [erroGames]);
 
   function distanciaDe(g) {
     if (g.distanciaKm != null) return g.distanciaKm;
