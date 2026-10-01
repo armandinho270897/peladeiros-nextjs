@@ -750,6 +750,57 @@ body::after {
 .pl-lamp-core.pl-r { animation-delay: -3.4s; }
 .pl-lamp-beam { animation: pl-floodlight-pulse 7s ease-in-out infinite; transform-origin: center; opacity: 0.5; }
 .pl-lamp-beam.pl-r { animation-delay: -3.4s; }
+/* Card de opt-in de push (PushOptIn.js) — cartaz colado na parede, mesma
+   família visual do resto (card-bg opaco, sem glass), mas com a tag feita
+   à mão (font-tag) cortando a borda de cima igual um adesivo torto, pra dar
+   o tom "favela elegante": direto, vibrante, sem ser um formulário burocrático. */
+.pl-push-card {
+  position: relative;
+  background: var(--card-bg);
+  border: 1.5px solid rgba(166,255,0,0.3);
+  border-radius: var(--radius-md);
+  padding: 20px 16px 16px;
+  margin-top: 14px;
+  overflow: visible;
+}
+.pl-push-tag {
+  position: absolute; top: -11px; left: 14px;
+  background: var(--neon); color: var(--ink);
+  font-family: var(--font-tag); font-size: 13px;
+  padding: 2px 12px 3px; border-radius: var(--radius-sm);
+  transform: rotate(-3deg);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+.pl-push-row { display: flex; gap: 12px; align-items: flex-start; }
+.pl-push-badge {
+  flex: none; width: 44px; height: 44px; border-radius: var(--radius-circle);
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(110,113,120,0.18); color: var(--paper-dim);
+  border: 1.5px solid rgba(110,113,120,0.4);
+}
+.pl-push-badge-on { background: rgba(166,255,0,0.14); color: var(--neon); border-color: var(--neon); }
+.pl-push-copy h3 {
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.3px;
+  font-size: 19px; color: var(--paper); margin: 2px 0 4px;
+}
+.pl-push-copy p { font-size: 13px; color: var(--paper-dim); margin: 0; }
+.pl-push-btn-on, .pl-push-btn-off {
+  display: block; width: 100%; margin-top: 14px; padding: 11px;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.4px;
+  font-size: 14px; border-radius: var(--radius-sm); cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.pl-push-btn-on {
+  background: var(--neon); color: var(--ink); border: none;
+  box-shadow: 0 0 18px rgba(166,255,0,0.3);
+}
+.pl-push-btn-on:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 0 24px rgba(166,255,0,0.45); }
+.pl-push-btn-off {
+  background: transparent; color: var(--paper-dim); border: 1.5px solid rgba(110,113,120,0.45);
+}
+.pl-push-btn-off:hover:not(:disabled) { color: var(--paper); border-color: var(--paper-dim); }
+.pl-push-btn-on:disabled, .pl-push-btn-off:disabled { opacity: 0.6; cursor: default; }
+
 @keyframes pl-floodlight-pulse {
   0%, 100% { opacity: 0.7; }
   50% { opacity: 1; }

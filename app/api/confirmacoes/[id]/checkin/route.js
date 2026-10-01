@@ -13,7 +13,7 @@ export async function POST(request, { params }) {
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login pra fazer check-in.' }, { status: 401 });
 
-  if (!checkRateLimit(`checkin:${user.id}`)) {
+  if (!(await checkRateLimit(`checkin:${user.id}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 
@@ -70,7 +70,7 @@ export async function DELETE(request, { params }) {
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login.' }, { status: 401 });
 
-  if (!checkRateLimit(`checkin-undo:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`checkin-undo:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

@@ -13,7 +13,7 @@ export async function POST(request, { params }) {
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login pra confirmar sua vaga.' }, { status: 401 });
 
-  if (!checkRateLimit(`confirmar-vaga:${user.id}`)) {
+  if (!(await checkRateLimit(`confirmar-vaga:${user.id}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

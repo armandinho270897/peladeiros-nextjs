@@ -22,7 +22,7 @@ async function carregarMembro(id) {
 // Marca a mensalidade do mês como paga — presença da linha em
 // `mensalidades` É o "pago"; não existe status separado.
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`mensalidade:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`mensalidade:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 
@@ -52,7 +52,7 @@ export async function POST(request, { params }) {
 
 // Desfaz — remove a linha do mês, volta a contar como pendente.
 export async function DELETE(request, { params }) {
-  if (!checkRateLimit(`mensalidade-delete:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`mensalidade-delete:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

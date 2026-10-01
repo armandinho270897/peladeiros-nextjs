@@ -132,7 +132,7 @@ export async function GET(request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
-  if (!checkRateLimit(`times:editar:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`times:editar:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 
@@ -210,7 +210,7 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  if (!checkRateLimit(`times:excluir:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`times:excluir:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

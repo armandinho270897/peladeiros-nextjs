@@ -7,7 +7,7 @@ import { errJson } from '@/lib/apiError';
 import { assertUsuarioAtivo } from '@/lib/moderacao';
 
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`confirmar:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`confirmar:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas confirmações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

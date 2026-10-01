@@ -33,7 +33,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  if (!checkRateLimit(`times:create:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`times:create:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitos times criados em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

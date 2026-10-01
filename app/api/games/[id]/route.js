@@ -46,7 +46,7 @@ export async function PATCH(request, { params }) {
   // Peladas antigas sem owner_id ainda autorizam por código de 4 dígitos
   // (ver lib/gameAuth.js) — sem limite aqui, dava pra tentar as 10.000
   // combinações sem travar em nada.
-  if (!checkRateLimit(`games-editar:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`games-editar:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas tentativas em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 
@@ -113,7 +113,7 @@ export async function PATCH(request, { params }) {
 export async function DELETE(request, { params }) {
   // Mesmo motivo do PATCH acima: código de 4 dígitos sem limite de tentativas
   // dava pra força bruta.
-  if (!checkRateLimit(`games-cancelar:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`games-cancelar:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas tentativas em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

@@ -9,7 +9,7 @@ import { inicioDoJogo } from '@/lib/gameUtils';
 // `id` (params) é o time DESAFIADO — quem chama propõe com um dos times
 // que capitaneia (timeDesafianteId no corpo), já com data/local prontos.
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`times:desafiar:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`times:desafiar:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

@@ -19,7 +19,7 @@ const STATUS_POR_MENSAGEM = {
 // simultâneas contando a mesma vaga livre, igual aprovar_confirmacao já
 // faz pro fluxo de solicitação.
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`adicionar-jogador:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`adicionar-jogador:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

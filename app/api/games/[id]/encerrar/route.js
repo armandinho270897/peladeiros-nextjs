@@ -10,7 +10,7 @@ import { inicioDoJogo } from '@/lib/gameUtils';
 // exceção). Libera avaliação da pelada e registra falta pra quem foi
 // marcado ausente, sem punição automática (sem banimento, sem bloqueio).
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`encerrar:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`encerrar:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

@@ -30,7 +30,7 @@ export async function GET(request, { params }) {
 }
 
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`avaliar:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`avaliar:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas avaliações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

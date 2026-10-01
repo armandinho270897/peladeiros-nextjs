@@ -8,7 +8,7 @@ import { errJson } from '@/lib/apiError';
 // Diferente de aceitar/recusar convite (onde quem responde é o convidado):
 // aqui quem responde é o capitão, porque quem iniciou foi o jogador.
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`time-membros:aprovar-solicitacao:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`time-membros:aprovar-solicitacao:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

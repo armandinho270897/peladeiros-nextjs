@@ -10,7 +10,7 @@ import { mesAtualISO } from '@/lib/gameUtils';
 // mexe em status nenhum, só avisa — quem marca como pago é o
 // POST /api/time-membros/[id]/mensalidade separado.
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`cobrar-mensalidade:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`cobrar-mensalidade:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

@@ -14,7 +14,7 @@ export async function POST(request, { params }) {
 
   // por usuário, não por IP — várias pessoas do mesmo Wi-Fi conversando na
   // mesma pelada não podem se atrapalhar.
-  if (!checkRateLimit(`pelada-chat:${auth.user.id}`, 15, 60 * 1000)) {
+  if (!(await checkRateLimit(`pelada-chat:${auth.user.id}`, 15, 60 * 1000))) {
     return NextResponse.json({ error: 'Muitas mensagens em pouco tempo. Espera um pouco.' }, { status: 429 });
   }
 

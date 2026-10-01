@@ -19,7 +19,7 @@ export async function POST() {
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login.' }, { status: 401 });
 
-  if (!checkRateLimit(`verificar-proximas:${user.id}`)) {
+  if (!(await checkRateLimit(`verificar-proximas:${user.id}`))) {
     return NextResponse.json({ ok: true, criadas: 0 });
   }
 

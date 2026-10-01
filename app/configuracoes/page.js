@@ -6,6 +6,7 @@ import { useToast } from '../components/ToastProvider';
 import TicketButton from '../components/TicketButton';
 import PasswordField from '../components/PasswordField';
 import InstallButton from '../components/InstallButton';
+import PushOptIn from '../components/PushOptIn';
 import BackLink from '../components/BackLink';
 import NotifIconBadge from '../components/NotifIconBadge';
 import { NOTIF_TIPOS, iconeDe, corDe } from '@/lib/notifCategorias';
@@ -91,7 +92,9 @@ export default function ConfiguracoesPage() {
       </div>
 
       <div style={{ maxWidth: 640, margin: '14px auto 0', padding: '0 16px' }}>
-        <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--gold)', margin: '0 0 6px' }}>Urgentes</p>
+        <PushOptIn />
+
+        <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--gold)', margin: '18px 0 6px' }}>Urgentes</p>
         {renderGrupo(URGENTES)}
 
         <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--paper-dim)', margin: '18px 0 6px' }}>Comunidade</p>

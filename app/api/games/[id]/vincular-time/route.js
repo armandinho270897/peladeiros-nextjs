@@ -23,7 +23,7 @@ const STATUS_POR_MENSAGEM = {
 // pra duas chamadas concorrentes (ou uma concorrente com outra ação no
 // mesmo jogo) não contarem a mesma vaga livre duas vezes.
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`games:vincular-time:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`games:vincular-time:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

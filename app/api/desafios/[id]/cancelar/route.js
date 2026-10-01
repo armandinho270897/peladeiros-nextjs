@@ -7,7 +7,7 @@ import { errJson } from '@/lib/apiError';
 // Só quem propôs (capitão do time desafiante) pode cancelar, e só enquanto
 // ainda estiver pendente — depois de aceito/recusado não faz mais sentido.
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`desafios:cancelar:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`desafios:cancelar:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

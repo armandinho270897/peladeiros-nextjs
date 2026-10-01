@@ -6,7 +6,7 @@ import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
 
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`times:convidar:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`times:convidar:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitos convites em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

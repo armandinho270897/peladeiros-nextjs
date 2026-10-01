@@ -24,10 +24,10 @@ export async function POST(request) {
 
   // Limita por e-mail (não manda vários links pro mesmo destinatário) e por
   // IP (não deixa varrer e-mails alheios).
-  if (!checkRateLimit(`magic-link:email:${emailNormalizado}`, 5, 15 * 60 * 1000)) {
+  if (!(await checkRateLimit(`magic-link:email:${emailNormalizado}`, 5, 15 * 60 * 1000))) {
     return NextResponse.json({ error: 'Muitos pedidos de login pra esse e-mail. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
-  if (!checkRateLimit(`magic-link:ip:${ip}`, 20, 15 * 60 * 1000)) {
+  if (!(await checkRateLimit(`magic-link:ip:${ip}`, 20, 15 * 60 * 1000))) {
     return NextResponse.json({ error: 'Muitos pedidos de login vindos daqui. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

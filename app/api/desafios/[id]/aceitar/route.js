@@ -19,7 +19,7 @@ const STATUS_POR_MENSAGEM = {
 };
 
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`desafios:aceitar:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`desafios:aceitar:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

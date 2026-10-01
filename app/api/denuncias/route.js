@@ -11,7 +11,7 @@ const MOTIVOS_VALIDOS = ['comportamento_abusivo', 'no_show_recorrente', 'informa
 // Qualquer usuário logado denuncia jogador/pelada/arena. Pública (não é
 // rota /api/admin) — só a análise/decisão é admin-only.
 export async function POST(request) {
-  if (!checkRateLimit(`denuncia:${getClientIp(request)}`, 10, 10 * 60 * 1000)) {
+  if (!(await checkRateLimit(`denuncia:${getClientIp(request)}`, 10, 10 * 60 * 1000))) {
     return NextResponse.json({ error: 'Muitas denúncias em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

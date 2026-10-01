@@ -9,7 +9,7 @@ import { errJson } from '@/lib/apiError';
 // histórico de mensalidades como o do time (aqui não tem "mês", é só essa
 // pelada, uma vez só).
 export async function PATCH(request, { params }) {
-  if (!checkRateLimit(`pagamento:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`pagamento:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

@@ -21,7 +21,7 @@ export async function POST() {
   const { data: { user } } = await authClient.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Faça login.' }, { status: 401 });
 
-  if (!checkRateLimit(`verificar-goleiro:${user.id}`)) {
+  if (!(await checkRateLimit(`verificar-goleiro:${user.id}`))) {
     return NextResponse.json({ ok: true, criadas: 0 });
   }
 

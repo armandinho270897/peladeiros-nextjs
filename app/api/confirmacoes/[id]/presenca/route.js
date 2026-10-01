@@ -12,7 +12,7 @@ import { errJson } from '@/lib/apiError';
 // definitivo e só se corrige via um novo encerramento não existe — mesma
 // regra que o resto do app.
 export async function PATCH(request, { params }) {
-  if (!checkRateLimit(`presenca:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`presenca:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

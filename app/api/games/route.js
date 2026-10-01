@@ -209,7 +209,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  if (!checkRateLimit(`games:create:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`games:create:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas peladas criadas em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

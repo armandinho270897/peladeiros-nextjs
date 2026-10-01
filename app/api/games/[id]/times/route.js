@@ -10,7 +10,7 @@ import { errJson } from '@/lib/apiError';
 // Só mexe nos ids passados, não apaga o resto — permite ajustar um jogador
 // por vez sem reenviar a escalação inteira.
 export async function PATCH(request, { params }) {
-  if (!checkRateLimit(`times-pelada:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`times-pelada:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

@@ -8,7 +8,7 @@ import { errJson } from '@/lib/apiError';
 // jogar de posições diferentes em times diferentes) — por isso vivem em
 // time_membros, não em profiles, e só o capitão do time edita.
 export async function PATCH(request, { params }) {
-  if (!checkRateLimit(`time-membros:elenco:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`time-membros:elenco:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

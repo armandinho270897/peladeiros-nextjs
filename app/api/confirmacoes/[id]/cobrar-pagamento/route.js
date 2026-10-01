@@ -5,7 +5,7 @@ import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`cobrar-pagamento:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`cobrar-pagamento:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

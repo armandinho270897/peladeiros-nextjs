@@ -9,7 +9,7 @@ import { authorizeDesafiadoCriador } from '@/lib/desafiadoAuth';
 // hora e manda pro final da fila — sem precisar de nenhuma ação manual do
 // capitão além de adicionar as pessoas.
 export async function POST(request, { params }) {
-  if (!checkRateLimit(`desafiado:jogador:${getClientIp(request)}`, 30, 5 * 60 * 1000)) {
+  if (!(await checkRateLimit(`desafiado:jogador:${getClientIp(request)}`, 30, 5 * 60 * 1000))) {
     return NextResponse.json({ error: 'Muitas ações em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

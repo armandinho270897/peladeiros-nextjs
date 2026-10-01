@@ -46,7 +46,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  if (!checkRateLimit(`arenas:create:${getClientIp(request)}`)) {
+  if (!(await checkRateLimit(`arenas:create:${getClientIp(request)}`))) {
     return NextResponse.json({ error: 'Muitas arenas cadastradas em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 

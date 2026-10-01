@@ -12,7 +12,7 @@ import { assertUsuarioAtivo } from '@/lib/moderacao';
 // Exige pelo menos 2 times completos pra começar (senão não tem quem jogar
 // contra quem).
 export async function POST(request) {
-  if (!checkRateLimit(`desafiado:criar:${getClientIp(request)}`, 5, 10 * 60 * 1000)) {
+  if (!(await checkRateLimit(`desafiado:criar:${getClientIp(request)}`, 5, 10 * 60 * 1000))) {
     return NextResponse.json({ error: 'Muitas sessões criadas em pouco tempo. Espera uns minutos e tenta de novo.' }, { status: 429 });
   }
 
