@@ -2,6 +2,12 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { fmtDate } from '@/lib/gameUtils';
+import CalendarIcon from '../components/icons/CalendarIcon';
+import PeopleIcon from '../components/icons/PeopleIcon';
+import HourglassIcon from '../components/icons/HourglassIcon';
+import BellIcon from '../components/icons/BellIcon';
+import CoinIcon from '../components/icons/CoinIcon';
+import CheckCircleIcon from '../components/icons/CheckCircleIcon';
 
 const fmtMoeda = (v) => `R$ ${Number(v || 0).toFixed(2).replace('.', ',')}`;
 
@@ -22,9 +28,10 @@ function EmptyOrganizar() {
   );
 }
 
-function StatCard({ num, label, hint, tone }) {
+function StatCard({ icon: Icon, num, label, hint, tone }) {
   return (
-    <div className="pl-org-card">
+    <div className={`pl-org-card ${tone ? `pl-org-tone-${tone}` : ''}`}>
+      <span className="pl-org-card-icon"><Icon size={16} /></span>
       <span className={`num ${tone ? `pl-org-${tone}` : ''}`}>{num}</span>
       <div className="label">{label}</div>
       {hint && <div className="hint">{hint}</div>}
@@ -131,19 +138,21 @@ export default function OrganizarPage() {
           )}
 
           <div className="pl-org-grid">
-            <StatCard num={resumo.totalPeladasFuturas} label="Peladas agendadas" hint="Organizadas por você, ainda por vir." />
-            <StatCard num={`${resumo.confirmadosTotal}/${resumo.vagasTotal}`} label="Ocupação total" hint="Confirmados sobre vagas, somando todas." />
-            <StatCard num={resumo.esperaTotal} label="Na lista de espera" tone={resumo.esperaTotal > 0 ? 'warn' : undefined} />
-            <StatCard num={resumo.pendentesAprovacaoTotal} label="Aguardando aprovação" tone={resumo.pendentesAprovacaoTotal > 0 ? 'warn' : undefined} hint={resumo.pendentesAprovacaoTotal > 0 ? 'Pedidos pra entrar que ainda não foram respondidos.' : undefined} />
-            <StatCard num={fmtMoeda(resumo.valorPendente)} label="Valor pendente" tone={resumo.valorPendente > 0 ? 'warn' : 'good'} hint={`Esperado ${fmtMoeda(resumo.valorEsperado)} · Recebido ${fmtMoeda(resumo.valorRecebido)}`} />
-            <StatCard num={resumo.taxaPresenca !== null ? `${resumo.taxaPresenca}%` : '—'} label="Taxa de presença" hint={resumo.taxaPresenca === null ? 'Ainda sem peladas encerradas pra calcular.' : `${resumo.faltasRecentes} falta(s) registrada(s) no histórico.`} />
+            <StatCard icon={CalendarIcon} num={resumo.totalPeladasFuturas} label="Peladas agendadas" hint="Organizadas por você, ainda por vir." />
+            <StatCard icon={PeopleIcon} num={`${resumo.confirmadosTotal}/${resumo.vagasTotal}`} label="Ocupação total" hint="Confirmados sobre vagas, somando todas." />
+            <StatCard icon={HourglassIcon} num={resumo.esperaTotal} label="Na lista de espera" tone={resumo.esperaTotal > 0 ? 'warn' : undefined} />
+            <StatCard icon={BellIcon} num={resumo.pendentesAprovacaoTotal} label="Aguardando aprovação" tone={resumo.pendentesAprovacaoTotal > 0 ? 'warn' : undefined} hint={resumo.pendentesAprovacaoTotal > 0 ? 'Pedidos pra entrar que ainda não foram respondidos.' : undefined} />
+            <StatCard icon={CoinIcon} num={fmtMoeda(resumo.valorPendente)} label="Valor pendente" tone={resumo.valorPendente > 0 ? 'warn' : 'good'} hint={`Esperado ${fmtMoeda(resumo.valorEsperado)} · Recebido ${fmtMoeda(resumo.valorRecebido)}`} />
+            <StatCard icon={CheckCircleIcon} num={resumo.taxaPresenca !== null ? `${resumo.taxaPresenca}%` : '—'} label="Taxa de presença" hint={resumo.taxaPresenca === null ? 'Ainda sem peladas encerradas pra calcular.' : `${resumo.faltasRecentes} falta(s) registrada(s) no histórico.`} />
           </div>
 
           {resumo.mensalidadesPendentes > 0 && (
-            <div className="pl-org-card" style={{ marginBottom: 16, borderColor: 'rgba(255,197,61,0.4)' }}>
-              <span className="num pl-org-warn">{resumo.mensalidadesPendentes}</span>
-              <div className="label">Mensalidade(s) pendente(s) este mês</div>
-              <div className="hint">Veja quem está em dia na aba Financeiro, ou no time diretamente.</div>
+            <div className="pl-org-callout">
+              <span className="pl-org-callout-icon"><CoinIcon size={18} /></span>
+              <div>
+                <b>{resumo.mensalidadesPendentes} mensalidade{resumo.mensalidadesPendentes === 1 ? '' : 's'} pendente{resumo.mensalidadesPendentes === 1 ? '' : 's'} este mês</b>
+                <span>Veja quem está em dia na aba Financeiro, ou no time diretamente.</span>
+              </div>
             </div>
           )}
 

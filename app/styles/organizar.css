@@ -27,9 +27,22 @@
 
 .pl-org-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; margin-bottom: 16px; }
 .pl-org-card {
-  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.35); border-radius: var(--radius-md);
+  background: var(--card-bg); border: 1px solid rgba(110,113,120,0.35); border-left: 3px solid rgba(110,113,120,0.35);
+  border-radius: var(--radius-md);
   padding: 13px 14px; animation: pl-org-rise 320ms cubic-bezier(.2,.7,.3,1) both;
 }
+/* Mesmo sinal (borda dourada/verde) já usado em pl-org-warn/good no número
+   — só que agora também na lateral do card e no selo do ícone, pra chamar
+   atenção antes mesmo de ler o número. */
+.pl-org-card.pl-org-tone-warn { border-left-color: var(--gold); }
+.pl-org-card.pl-org-tone-good { border-left-color: var(--neon); }
+.pl-org-card-icon {
+  width: 28px; height: 28px; border-radius: var(--radius-sm); margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(183,183,172,0.1); color: var(--paper-dim);
+}
+.pl-org-card.pl-org-tone-warn .pl-org-card-icon { background: rgba(255,197,61,0.14); color: var(--gold); }
+.pl-org-card.pl-org-tone-good .pl-org-card-icon { background: rgba(166,255,0,0.14); color: var(--neon); }
 .pl-org-card .num { font-family: var(--font-display); font-size: 24px; color: var(--paper); display: block; line-height: 1.1; transition: transform 160ms ease; }
 .pl-org-card .num.pl-org-warn { color: var(--gold); }
 .pl-org-card .num.pl-org-risk { color: var(--tag-red); }
@@ -38,6 +51,23 @@
 .pl-org-card .hint { font-size: 11px; color: var(--paper-dim); margin-top: 4px; line-height: 1.4; }
 .pl-org-card.pl-org-number-pop .num { animation: pl-org-pop 360ms cubic-bezier(.34,1.56,.64,1); }
 @keyframes pl-org-pop { 0% { transform: scale(1); } 45% { transform: scale(1.16); } 100% { transform: scale(1); } }
+
+/* Callout da mensalidade pendente — antes reaproveitava .pl-org-card
+   (ficava parecendo "mais um card de estatística", só que mais largo e
+   fora do grid). Formato de aviso de verdade agora: ícone + texto numa
+   linha só, mesma receita de cor que .pl-org-pendencia já usa. */
+.pl-org-callout {
+  display: flex; align-items: center; gap: 12px;
+  border: 1px solid rgba(255,197,61,0.35); background: rgba(255,197,61,0.06);
+  border-radius: var(--radius-md); padding: 13px 14px; margin-bottom: 16px;
+}
+.pl-org-callout-icon {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: var(--radius-sm);
+  background: rgba(255,197,61,0.16); color: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+}
+.pl-org-callout b { display: block; font-size: 13.5px; color: var(--paper); }
+.pl-org-callout span { font-size: 11.5px; color: var(--paper-dim); }
 
 .pl-org-section { margin-bottom: 22px; }
 .pl-org-section-title { font-family: var(--font-display); text-transform: uppercase; font-size: 14px; color: var(--paper); margin: 0 0 10px; letter-spacing: 0.01em; }
