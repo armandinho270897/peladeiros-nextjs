@@ -59,11 +59,17 @@
 
 * { box-sizing: border-box; }
 
-/* Trava o "elástico" de overscroll (puxar além do topo/fim da página) —
-   evita o bounce/rubber-band que expõe o fundo do navegador atrás do app. */
+/* Trava o "elástico" de overscroll (puxar além da borda da página, em
+   qualquer direção) — evita o bounce/rubber-band que expõe o fundo do
+   navegador atrás do app. overflow-x: hidden é reforço pro lado: sem ele,
+   um elemento decorativo que vaze alguns pixels pra fora (ex: bolhas
+   animadas do hero) já é suficiente pra página inteira ficar arrastável
+   de lado, mesmo sem overscroll — trava o scroll horizontal de vez,
+   sobra só o vertical de verdade (rolar a página pra baixo). */
 html {
   background: var(--ink);
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
+  overflow-x: hidden;
 }
 
 body {
@@ -71,7 +77,8 @@ body {
   background: var(--ink);
   color: var(--paper);
   font-family: var(--font-body);
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
+  overflow-x: hidden;
 }
 
 /* Textura de parede de concreto no fundo — duas camadas, mesma técnica que
