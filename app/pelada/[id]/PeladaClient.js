@@ -14,6 +14,7 @@ import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
 import MontarTimesModal from '../../components/MontarTimesModal';
 import PeladaAbas from '../../components/PeladaAbas';
 import GameArtBanner from '../../components/GameArtBanner';
+import ConfirmStamp from '../../components/ConfirmStamp';
 import EmptyFieldIcon from '../../components/icons/EmptyFieldIcon';
 import BackLink from '../../components/BackLink';
 import Brand from '../../components/Brand';
@@ -45,6 +46,7 @@ export default function PeladaClient({ id }) {
   const [notFound, setNotFound] = useState(false);
   const [modal, setModal] = useState(null);
   const [minhaLocalizacao, setMinhaLocalizacao] = useState(null);
+  const [carimbo, setCarimbo] = useState(null);
   const justLotaram = useJustLotou(game, loading);
 
   // Pedido automático, sem toggle — diferente de /peladas (onde é opt-in,
@@ -125,6 +127,7 @@ export default function PeladaClient({ id }) {
     if (!res.ok) { showToast(result.error || 'Não consegui confirmar sua vaga.'); return; }
     loadGame();
     showToast('Você entrou no jogo!');
+    setCarimbo('Dentro!');
   }
 
   async function handleCheckin(confirmacaoId) {
@@ -133,6 +136,7 @@ export default function PeladaClient({ id }) {
     if (!res.ok) { showToast(result.error || 'Não consegui registrar seu check-in.'); return; }
     loadGame(true);
     showToast('Chegada registrada!');
+    setCarimbo('Chegou!');
   }
 
   async function handleUndoCheckin(confirmacaoId) {
@@ -297,6 +301,8 @@ export default function PeladaClient({ id }) {
           onSaved={() => { setModal(null); loadGame(); showToast('Times salvos!'); }}
         />
       )}
+
+      {carimbo && <ConfirmStamp texto={carimbo} onDone={() => setCarimbo(null)} />}
     </div>
   );
 }
