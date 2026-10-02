@@ -13,7 +13,7 @@ import CancelPresencaModal from '../../components/CancelPresencaModal';
 import EncerrarPartidaModal from '../../components/EncerrarPartidaModal';
 import MontarTimesModal from '../../components/MontarTimesModal';
 import PeladaAbas from '../../components/PeladaAbas';
-import GameArtBanner from '../../components/GameArtBanner';
+import PeladaHero from '../../components/PeladaHero';
 import ConfirmStamp from '../../components/ConfirmStamp';
 import EmptyFieldIcon from '../../components/icons/EmptyFieldIcon';
 import BackLink from '../../components/BackLink';
@@ -179,7 +179,7 @@ export default function PeladaClient({ id }) {
 
   return (
     <div>
-      <GameArtBanner tipo={game.tipo} gameId={game.id} variant="hero" priority />
+      <PeladaHero game={game} />
 
       <div className="pl-header">
         <BackLink href="/">Todas as peladas</BackLink>

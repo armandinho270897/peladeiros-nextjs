@@ -122,6 +122,54 @@
   .pl-confirm-stamp { animation: none; opacity: 1; }
 }
 
+/* Hero da pelada como cartaz de rua (PeladaHero.js) — data carimbada, selo
+   de vaga (reaproveita .pl-status-badge/statusVagas() do GameCard, mesma
+   regra de cor) e nome do local gigante sobre a arte do tipo de jogo.
+   Centralização/altura do bloco inteiro vivem aqui (não em .pl-art-banner-
+   hero, base.css) porque esse wrapper é quem dita a caixa — o banner e o
+   texto por cima só preenchem o espaço dela. */
+.pl-pelada-hero { position: relative; margin-bottom: 6px; }
+@media (min-width: 672px) {
+  .pl-pelada-hero { max-width: 640px; margin: 18px auto 6px; border-radius: var(--radius-md) var(--radius-md) 0 0; overflow: hidden; }
+}
+
+.pl-pelada-hero-date {
+  position: absolute; top: 16px; left: 16px; z-index: 1;
+  background: var(--neon); color: var(--ink);
+  font-family: var(--font-tag); font-size: 15px; line-height: 1.15;
+  padding: 6px 12px 7px; border-radius: var(--radius-sm);
+  transform: rotate(-3deg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+  text-align: center;
+}
+.pl-pelada-hero-date small { display: block; font-family: var(--font-body); font-weight: 700; font-size: 9px; letter-spacing: 0.05em; }
+
+/* Mesmas classes/cores do selo no GameCard (pl-status-badge + .ultimas
+   dourado) — só o fundo fica mais opaco aqui, porque em cima de foto o
+   translúcido sutil original (pensado pra ficar sobre --card-bg sólido)
+   não teria contraste suficiente pra ler. */
+.pl-pelada-hero-status {
+  position: absolute; top: 16px; right: 16px; z-index: 1;
+  background: rgba(22,20,18,0.72); border: 1.5px solid rgba(255,255,255,0.14);
+}
+/* Repete o mesmo background (não só border-color) com a classe dobrada de
+   propósito — .pl-status-badge.ultimas (base.css) tem a mesma especificidade
+   (duas classes) e definiria um fundo mais translúcido (pensado pra ficar
+   sobre --card-bg sólido) se essa regra só mudasse a borda. */
+.pl-pelada-hero-status.ultimas { background: rgba(22,20,18,0.72); border-color: var(--gold); }
+
+.pl-pelada-hero-text { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 0 18px 14px; }
+.pl-pelada-hero-local {
+  font-family: var(--font-display); text-transform: uppercase; color: var(--paper);
+  font-size: clamp(28px, 7vw, 38px); line-height: 0.96; margin: 0;
+  text-wrap: balance; text-shadow: 0 2px 14px rgba(0,0,0,0.7);
+}
+.pl-pelada-hero-sub {
+  margin: 7px 0 0; font-size: 13px; color: var(--paper-dim); text-transform: uppercase; letter-spacing: 0.05em;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+}
+.pl-pelada-hero-sub b { color: var(--neon); font-weight: 700; }
+
 .pl-conquistas { display: flex; gap: 10px; max-width: 640px; margin: 0 auto; padding: 0 16px 18px; flex-wrap: wrap; }
 .pl-conquista {
   background: var(--card-bg);

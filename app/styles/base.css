@@ -366,10 +366,10 @@ body::after {
 /* margin-bottom de 4px, não 10 — o .pl-card pai já tem gap:6px entre
    filhos, então o respiro visual real depois do banner é 4+6=10px. */
 .pl-art-banner-card { height: var(--art-banner-card-h); margin: -14px -16px 4px; width: calc(100% + 32px); }
-.pl-art-banner-hero { height: 240px; margin-bottom: 6px; }
-@media (min-width: 672px) {
-  .pl-art-banner-hero { max-width: 640px; margin: 18px auto 6px; border-radius: var(--radius-md) var(--radius-md) 0 0; }
-}
+/* Altura/centralização do hero vivem no wrapper (.pl-pelada-hero, em
+   pelada-e-avisos.css) agora que ele é o único consumidor da variant
+   "hero" — essa classe só define a altura, o resto é herdado do wrapper. */
+.pl-art-banner-hero { height: 280px; }
 /* Sem imagem mapeada — padrão gráfico temático único, reaproveitado por
    todo banner de arte (GameCard, hero da pelada, hero da Home) pra nunca
    cair num preto liso. */
