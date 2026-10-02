@@ -6,13 +6,13 @@ import Avatar from '../../components/Avatar';
 import CaptainIcon from '../../components/icons/CaptainIcon';
 import EmptyFieldIcon from '../../components/icons/EmptyFieldIcon';
 import ConquistasBadges from '../../components/ConquistasBadges';
-import PatenteCard from '../../components/PatenteCard';
+import FichaJogador from '../../components/FichaJogador';
 import PerfilSobre from '../../components/PerfilSobre';
 import PerfilTags from '../../components/PerfilTags';
 import BackLink from '../../components/BackLink';
 import DenunciarModal from '../../components/DenunciarModal';
 import { useToast } from '../../components/ToastProvider';
-import { fmtDate, MODALIDADE_LABEL, POSICAO_LABEL, RESULTADO_LABEL, RESULTADO_COR } from '@/lib/gameUtils';
+import { fmtDate, RESULTADO_LABEL, RESULTADO_COR } from '@/lib/gameUtils';
 
 // Perfil público de OUTRO jogador — mesma estrutura visual de app/perfil/page.js
 // (avatar, stats, conquistas, times, histórico), mas sem nenhum controle
@@ -77,21 +77,12 @@ export default function PerfilPublicoClient({ id }) {
     <div>
       <div className="pl-header"><BackLink href="/peladas" /></div>
 
-      <div className="pl-perfil-header">
-        <Avatar nome={profile.nome} size={80} ring fotoUrl={profile.foto_url} />
-        <div className="pl-perfil-info">
-          <h2>{profile.nome}</h2>
-          <p>{profile.bairro || 'Bairro não informado'}</p>
-          {profile.modalidade_principal && (
-            <p className="meta">
-              {MODALIDADE_LABEL[profile.modalidade_principal]}
-              {profile.posicoes?.length > 0 && ` · ${profile.posicoes.map((s) => POSICAO_LABEL[s] || s).join(' / ')}`}
-            </p>
-          )}
-          <button type="button" className="pl-link-muted" style={{ marginTop: 6 }} onClick={() => setDenunciando(true)}>
-            Denunciar jogador
-          </button>
-        </div>
+      <FichaJogador profile={profile} stats={stats} patente={patente} celebrar={false} />
+
+      <div style={{ textAlign: 'center', marginTop: 14 }}>
+        <button type="button" className="pl-link-muted" onClick={() => setDenunciando(true)}>
+          Denunciar jogador
+        </button>
       </div>
 
       {denunciando && (
@@ -104,48 +95,9 @@ export default function PerfilPublicoClient({ id }) {
         />
       )}
 
-      <div className="pl-perfil-stats">
-        <div className="pl-stat">
-          <div className="num">{stats.peladasConfirmadas}</div>
-          <div className="label">Confirmadas</div>
-        </div>
-        <div className="pl-stat">
-          <div className="num">{stats.peladasComoCapitao}</div>
-          <div className="label">Como capitão</div>
-        </div>
-        <div className="pl-stat">
-          <div className="num">{stats.notaMedia != null ? stats.notaMedia.toFixed(1) : '—'}</div>
-          <div className="label">{stats.notaMedia != null ? `Nota média (${stats.totalAvaliacoes})` : 'Ainda sem avaliações'}</div>
-        </div>
-        <div className="pl-stat">
-          <div className="num">{stats.moral.toFixed(1)}</div>
-          <div className="label">Moral</div>
-        </div>
-        {stats.totalPeladasPassadas > 0 && (
-          <div className="pl-stat">
-            <div className="num">{stats.percentualPresenca}%</div>
-            <div className="label">Presença ({stats.peladasJogadas}/{stats.totalPeladasPassadas})</div>
-          </div>
-        )}
-        {stats.percentualPontualidade != null && (
-          <div className="pl-stat">
-            <div className="num">{stats.percentualPontualidade}%</div>
-            <div className="label">Pontualidade ({stats.partidasComCheckin} c/ check-in)</div>
-          </div>
-        )}
-        {stats.percentualFairPlay != null && (
-          <div className="pl-stat">
-            <div className="num">{stats.percentualFairPlay}%</div>
-            <div className="label">Fair play</div>
-          </div>
-        )}
-      </div>
-
       <p className="pl-perfil-stats-nota">
         Moral considera desempenho nas avaliações, presença, pontualidade e fair play — pontualidade e fair play começam neutros até haver histórico suficiente.
       </p>
-
-      <PatenteCard patente={patente} celebrar={false} />
 
       <PerfilTags tags={tags} />
 

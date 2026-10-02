@@ -7,11 +7,11 @@ import AvaliarModal from '../components/AvaliarModal';
 import CaptainIcon from '../components/icons/CaptainIcon';
 import EmptyState, { EmptyAcao } from '../components/EmptyState';
 import ConquistasBadges from '../components/ConquistasBadges';
-import PatenteCard from '../components/PatenteCard';
+import FichaJogador from '../components/FichaJogador';
 import PerfilSobre from '../components/PerfilSobre';
 import PerfilTags from '../components/PerfilTags';
 import TicketButton from '../components/TicketButton';
-import { fmtDate, MODALIDADE_LABEL, POSICAO_LABEL, RESULTADO_LABEL, RESULTADO_COR } from '@/lib/gameUtils';
+import { fmtDate, RESULTADO_LABEL, RESULTADO_COR } from '@/lib/gameUtils';
 import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../components/AuthProvider';
 
@@ -54,65 +54,17 @@ export default function PerfilPage() {
 
   return (
     <div>
-      <div className="pl-perfil-header">
-        <Avatar nome={profile.nome} size={80} ring fotoUrl={profile.foto_url} />
-        <div className="pl-perfil-info">
-          <h2>{profile.nome}</h2>
-          <p>{profile.bairro || 'Bairro não informado'}</p>
-          {profile.modalidade_principal && (
-            <p className="meta">
-              {MODALIDADE_LABEL[profile.modalidade_principal]}
-              {profile.posicoes?.length > 0 && ` · ${profile.posicoes.map((s) => POSICAO_LABEL[s] || s).join(' / ')}`}
-            </p>
-          )}
-          <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
-            <button className="pl-share-btn" onClick={() => setEditOpen(true)}>Editar perfil</button>
-            <Link href="/minhas-peladas" className="pl-share-btn" style={{ textDecoration: 'none' }}>Minhas peladas</Link>
-            <Link href="/times" className="pl-share-btn" style={{ textDecoration: 'none' }}>Meus times</Link>
-            <Link href="/configuracoes" className="pl-share-btn" style={{ textDecoration: 'none' }}>Notificações</Link>
-            {profile.role === 'admin' && (
-              <Link href="/admin" className="pl-share-btn" style={{ textDecoration: 'none' }}>Administração</Link>
-            )}
-            <button className="pl-share-btn" onClick={signOut}>Sair</button>
-          </div>
-        </div>
-      </div>
+      <FichaJogador profile={profile} stats={stats} patente={patente} />
 
-      <div className="pl-perfil-stats">
-        <div className="pl-stat">
-          <div className="num">{stats.peladasConfirmadas}</div>
-          <div className="label">Confirmadas</div>
-        </div>
-        <div className="pl-stat">
-          <div className="num">{stats.peladasComoCapitao}</div>
-          <div className="label">Como capitão</div>
-        </div>
-        <div className="pl-stat">
-          <div className="num">{stats.notaMedia != null ? stats.notaMedia.toFixed(1) : '—'}</div>
-          <div className="label">{stats.notaMedia != null ? `Nota média (${stats.totalAvaliacoes})` : 'Ainda sem avaliações'}</div>
-        </div>
-        <div className="pl-stat">
-          <div className="num">{stats.moral.toFixed(1)}</div>
-          <div className="label">Moral</div>
-        </div>
-        {stats.totalPeladasPassadas > 0 && (
-          <div className="pl-stat">
-            <div className="num">{stats.percentualPresenca}%</div>
-            <div className="label">Presença ({stats.peladasJogadas}/{stats.totalPeladasPassadas})</div>
-          </div>
+      <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 640, padding: '0 16px', marginLeft: 'auto', marginRight: 'auto' }}>
+        <button className="pl-share-btn" onClick={() => setEditOpen(true)}>Editar perfil</button>
+        <Link href="/minhas-peladas" className="pl-share-btn" style={{ textDecoration: 'none' }}>Minhas peladas</Link>
+        <Link href="/times" className="pl-share-btn" style={{ textDecoration: 'none' }}>Meus times</Link>
+        <Link href="/configuracoes" className="pl-share-btn" style={{ textDecoration: 'none' }}>Notificações</Link>
+        {profile.role === 'admin' && (
+          <Link href="/admin" className="pl-share-btn" style={{ textDecoration: 'none' }}>Administração</Link>
         )}
-        {stats.percentualPontualidade != null && (
-          <div className="pl-stat">
-            <div className="num">{stats.percentualPontualidade}%</div>
-            <div className="label">Pontualidade ({stats.partidasComCheckin} c/ check-in)</div>
-          </div>
-        )}
-        {stats.percentualFairPlay != null && (
-          <div className="pl-stat">
-            <div className="num">{stats.percentualFairPlay}%</div>
-            <div className="label">Fair play</div>
-          </div>
-        )}
+        <button className="pl-share-btn" onClick={signOut}>Sair</button>
       </div>
 
       <p className="pl-perfil-stats-nota">
@@ -121,8 +73,6 @@ export default function PerfilPage() {
           <> Presença conta peladas passadas em que você não foi marcado como falta. Pontualidade considera só as partidas com check-in registrado: chegou até 10min do horário marcado conta como pontual.</>
         )}
       </p>
-
-      <PatenteCard patente={patente} />
 
       <PerfilTags tags={tags} />
 

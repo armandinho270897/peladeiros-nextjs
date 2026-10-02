@@ -11,6 +11,67 @@
 .pl-stat .num { font-family: var(--font-display); font-size: 22px; color: var(--neon); }
 .pl-stat .label { font-size: 10px; color: var(--paper-dim); text-transform: uppercase; }
 
+/* Ficha de Jogador (FichaJogador.js) — cabeçalho + patente + stats do
+   Perfil (próprio e público) virando um cartão só, no mesmo espírito do
+   card de push (adesivo colado torto, brilho neon) em vez de três blocos
+   soltos. Números de reputação (nota/moral/presença/pontualidade) em
+   --gold, pela mesma regra do sistema de cores do topo deste arquivo —
+   .pl-stat acima é mais antigo que essa regra e ainda usa neon, mas aqui
+   seguimos a convenção documentada. */
+.pl-ficha {
+  position: relative;
+  max-width: 400px;
+  margin: 18px auto 0;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(166,255,0,0.10) 0%, rgba(166,255,0,0) 55%),
+    radial-gradient(90% 70% at 85% 100%, rgba(184,127,232,0.12) 0%, rgba(184,127,232,0) 60%),
+    var(--card-bg);
+  border: 1.5px solid rgba(166,255,0,0.28);
+  border-radius: var(--radius-lg);
+  padding: 34px 22px 22px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 18px 50px rgba(0,0,0,0.45), 0 0 34px rgba(166,255,0,0.08);
+  animation: pl-ficha-glow 6s ease-in-out infinite;
+}
+@keyframes pl-ficha-glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 18px 50px rgba(0,0,0,0.45), 0 0 34px rgba(166,255,0,0.08); }
+  50%      { box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 18px 50px rgba(0,0,0,0.45), 0 0 46px rgba(166,255,0,0.17); }
+}
+@media (prefers-reduced-motion: reduce) { .pl-ficha { animation: none; } }
+
+.pl-ficha-patente-tag {
+  position: absolute; top: -14px; right: 18px;
+  background: var(--neon); color: var(--ink);
+  font-family: var(--font-tag); font-size: 14px; line-height: 1;
+  padding: 7px 14px 8px; border-radius: var(--radius-sm);
+  transform: rotate(4deg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+  white-space: nowrap;
+  max-width: calc(100% - 24px);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.pl-ficha-patente-capitao { display: block; font-family: var(--font-body); font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 1px; }
+
+.pl-ficha-avatar-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
+
+.pl-ficha-nome { font-family: var(--font-display); text-transform: uppercase; font-size: 28px; text-align: center; margin: 0; letter-spacing: 0.3px; line-height: 1.05; text-wrap: balance; overflow-wrap: break-word; }
+.pl-ficha-sub { text-align: center; font-size: 12px; color: var(--paper-dim); text-transform: uppercase; letter-spacing: 0.08em; margin: 6px 0 0; }
+
+.pl-ficha-underline { display: block; width: 92px; height: 10px; margin: 14px auto 16px; background-image: var(--pl-underline); background-repeat: no-repeat; background-size: contain; opacity: 0.85; }
+
+.pl-ficha-stats { display: flex; align-items: stretch; justify-content: center; }
+.pl-ficha-stat { flex: 1; min-width: 0; text-align: center; padding: 0 6px; position: relative; }
+.pl-ficha-stat + .pl-ficha-stat::before {
+  content: ''; position: absolute; left: 0; top: 10%; bottom: 10%; width: 1px;
+  background: repeating-linear-gradient(180deg, rgba(110,113,120,0.5) 0 4px, transparent 4px 8px);
+}
+.pl-ficha-stat .num { font-family: var(--font-display); font-size: 24px; color: var(--gold); line-height: 1; white-space: nowrap; }
+.pl-ficha-stat .num .unidade { font-size: 13px; margin-left: 1px; }
+.pl-ficha-stat .label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--paper-dim); margin-top: 5px; }
+
+.pl-ficha-progress-wrap { margin-top: 20px; }
+.pl-ficha-progress-note { font-size: 11px; color: var(--paper-dim); margin: 7px 0 0; text-align: center; }
+.pl-ficha-maxed { margin-top: 18px; text-align: center; font-family: var(--font-tag); font-size: 13px; color: var(--lilas); }
+
 .pl-conquistas { display: flex; gap: 10px; max-width: 640px; margin: 0 auto; padding: 0 16px 18px; flex-wrap: wrap; }
 .pl-conquista {
   background: var(--card-bg);
