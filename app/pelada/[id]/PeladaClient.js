@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { aprovadosDe, shareUrl, jaAconteceu, haversineKm } from '@/lib/gameUtils';
+import { aprovadosDe, shareUrl, jaAconteceu, haversineKm, fmtHora } from '@/lib/gameUtils';
 import { useJustLotou } from '@/lib/useJustLotou';
 import { useAuth } from '../../components/AuthProvider';
 import { useToast } from '../../components/ToastProvider';
@@ -110,7 +110,7 @@ export default function PeladaClient({ id }) {
   function shareGame(g) {
     const confirmados = aprovadosDe(g).length;
     const restantes = Math.max(0, g.vagas_totais - confirmados);
-    const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${g.horario}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
+    const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${fmtHora(g.horario)}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
     const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
     if (win) showToast('Pelada compartilhada');
   }

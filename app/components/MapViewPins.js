@@ -7,7 +7,7 @@ import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { arenaTokenPinIcon, userLocationIcon, modalidadePinIcon, DARK_TILE_URL, DARK_TILE_ATTRIBUTION, DARK_TILE_MAX_ZOOM } from '@/lib/leafletIcon';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
-import { fmtDate, ocupandoVagaDe, googleMapsDirectionsUrl, statusVagas, comecaEmBreve, inicioDoJogo } from '@/lib/gameUtils';
+import { fmtDate, fmtHora, ocupandoVagaDe, googleMapsDirectionsUrl, statusVagas, comecaEmBreve, inicioDoJogo } from '@/lib/gameUtils';
 import { imagemDoTipo } from '@/lib/tipoJogoImagem';
 import TicketButton from './TicketButton';
 import EmptyFieldIcon from './icons/EmptyFieldIcon';
@@ -358,7 +358,7 @@ export default function MapViewPins({ games, arenas = [], onConfirm }) {
               <div className="pl-map-sheet-body">
                 <div style={{ flex: 1 }}>
                   <h3 className="pl-map-sheet-title">{g.local}</h3>
-                  <p className="pl-map-sheet-meta">{d.dow} {d.dom} às {g.horario}</p>
+                  <p className="pl-map-sheet-meta">{d.dow} {d.dom} às {fmtHora(g.horario)}</p>
                   <p className="pl-map-sheet-meta">{restantes > 0 ? `${restantes} vaga(s)` : 'Lotado'}</p>
                 </div>
                 <button className="pl-map-sheet-close" onClick={fecharSheet} aria-label="Fechar">×</button>

@@ -11,7 +11,7 @@ import FichaJogador from '../components/FichaJogador';
 import PerfilSobre from '../components/PerfilSobre';
 import PerfilTags from '../components/PerfilTags';
 import TicketButton from '../components/TicketButton';
-import { fmtDate, RESULTADO_LABEL, RESULTADO_COR } from '@/lib/gameUtils';
+import { fmtDate, fmtHora, RESULTADO_LABEL, RESULTADO_COR } from '@/lib/gameUtils';
 import { useToast } from '../components/ToastProvider';
 import { useAuth } from '../components/AuthProvider';
 
@@ -114,7 +114,7 @@ export default function PerfilPage() {
                 <div className="pl-date"><div className="dow">{d.dow}</div><div className="dom">{d.dom}</div></div>
                 <div className="pl-info">
                   <h3>{g.local}</h3>
-                  <p className="meta">{g.horario}</p>
+                  <p className="meta">{fmtHora(g.horario)}</p>
                   <span className="pl-bairro-tag">{g.bairro}</span>
                   <p className="meta"><CaptainIcon /> Capitão: <b>{g.capitao}</b></p>
                   {g.placar_time_a != null && g.placar_time_b != null && (

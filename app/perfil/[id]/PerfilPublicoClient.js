@@ -12,7 +12,7 @@ import PerfilTags from '../../components/PerfilTags';
 import BackLink from '../../components/BackLink';
 import DenunciarModal from '../../components/DenunciarModal';
 import { useToast } from '../../components/ToastProvider';
-import { fmtDate, RESULTADO_LABEL, RESULTADO_COR } from '@/lib/gameUtils';
+import { fmtDate, fmtHora, RESULTADO_LABEL, RESULTADO_COR } from '@/lib/gameUtils';
 
 // Perfil público de OUTRO jogador — mesma estrutura visual de app/perfil/page.js
 // (avatar, stats, conquistas, times, histórico), mas sem nenhum controle
@@ -138,7 +138,7 @@ export default function PerfilPublicoClient({ id }) {
                 <div className="pl-date"><div className="dow">{d.dow}</div><div className="dom">{d.dom}</div></div>
                 <div className="pl-info">
                   <h3>{g.local}</h3>
-                  <p className="meta">{g.horario}</p>
+                  <p className="meta">{fmtHora(g.horario)}</p>
                   <span className="pl-bairro-tag">{g.bairro}</span>
                   <p className="meta"><CaptainIcon /> Capitão: <b>{g.capitao}</b></p>
                   {g.placar_time_a != null && g.placar_time_b != null && (

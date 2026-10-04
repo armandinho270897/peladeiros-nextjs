@@ -1,6 +1,6 @@
 'use client';
 import GameArtBanner from './GameArtBanner';
-import { fmtDate, ocupandoVagaDe, statusVagas } from '@/lib/gameUtils';
+import { fmtDate, fmtHora, ocupandoVagaDe, statusVagas } from '@/lib/gameUtils';
 
 // Hero da tela de pelada vira o próprio cartaz do jogo — data carimbada,
 // selo de vaga, nome do local gigante e horário/bairro/tipo por baixo,
@@ -28,7 +28,7 @@ export default function PeladaHero({ game }) {
       <div className="pl-pelada-hero-text">
         <h1 className="pl-pelada-hero-local">{game.local}</h1>
         <p className="pl-pelada-hero-sub">
-          <b>{game.horario}</b>{detalhes && ` · ${detalhes}`}
+          <b>{fmtHora(game.horario)}</b>{detalhes && ` · ${detalhes}`}
         </p>
       </div>
     </div>

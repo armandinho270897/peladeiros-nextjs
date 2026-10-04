@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { fmtDate, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas, souCapitaoDe, checkinJanelaAberta, checkinAbreEm, formatHoraSP, CHECKIN_UNDO_MS } from '@/lib/gameUtils';
+import { fmtDate, fmtHora, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas, souCapitaoDe, checkinJanelaAberta, checkinAbreEm, formatHoraSP, CHECKIN_UNDO_MS } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './icons/CaptainIcon';
 import TicketButton from './TicketButton';
@@ -205,7 +205,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
       <div className="pl-card-center">
         <div className="pl-date-pill">{d.dow} {d.dom}</div>
         <h3>{g.local}</h3>
-        <span className="pl-card-when">{contagem || g.horario}</span>
+        <span className="pl-card-when">{contagem || fmtHora(g.horario)}</span>
 
         <div className="pl-card-tags">
           <div className={`pl-status-badge ${status.className} ${pulse ? 'pl-flip-pulse' : ''}`}>{status.label}</div>

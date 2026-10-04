@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { fmtDate } from '@/lib/gameUtils';
+import { fmtDate, fmtHora } from '@/lib/gameUtils';
 
 // CTA único de rodapé — lembrete de uma linha se já tem pelada confirmada
 // (o card completo já existe em /peladas, não duplica aqui), ou reforço
@@ -13,7 +13,7 @@ export default function HomeFooterCta({ game, loading }) {
     return (
       <Link href={`/pelada/${game.id}`} className="pl-footer-cta-line">
         <span className="pl-footer-cta-dot" aria-hidden="true" />
-        <span className="pl-footer-cta-txt">{d.dow} · {game.horario} · <b>{game.local}</b></span>
+        <span className="pl-footer-cta-txt">{d.dow} · {fmtHora(game.horario)} · <b>{game.local}</b></span>
         <span className="pl-footer-cta-arrow" aria-hidden="true">→</span>
       </Link>
     );

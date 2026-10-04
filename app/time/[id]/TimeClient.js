@@ -15,7 +15,7 @@ import { useToast } from '../../components/ToastProvider';
 import { useConfirm } from '../../components/ConfirmProvider';
 import { useAuth } from '../../components/AuthProvider';
 import UniformPreview from '../../components/UniformPreview';
-import { MODALIDADE_LABEL, POSICAO_LABEL, POSICAO_ZONA } from '@/lib/gameUtils';
+import { MODALIDADE_LABEL, POSICAO_LABEL, POSICAO_ZONA, fmtHora } from '@/lib/gameUtils';
 import { DIA_SEMANA_LABEL, NIVEL_COMPETITIVO_LABEL } from '@/lib/timeConstants';
 
 const RECRUTAMENTO_INFO = {
@@ -504,7 +504,7 @@ export default function TimeClient({ id }) {
                     <Avatar nome={d.timeAdversario?.nome || '?'} size={48} fotoUrl={d.timeAdversario?.escudo_url} />
                     <div className="pl-info">
                       <h3>{d.timeAdversario?.nome}</h3>
-                      <p className="meta">{d.local} · {d.data} às {d.horario}</p>
+                      <p className="meta">{d.local} · {d.data} às {fmtHora(d.horario)}</p>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button type="button" className="pl-btn-secondary" onClick={() => recusarDesafio(d.id)} disabled={busy}>Recusar</button>
@@ -527,7 +527,7 @@ export default function TimeClient({ id }) {
                     <Avatar nome={d.timeAdversario?.nome || '?'} size={48} fotoUrl={d.timeAdversario?.escudo_url} />
                     <div className="pl-info">
                       <h3>{d.timeAdversario?.nome}</h3>
-                      <p className="meta">{d.local} · {d.data} às {d.horario} · Aguardando resposta</p>
+                      <p className="meta">{d.local} · {d.data} às {fmtHora(d.horario)} · Aguardando resposta</p>
                     </div>
                     <button type="button" className="pl-share-btn" onClick={() => cancelarDesafio(d.id)} disabled={busy}>Cancelar</button>
                   </div>

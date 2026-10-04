@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   fmtDate, normalizeWhatsapp, statusCheckin, formatHoraSP,
-  checkinJanelaAberta, jaAconteceu, aprovadosDe, shareUrl,
+  checkinJanelaAberta, jaAconteceu, aprovadosDe, shareUrl, fmtHora,
 } from '@/lib/gameUtils';
 import { useToast } from '../../components/ToastProvider';
 import { useConfirm } from '../../components/ConfirmProvider';
@@ -19,7 +19,7 @@ function abrirWhatsapp(whatsapp) {
 function shareGame(g) {
   const confirmadosCount = aprovadosDe(g).length;
   const restantes = Math.max(0, g.vagas_totais - confirmadosCount);
-  const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${g.horario}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
+  const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${fmtHora(g.horario)}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 

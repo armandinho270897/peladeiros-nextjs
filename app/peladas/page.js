@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useGames } from '@/lib/useGames';
 import { useArenas } from '@/lib/useArenas';
-import { todayISO, aprovadosDe, shareUrl, haversineKm } from '@/lib/gameUtils';
+import { todayISO, aprovadosDe, shareUrl, haversineKm, fmtHora } from '@/lib/gameUtils';
 import { getRadiusPref, saveRadiusPref } from '@/lib/radiusPref';
 import { getFiltrosPref, saveFiltrosPref } from '@/lib/filtrosPref';
 import { useJustLotou } from '@/lib/useJustLotou';
@@ -129,7 +129,7 @@ export default function PeladasPage() {
   function shareGame(g) {
     const confirmados = aprovadosDe(g).length;
     const restantes = Math.max(0, g.vagas_totais - confirmados);
-    const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${g.horario}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
+    const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${fmtHora(g.horario)}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
     const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
     if (win) showToast('Pelada compartilhada');
   }

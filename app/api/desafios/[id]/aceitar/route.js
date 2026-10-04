@@ -4,6 +4,7 @@ import { authorizeTimeCaptain } from '@/lib/timeAuth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { createNotification } from '@/lib/notify';
 import { errJson } from '@/lib/apiError';
+import { fmtHora } from '@/lib/gameUtils';
 
 // Aceitar um desafio cria a pelada na hora, com os membros aprovados dos
 // dois times já confirmados (não pendentes) — reaproveita 100% da
@@ -56,7 +57,7 @@ export async function POST(request, { params }) {
       userId: c.user_id,
       tipo: 'desafio_aceito',
       gameId: resultado.game_id,
-      mensagem: `${resultado.time_desafiado_nome || 'O time'} aceitou o desafio! Partida marcada em ${resultado.local}, ${resultado.data} às ${resultado.horario}.`,
+      mensagem: `${resultado.time_desafiado_nome || 'O time'} aceitou o desafio! Partida marcada em ${resultado.local}, ${resultado.data} às ${fmtHora(resultado.horario)}.`,
       atorUserId: auth.user.id,
     });
   }
