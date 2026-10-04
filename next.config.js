@@ -1,7 +1,17 @@
 const { withSentryConfig } = require('@sentry/nextjs');
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  experimental: {
+    // A imagem da prévia do link (app/pelada/[id]/opengraph-image.js) lê as
+    // fontes do disco em runtime. O rastreamento automático do Next não
+    // enxerga esse readFile, então sem isso as fontes não vão pro deploy e
+    // a rota daria 500 na Vercel (só aparece lá, não no build local).
+    outputFileTracingIncludes: {
+      '/pelada/[id]/opengraph-image': ['./assets/fonts/**/*'],
+    },
+  },
+};
 
 // withSentryConfig precisa envolver o config SEMPRE — é ele que injeta,
 // via webpack, a importação de sentry.client.config.js no bundle do

@@ -33,17 +33,17 @@ export async function generateMetadata({ params }) {
   return {
     title,
     description,
+    // Sem `images` de propósito: a imagem vem de opengraph-image.js (cartaz
+    // da pelada) — declarar aqui sobrescreveria com o ícone genérico.
     openGraph: {
       title,
       description,
-      images: ['/icons/icon-512.png'],
       type: 'website',
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title,
       description,
-      images: ['/icons/icon-512.png'],
     },
   };
 }
