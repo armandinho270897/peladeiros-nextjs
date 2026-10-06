@@ -203,6 +203,10 @@ export async function PATCH(request, { params }) {
     }
   }
 
+  // Só mexe se veio no formulário — um cliente com tela antiga (PWA em cache)
+  // não manda o campo, e não deve desligar sem querer a escolha do capitão.
+  if (form.has('fichaCorDoTime')) updates.ficha_cor_do_time = form.get('fichaCorDoTime') === 'true';
+
   const { data: time, error } = await supabase.from('times').update(updates).eq('id', id).select().single();
   if (error) return errJson(error, 500);
 

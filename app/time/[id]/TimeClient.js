@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Avatar from '../../components/Avatar';
-import CaptainIcon from '../../components/icons/CaptainIcon';
 import PlayerSearch from '../../components/PlayerSearch';
 import BackLink from '../../components/BackLink';
 import EditTimeModal from '../../components/EditTimeModal';
@@ -14,14 +13,9 @@ import TicketButton from '../../components/TicketButton';
 import { useToast } from '../../components/ToastProvider';
 import { useConfirm } from '../../components/ConfirmProvider';
 import { useAuth } from '../../components/AuthProvider';
-import UniformPreview from '../../components/UniformPreview';
-import { MODALIDADE_LABEL, POSICAO_LABEL, POSICAO_ZONA, fmtHora } from '@/lib/gameUtils';
-import { DIA_SEMANA_LABEL, NIVEL_COMPETITIVO_LABEL } from '@/lib/timeConstants';
-
-const RECRUTAMENTO_INFO = {
-  procurando_jogadores: { label: 'Recrutando', className: 'aberto' },
-  procurando_goleiro: { label: 'Precisa de goleiro', className: 'goleiro' },
-};
+import FichaTime from '../../components/FichaTime';
+import { POSICAO_LABEL, POSICAO_ZONA, fmtHora } from '@/lib/gameUtils';
+import { DIA_SEMANA_LABEL } from '@/lib/timeConstants';
 
 // Ordem fixa de exibição do elenco por zona — "Outros" pega quem não tem
 // posição cadastrada no perfil, sem sumir da lista.
@@ -240,7 +234,6 @@ export default function TimeClient({ id }) {
   const membrosIds = membros.map((m) => m.profiles?.id).filter(Boolean);
   const minhaMembresia = user ? membros.find((m) => m.user_id === user.id) : null;
   const outrosMembrosAprovados = membros.filter((m) => m.user_id !== user?.id && m.profiles).map((m) => m.profiles);
-  const recrutamento = RECRUTAMENTO_INFO[time.recrutamento];
   const podePedirEntrada = !!user && !minhaMembresia && time.recrutamento !== 'fechado' && minhaRelacao !== 'solicitado' && minhaRelacao !== 'pendente';
   // Quem não tem conta não some sem opção nenhuma: a própria URL do time já
   // é pública, então o link de login carrega o caminho de volta pra cá com
@@ -324,41 +317,7 @@ export default function TimeClient({ id }) {
         </div>
       </div>
 
-      <div className="pl-perfil-header">
-        <Avatar nome={time.nome} size={80} ring fotoUrl={time.escudo_url} />
-        <div className="pl-perfil-info">
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-            <h2 style={{ margin: 0 }}>{time.nome}</h2>
-            {time.sigla && <span className="pl-time-card-sigla">{time.sigla}</span>}
-          </div>
-          <p>{time.bairro || 'Bairro não informado'}</p>
-          <p className="meta">
-            {time.modalidade && (MODALIDADE_LABEL[time.modalidade] || time.modalidade)}
-            {time.nivel_competitivo && ` · ${NIVEL_COMPETITIVO_LABEL[time.nivel_competitivo] || time.nivel_competitivo}`}
-            {time.ano_fundacao && ` · Desde ${time.ano_fundacao}`}
-          </p>
-          {capitao && <p className="meta"><CaptainIcon /> Capitão: <b>{capitao.nome}</b></p>}
-          {(recrutamento || time.aceita_desafios) && (
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-              {recrutamento && <span className={`pl-time-card-recrutamento ${recrutamento.className}`}>{recrutamento.label}</span>}
-              {time.aceita_desafios && <span className="pl-time-card-recrutamento aberto">Aceita desafios</span>}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {stats && (stats.confrontosDisputados > 0 || stats.notaMediaElenco != null) && (
-        <div className="pl-perfil-stats">
-          <div className="pl-stat">
-            <div className="num">{stats.confrontosDisputados}</div>
-            <div className="label">Confrontos disputados</div>
-          </div>
-          <div className="pl-stat">
-            <div className="num">{stats.notaMediaElenco != null ? stats.notaMediaElenco.toFixed(1) : '—'}</div>
-            <div className="label">Nota média do elenco</div>
-          </div>
-        </div>
-      )}
+      <FichaTime time={time} capitao={capitao} totalMembros={membros.length} stats={stats} />
 
       {souCapitao && resumoFinanceiro && resumoFinanceiro.mensalistas > 0 && (
         <div className="pl-list" style={{ paddingTop: 0 }}>
@@ -390,13 +349,6 @@ export default function TimeClient({ id }) {
               <p className="pl-hint">Defina o valor da mensalidade em "Editar time" pra controlar os pagamentos.</p>
             )}
           </div>
-        </div>
-      )}
-
-      {(time.cor_primaria || time.cor_secundaria) && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, maxWidth: 640, margin: '0 auto 14px', padding: '0 16px' }}>
-          <UniformPreview corPrimaria={time.cor_primaria} corSecundaria={time.cor_secundaria} size={40} />
-          <span className="meta">Uniforme do time</span>
         </div>
       )}
 

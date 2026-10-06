@@ -47,7 +47,7 @@ export default function FichaJogador({ profile, stats, patente, celebrar = true 
 
       <div className="pl-ficha pl-reveal pl-reveal-3">
         {patente && (
-          <span className="pl-ficha-patente-tag">
+          <span className="pl-ficha-tag">
             {patente.nome}
             {patente.capitao && <span className="pl-ficha-patente-capitao">· Capitão</span>}
           </span>

@@ -70,6 +70,7 @@ export default function TimeWizardForm({ time, onClose, onSaved }) {
   const [anoFundacao, setAnoFundacao] = useState(time?.ano_fundacao || '');
   const [corPrimaria, setCorPrimaria] = useState(time?.cor_primaria || '');
   const [corSecundaria, setCorSecundaria] = useState(time?.cor_secundaria || '');
+  const [fichaCorDoTime, setFichaCorDoTime] = useState(time?.ficha_cor_do_time || false);
 
   const [bairro, setBairro] = useState(time?.bairro || '');
   const [arenaId, setArenaId] = useState(time?.arena_id || '');
@@ -120,6 +121,7 @@ export default function TimeWizardForm({ time, onClose, onSaved }) {
     form.set('anoFundacao', anoFundacao);
     form.set('corPrimaria', corPrimaria);
     form.set('corSecundaria', corSecundaria);
+    form.set('fichaCorDoTime', fichaCorDoTime ? 'true' : 'false');
     form.set('bairro', bairro.trim());
     form.set('arenaId', arenaId);
     form.set('modalidade', modalidade);
@@ -170,6 +172,14 @@ export default function TimeWizardForm({ time, onClose, onSaved }) {
               <div className="pl-field" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <UniformPreview corPrimaria={corPrimaria} corSecundaria={corSecundaria} size={40} />
                 <span style={{ fontSize: 12, color: 'var(--paper-dim)' }}>Prévia do uniforme</span>
+              </div>
+            )}
+            {corPrimaria && (
+              <div className="pl-field">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', textTransform: 'none' }}>
+                  <input type="checkbox" checked={fichaCorDoTime} onChange={(e) => setFichaCorDoTime(e.target.checked)} />
+                  Usar a cor primária no brilho do cartão do time
+                </label>
               </div>
             )}
           </div>

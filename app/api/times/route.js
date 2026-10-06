@@ -91,6 +91,7 @@ export async function POST(request) {
       aceita_desafios: aceitaDesafios,
       faixa_etaria: faixaEtaria,
       whatsapp_responsavel: whatsappResponsavel,
+      ficha_cor_do_time: form.get('fichaCorDoTime') === 'true',
     })
     .select()
     .single();
