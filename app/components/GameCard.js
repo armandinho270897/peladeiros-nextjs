@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { fmtDate, fmtHora, aprovadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas, souCapitaoDe, checkinJanelaAberta, checkinAbreEm, formatHoraSP, CHECKIN_UNDO_MS } from '@/lib/gameUtils';
+import { fmtDate, fmtHora, confirmadosDe, esperaDe, pendentesDe, ocupandoVagaDe, todayISO, statusVagas, souCapitaoDe, checkinJanelaAberta, checkinAbreEm, formatHoraSP, CHECKIN_UNDO_MS } from '@/lib/gameUtils';
 import Avatar from './Avatar';
 import CaptainIcon from './icons/CaptainIcon';
 import TicketButton from './TicketButton';
@@ -50,22 +50,7 @@ export default function GameCard({ game, currentUserId, onEdit, onConfirm, onSha
   const router = useRouter();
   const g = game;
   const d = fmtDate(g.data);
-  const aprovados = aprovadosDe(g);
-  // Capitão sempre aparece primeiro entre os confirmados. A maioria das
-  // peladas já traz a linha dele em confirmacoes (só reordena pra frente);
-  // peladas antigas ou um insert que falhou não têm essa linha — sintetiza
-  // uma entrada só com o nome (sem foto/moral) pra não sumir com o capitão
-  // da lista de qualquer forma.
-  // g.owner_id é null em peladas antigas sem capitão — sem o `!!g.owner_id`
-  // aqui, um convidado sem conta (user_id também null) seria confundido
-  // com "o capitão já tem linha" (null === null), e o sort logo abaixo
-  // colocaria esse convidado na frente como se fosse o capitão.
-  const capitaoTemLinha = !!g.owner_id && aprovados.some((c) => c.user_id === g.owner_id);
-  const confirmados = !g.owner_id
-    ? aprovados
-    : capitaoTemLinha
-      ? [...aprovados].sort((a, b) => (b.user_id === g.owner_id) - (a.user_id === g.owner_id))
-      : [{ id: `capitao-${g.id}`, user_id: g.owner_id, nome: g.capitao, moral: null, foto_url: null }, ...aprovados];
+  const confirmados = confirmadosDe(g);
   const espera = esperaDe(g);
   const pendentes = pendentesDe(g);
   const restantes = Math.max(0, g.vagas_totais - ocupandoVagaDe(g).length);

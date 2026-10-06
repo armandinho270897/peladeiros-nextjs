@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { aprovadosDe, shareUrl, jaAconteceu, haversineKm, fmtHora } from '@/lib/gameUtils';
 import { useJustLotou } from '@/lib/useJustLotou';
+import { montarListaWhatsapp } from '@/lib/listaWhatsapp';
 import { useAuth } from '../../components/AuthProvider';
 import { useToast } from '../../components/ToastProvider';
 import GameCard from '../../components/GameCard';
@@ -115,6 +116,20 @@ export default function PeladaClient({ id }) {
     if (win) showToast('Pelada compartilhada');
   }
 
+  // Clipboard falha em contexto não seguro e em alguns navegadores embutidos
+  // (Instagram, etc.) — cai pro WhatsApp com o texto já preenchido, que é pra
+  // onde a lista ia de qualquer jeito.
+  async function copiarLista(g) {
+    const texto = montarListaWhatsapp(g, shareUrl(g.id));
+    try {
+      await navigator.clipboard.writeText(texto);
+      showToast('Lista copiada. É só colar no grupo.');
+    } catch {
+      const win = window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+      showToast(win ? 'Abri o WhatsApp com a lista.' : 'Não consegui copiar. Tenta de novo.');
+    }
+  }
+
   function shareResultado(g) {
     const msg = `⚽ Resultado da pelada!\n${g.local} (${g.bairro})\n${g.data}\n\nTime A ${g.placar_time_a} x ${g.placar_time_b} Time B\n\n${shareUrl(g.id)}`;
     const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
@@ -201,6 +216,13 @@ export default function PeladaClient({ id }) {
           showArt={false}
           distanciaKm={distanciaKm}
         />
+        {!game.encerrada_em && (
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button type="button" className="pl-btn-secondary" style={{ flex: 'none', padding: '10px 18px' }} onClick={() => copiarLista(game)}>
+              Copiar lista pro grupo
+            </button>
+          </div>
+        )}
       </div>
 
       {game.encerrada_em && game.placar_time_a != null && game.placar_time_b != null && (
