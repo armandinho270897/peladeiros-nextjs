@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --no-warnings --test tests/desafiado-artilheiros.test.mjs tests/desafiado-sorteio.test.mjs tests/horario-brasilia.test.mjs tests/in-app-browser.test.mjs tests/moderacao.test.mjs tests/lista-whatsapp.test.mjs",
+    "test": "node --no-warnings --test tests/desafiado-artilheiros.test.mjs tests/desafiado-sorteio.test.mjs tests/horario-brasilia.test.mjs tests/in-app-browser.test.mjs tests/moderacao.test.mjs tests/lista-whatsapp.test.mjs tests/eventos.test.mjs",
     "test:integration": "node --no-warnings --env-file=.env.local --test tests/integration/api-autorizacao.test.mjs"
   },
   "dependencies": {

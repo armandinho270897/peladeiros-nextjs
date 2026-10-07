@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 import TicketButton from './TicketButton';
+import { track } from '@/lib/track';
 
 export default function ConfirmModal({ game, onCancel, onConfirmed }) {
   const { profile } = useAuth();
@@ -17,6 +18,7 @@ export default function ConfirmModal({ game, onCancel, onConfirmed }) {
     setLoading(false);
     if (!res.ok) { setError(result.error); return; }
     setError('');
+    track('confirmou_presenca', { gameId: game.id });
     onConfirmed(result);
   }
 

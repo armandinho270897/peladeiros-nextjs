@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { aprovadosDe, shareUrl, jaAconteceu, haversineKm, fmtHora } from '@/lib/gameUtils';
 import { useJustLotou } from '@/lib/useJustLotou';
 import { montarListaWhatsapp } from '@/lib/listaWhatsapp';
+import { capturarRef, track, trackUmaVez } from '@/lib/track';
 import { useAuth } from '../../components/AuthProvider';
 import { useToast } from '../../components/ToastProvider';
 import GameCard from '../../components/GameCard';
@@ -89,6 +90,14 @@ export default function PeladaClient({ id }) {
     loadGame();
   }, [loadGame]);
 
+  // Topo do funil: alguém abriu o link da pelada (com ou sem conta). Uma vez
+  // por sessão por pelada — o poll de 15s e o recarregar não contam de novo.
+  useEffect(() => {
+    if (!game?.id) return;
+    capturarRef();
+    trackUmaVez(`vista:${game.id}`, 'pelada_vista', { gameId: game.id });
+  }, [game?.id]);
+
   // Sem isso, quem já tá com a página aberta (ex: pediu presença e ficou
   // esperando) só via a aprovação do capitão depois de recarregar na mão —
   // o pedido "sumia" do ponto de vista de quem tava esperando. Reforça com
@@ -111,27 +120,30 @@ export default function PeladaClient({ id }) {
   function shareGame(g) {
     const confirmados = aprovadosDe(g).length;
     const restantes = Math.max(0, g.vagas_totais - confirmados);
-    const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${fmtHora(g.horario)}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
+    const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${fmtHora(g.horario)}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id, 'wa')}`;
     const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
     if (win) showToast('Pelada compartilhada');
+    track('compartilhou', { gameId: g.id, canal: 'wa' });
   }
 
   // Clipboard falha em contexto não seguro e em alguns navegadores embutidos
   // (Instagram, etc.) — cai pro WhatsApp com o texto já preenchido, que é pra
   // onde a lista ia de qualquer jeito.
   async function copiarLista(g) {
-    const texto = montarListaWhatsapp(g, shareUrl(g.id));
+    const texto = montarListaWhatsapp(g, shareUrl(g.id, 'lista'));
     try {
       await navigator.clipboard.writeText(texto);
       showToast('Lista copiada. É só colar no grupo.');
+      track('compartilhou', { gameId: g.id, canal: 'lista' });
     } catch {
       const win = window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
       showToast(win ? 'Abri o WhatsApp com a lista.' : 'Não consegui copiar. Tenta de novo.');
+      if (win) track('compartilhou', { gameId: g.id, canal: 'lista' });
     }
   }
 
   function shareResultado(g) {
-    const msg = `⚽ Resultado da pelada!\n${g.local} (${g.bairro})\n${g.data}\n\nTime A ${g.placar_time_a} x ${g.placar_time_b} Time B\n\n${shareUrl(g.id)}`;
+    const msg = `⚽ Resultado da pelada!\n${g.local} (${g.bairro})\n${g.data}\n\nTime A ${g.placar_time_a} x ${g.placar_time_b} Time B\n\n${shareUrl(g.id, 'res')}`;
     const win = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
     if (win) showToast('Resultado compartilhado');
   }

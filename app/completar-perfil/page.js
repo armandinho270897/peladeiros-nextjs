@@ -10,6 +10,7 @@ import NightPitchBackground from '../components/NightPitchBackground';
 import PitchBall from '../components/PitchBall';
 import FloatingInput from '../components/FloatingInput';
 import BtnBall from '../components/BtnBall';
+import { track } from '@/lib/track';
 
 function CompletarPerfilForm() {
   const searchParams = useSearchParams();
@@ -55,6 +56,7 @@ function CompletarPerfilForm() {
       setError(error.message || 'Não consegui salvar. Tenta de novo.');
       return;
     }
+    track('conta_criada');
     window.location.href = next;
   }
 

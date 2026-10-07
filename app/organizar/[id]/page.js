@@ -5,6 +5,7 @@ import {
   fmtDate, normalizeWhatsapp, statusCheckin, formatHoraSP,
   checkinJanelaAberta, jaAconteceu, aprovadosDe, shareUrl, fmtHora,
 } from '@/lib/gameUtils';
+import { track } from '@/lib/track';
 import { useToast } from '../../components/ToastProvider';
 import { useConfirm } from '../../components/ConfirmProvider';
 import TicketButton from '../../components/TicketButton';
@@ -19,12 +20,13 @@ function abrirWhatsapp(whatsapp) {
 function shareGame(g) {
   const confirmadosCount = aprovadosDe(g).length;
   const restantes = Math.max(0, g.vagas_totais - confirmadosCount);
-  const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${fmtHora(g.horario)}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id)}`;
+  const msg = `Pelada marcada!\n${g.local} (${g.bairro})\n${g.data} às ${fmtHora(g.horario)}\n${restantes} vaga(s) livre(s) de ${g.vagas_totais}\nCapitão: ${g.capitao}\n\nConfirma presença: ${shareUrl(g.id, 'wa')}`;
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  track('compartilhou', { gameId: g.id, canal: 'wa' });
 }
 
 function shareResultado(g) {
-  const msg = `⚽ Resultado da pelada!\n${g.local} (${g.bairro})\n${g.data}\n\nTime A ${g.placar_time_a} x ${g.placar_time_b} Time B\n\n${shareUrl(g.id)}`;
+  const msg = `⚽ Resultado da pelada!\n${g.local} (${g.bairro})\n${g.data}\n\nTime A ${g.placar_time_a} x ${g.placar_time_b} Time B\n\n${shareUrl(g.id, 'res')}`;
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 
