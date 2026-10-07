@@ -23,6 +23,9 @@
    a opção. Só brilho e borda — texto e adesivo continuam com as cores fixas. */
 .pl-ficha {
   position: relative;
+  /* 32px = os 16px de respiro de cada lado que os outros cards da tela têm;
+     sem isso o cartão encostava nas bordas em celular (<= 432px). */
+  width: calc(100% - 32px);
   max-width: 400px;
   margin: 18px auto 0;
   background:

@@ -255,7 +255,10 @@ export default function PeladasPage() {
           <div className="pl-hero-title-row">
             <h2 className="pl-hero-title">Descobrir peladas</h2>
             <span className="pl-hero-count">
-              {resultCount} pelada{resultCount === 1 ? '' : 's'} encontrada{resultCount === 1 ? '' : 's'}
+              {/* Enquanto a lista carrega, "0 peladas encontradas" parecia dizer que não existe nenhuma. */}
+              {tab !== 'minhas' && loading
+                ? 'Buscando…'
+                : `${resultCount} pelada${resultCount === 1 ? '' : 's'} encontrada${resultCount === 1 ? '' : 's'}`}
             </span>
           </div>
 
