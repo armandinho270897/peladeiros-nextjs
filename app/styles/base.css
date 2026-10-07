@@ -223,6 +223,9 @@ body::after {
    próprio valor — é o que os dois elementos abaixo (.pl-splash e
    .pl-splash-frame) fazem. */
 .pl-splash {
+  /* Escondida por padrão: só o app instalado (abaixo) mostra. Quem abre um
+     link no navegador vê o conteúdo na hora. */
+  display: none;
   position: fixed;
   top: 0; right: 0; bottom: 0; left: 0;
   width: 100dvw; height: 100dvh;
@@ -231,6 +234,9 @@ body::after {
   overflow: hidden;
   opacity: 1;
   transition: opacity 500ms ease, transform 500ms ease;
+}
+@media (display-mode: standalone) {
+  .pl-splash { display: block; }
 }
 .pl-splash-bg {
   position: absolute;

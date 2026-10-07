@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { isOnboardingSeen, markOnboardingSeen } from '@/lib/onboarding';
 import NightPitchBackground from './NightPitchBackground';
 import Brand from './Brand';
@@ -14,16 +15,28 @@ const PASSOS = [
   { Icon: OnboardingAvaliarIcon, titulo: 'Jogue, avalie, suba de moral', texto: 'Acabou a partida, dá tua avaliação dos outros jogadores e eles a sua, vai montando tua reputação na manha.' },
 ];
 
+const PAGINAS_DE_LINK = ['/pelada/', '/time/', '/desafiado/'];
+
 // Só aparece na primeira visita (localStorage) — nunca mais depois de
 // visto ou pulado. Mora fora do AuthProvider de propósito: apresenta o
 // app antes de qualquer login, não depende de sessão.
 export default function OnboardingOverlay() {
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
+  const pathname = usePathname();
 
+  // Quem chega por um link compartilhado (pelada, time, desafio) quer ver
+  // aquilo na hora — o onboarding na frente é uma etapa a mais no meio do
+  // caminho mais importante do app. Também não aparece no login que vem de
+  // um "confirmar" (?next=), pelo mesmo motivo. Como o componente mora no
+  // layout (não remonta entre páginas), o efeito reage à troca de rota: a
+  // primeira tela "normal" que a pessoa abrir depois mostra o onboarding.
   useEffect(() => {
-    if (!isOnboardingSeen()) setVisible(true);
-  }, []);
+    if (isOnboardingSeen()) return;
+    if (PAGINAS_DE_LINK.some((p) => pathname?.startsWith(p))) return;
+    if (pathname === '/login' && new URLSearchParams(window.location.search).has('next')) return;
+    setVisible(true);
+  }, [pathname]);
 
   function vibrar() {
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(15);
